@@ -8,6 +8,14 @@ message User {
     string id = 1;
 }
 
+message CreateUserRequest {
+    User user = 1;
+}
+
+message CreateUserResponse {
+    User user = 1;
+}
+
 message GetUserRequest {
     string user_id = 1;
 }
@@ -17,5 +25,6 @@ message GetUserResponse {
 }
 
 service BettorService {
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
     rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
 }
