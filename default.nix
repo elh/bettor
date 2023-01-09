@@ -11,7 +11,7 @@ mkShell {
     # Protocol buffers
     buf
     protoc-gen-go
-    protoc-gen-go-grpc
+    protoc-gen-connect-go
     jq
   ];
 }
