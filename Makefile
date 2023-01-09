@@ -1,5 +1,8 @@
 .DEFAULT_GOAL := gen
-.PHONY: test lint gen
+.PHONY: run test lint gen
+
+run:
+	@go run cmd/grpc.go # run from binary
 
 test:
 	@go test -race -covermode=atomic -coverprofile=coverage.out ./...
