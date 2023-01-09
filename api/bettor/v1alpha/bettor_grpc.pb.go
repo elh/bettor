@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: bettor/v1alpha/bettor.proto
 
-package v1alpha
+package bettorv1alpha
 
 import (
 	context "context"

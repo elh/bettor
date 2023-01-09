@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package bettor.v1alpha;
 
-option go_package = "github.com/elh/bettor/api/bettor/v1alpha";
+// option go_package = "github.com/elh/bettor/api/bettor/v1alpha";
 
 // User identifies a user and their properties.
 message User {

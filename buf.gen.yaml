@@ -6,3 +6,7 @@ plugins:
   - plugin: go-grpc
     out: api
     opt: paths=source_relative
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/elh/bettor/api
