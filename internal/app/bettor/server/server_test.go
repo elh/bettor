@@ -22,8 +22,9 @@ func TestCreateUser(t *testing.T) {
 		},
 	}
 	for _, tC := range testCases {
+		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := &server.Server{}
+			s := server.New()
 			_, err := s.CreateUser(context.Background(), &api.CreateUserRequest{User: tC.user})
 			if tC.expectErr {
 				require.NotNil(t, err)
@@ -47,8 +48,9 @@ func TestGetUser(t *testing.T) {
 		},
 	}
 	for _, tC := range testCases {
+		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := &server.Server{}
+			s := server.New()
 			_, err := s.GetUser(context.Background(), &api.GetUserRequest{UserId: tC.userID})
 			if tC.expectErr {
 				require.NotNil(t, err)

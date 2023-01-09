@@ -15,7 +15,12 @@ type Server struct {
 	api.UnimplementedBettorServiceServer
 }
 
-// CreateUser creates a new user
+// New initializes a new Server.
+func New() *Server {
+	return &Server{}
+}
+
+// CreateUser creates a new user.
 func (s *Server) CreateUser(ctx context.Context, req *api.CreateUserRequest) (*api.CreateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateUser not implemented")
 }

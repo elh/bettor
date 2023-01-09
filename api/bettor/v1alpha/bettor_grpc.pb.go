@@ -22,7 +22,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BettorServiceClient interface {
+	// CreateUser creates a new user.
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
+	// GetUser returns a user by ID.
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
 }
 
@@ -56,7 +58,9 @@ func (c *bettorServiceClient) GetUser(ctx context.Context, in *GetUserRequest, o
 // All implementations must embed UnimplementedBettorServiceServer
 // for forward compatibility
 type BettorServiceServer interface {
+	// CreateUser creates a new user.
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
+	// GetUser returns a user by ID.
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 	mustEmbedUnimplementedBettorServiceServer()
 }
