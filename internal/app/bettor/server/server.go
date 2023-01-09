@@ -1,6 +1,6 @@
 package server
 
-import api "github.com/elh/bettor/gen/bettor/v1alpha"
+import api "github.com/elh/bettor/api/bettor/v1alpha"
 
 var _ api.BettorServiceServer = (*Server)(nil)
 
