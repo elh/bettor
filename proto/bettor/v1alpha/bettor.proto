@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package bettor.v1alpha;
+
+option go_package = "github.com/elh/bettor/proto/bettor/v1alpha";
+
+message User {
+    string id = 1;
+}
+
+message GetUserRequest {
+    string user_id = 1;
+}
+
+message GetUserResponse {
+    User user = 1;
+}
+
+service BettorService {
+    rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+}
