@@ -3,16 +3,16 @@ package server
 import (
 	"context"
 
+	"github.com/bufbuild/connect-go"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/elh/bettor/api/bettor/v1alpha/bettorv1alphaconnect"
 )
 
-var _ api.BettorServiceServer = (*Server)(nil)
+var _ bettorv1alphaconnect.BettorServiceHandler = (*Server)(nil)
 
 // Server is an implementation of the Bettor service.
 type Server struct {
-	api.UnimplementedBettorServiceServer
+	bettorv1alphaconnect.UnimplementedBettorServiceHandler
 }
 
 // New initializes a new Server.
@@ -21,11 +21,8 @@ func New() *Server {
 }
 
 // CreateUser creates a new user.
-func (s *Server) CreateUser(ctx context.Context, req *api.CreateUserRequest) (*api.CreateUserResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateUser not implemented")
-}
-
-// GetUser returns a user by ID.
-func (s *Server) GetUser(ctx context.Context, req *api.GetUserRequest) (*api.GetUserResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetUser not implemented")
+func (s *Server) CreateUser(context.Context, *connect.Request[api.CreateUserRequest]) (*connect.Response[api.CreateUserResponse], error) {
+	return connect.NewResponse(&api.CreateUserResponse{
+		User: &api.User{Id: "TODO"},
+	}), nil
 }
