@@ -5,7 +5,7 @@ test:
 	go test ./...
 
 lint:
-	golint ./... # I like the exported comment warnings. Doesn't fail.
+	if golint ./... 2>&1 | grep '^'; then exit 1; fi; # Requires comments for exported functions
 	golangci-lint run
 	buf lint
 
