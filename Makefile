@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := gen
-.PHONY: run test lint gen
+.PHONY: run test lint gen wc
 
 run:
 	@go run cmd/server.go # run from binary
@@ -14,3 +14,9 @@ lint:
 
 gen:
 	@buf generate
+
+breaking: # detect breaking proto changes
+	@buf breaking --against ".git#branch=main"
+
+wc:
+	@find . -name '*.go' -not -name '*_test.go' -not -name "*.connect.go" -not -name "*.pb.go" | xargs wc
