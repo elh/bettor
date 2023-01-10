@@ -6,6 +6,8 @@ plugins:
   - plugin: connect-go
     out: api
     opt: paths=source_relative
+  - plugin: doc
+    out: docs
 managed:
   enabled: true
   go_package_prefix:
