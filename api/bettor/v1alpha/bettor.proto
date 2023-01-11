@@ -4,29 +4,29 @@ package bettor.v1alpha;
 
 // User identifies a user and their properties.
 message User {
-    string id = 1;
+  string id = 1;
 }
 
 message CreateUserRequest {
-    User user = 1;
+  User user = 1;
 }
 
 message CreateUserResponse {
-    User user = 1;
+  User user = 1;
 }
 
 message GetUserRequest {
-    string user_id = 1;
+  string user_id = 1;
 }
 
 message GetUserResponse {
-    User user = 1;
+  User user = 1;
 }
 
 // BettorService is a service for bets and predictions.
 service BettorService {
-    // CreateUser creates a new user.
-    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
-    // GetUser returns a user by ID.
-    rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+  // CreateUser creates a new user.
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
+  // GetUser returns a user by ID.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
 }

@@ -12,5 +12,5 @@ jobs:
     - uses: cachix/install-nix-action@v18
       with:
         nix_path: nixpkgs=channel:nixos-unstable
-    - run: nix-shell --run "make test"
-    - run: nix-shell --run "make lint"
+    - run: nix-shell ci.nix --run "make test"
+    - run: nix-shell ci.nix --run "make lint"
