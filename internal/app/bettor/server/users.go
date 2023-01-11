@@ -27,7 +27,7 @@ func (s *Server) CreateUser(ctx context.Context, in *connect.Request[api.CreateU
 	}
 
 	if err := s.Repo.CreateUser(ctx, user); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, err
 	}
 
 	return connect.NewResponse(&api.CreateUserResponse{
@@ -43,7 +43,7 @@ func (s *Server) GetUser(ctx context.Context, in *connect.Request[api.GetUserReq
 
 	user, err := s.Repo.GetUser(ctx, in.Msg.GetUserId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, err
 	}
 
 	return connect.NewResponse(&api.GetUserResponse{

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/bufbuild/connect-go" // too lazy to isolate errors :shrug:
+	"github.com/bufbuild/connect-go" // too lazy to isolate errors. repo pkgs will return connect errors
 	api "github.com/elh/bettor/api/bettor/v1alpha"
 	"github.com/elh/bettor/internal/app/bettor/repo"
 )
