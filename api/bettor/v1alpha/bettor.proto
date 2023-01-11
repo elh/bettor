@@ -7,10 +7,11 @@ import "google/type/datetime.proto";
 // User identifies a user and their properties.
 message User {
   string id = 1;
-  double points = 2; // NOTE: is double precision okay? use an integer centipoint and disallow long fractional parts?
+  /* @exclude NOTE: is double precision okay? use an integer centipoint and disallow long fractional parts? */
+  double points = 2;
 }
 
-message BettingEvent {
+message Market {
   string id = 1;
   google.type.DateTime created_at = 2;
   google.type.DateTime updated_at = 3;
@@ -20,7 +21,7 @@ message BettingEvent {
   string creator = 7;
   Status status = 8;
   oneof type {
-    DiscreteOutcomeEvent discrete_outcome = 9;
+    Pool pool = 9;
   }
 
   enum Status {
@@ -31,16 +32,16 @@ message BettingEvent {
   }
 }
 
-message DiscreteOutcomeEvent {
-  repeated DiscreteOutcome outcomes = 1;
-  string winner = 2;
+message Pool {
+  repeated Outcome outcomes = 1;
+  string winner_id = 2;
 }
 
-message DiscreteOutcome {
+message Outcome {
   string id = 1;
   string title = 2;
   double points = 3;
-  int32 users = 4;
+  int32 user_count = 4;
 }
 
 message Bet {
@@ -53,7 +54,7 @@ message Bet {
   double points = 7;
   double settled_points = 8;
   oneof type {
-    string discrete_outcome_id = 9;
+    string outcome_id = 9;
   }
 }
 
@@ -75,10 +76,59 @@ message GetUserResponse {
   User user = 1;
 }
 
+message CreateMarketRequest {
+  Market market = 1;
+}
+
+message CreateMarketResponse {
+  Market market = 1;
+}
+
+message GetMarketRequest {
+  string market_id = 1;
+}
+
+message GetMarketResponse {
+  Market market = 1;
+}
+
+message LockMarketRequest {
+  string market_id = 1;
+}
+
+message LockMarketResponse {
+  Market market = 1;
+}
+
+message SettleMarketRequest {
+  string market_id = 1;
+  string winner_id = 2;
+}
+
+message SettleMarketResponse {
+  Market market = 1;
+}
+
+message PlaceBetRequest {
+  string market_id = 1;
+  Bet bet = 2;
+}
+
+message PlaceBetResponse {
+  Bet bet = 1;
+}
+
 // BettorService is a service for bets and predictions.
 service BettorService {
   // CreateUser creates a new user.
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
   // GetUser returns a user by ID.
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+
+  rpc CreateMarket(CreateMarketRequest) returns (CreateMarketResponse) {}
+  rpc GetMarket(GetMarketRequest) returns (GetMarketResponse) {}
+  rpc LockMarket(LockMarketRequest) returns (LockMarketResponse) {}
+  rpc SettleMarket(SettleMarketRequest) returns (SettleMarketResponse) {}
+
+  rpc PlaceBet(PlaceBetRequest) returns (PlaceBetResponse) {}
 }

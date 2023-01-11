@@ -183,7 +183,11 @@
                 </li>
               
                 <li>
-                  <a href="#bettor.v1alpha.BettingEvent"><span class="badge">M</span>BettingEvent</a>
+                  <a href="#bettor.v1alpha.CreateMarketRequest"><span class="badge">M</span>CreateMarketRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.CreateMarketResponse"><span class="badge">M</span>CreateMarketResponse</a>
                 </li>
               
                 <li>
@@ -195,11 +199,11 @@
                 </li>
               
                 <li>
-                  <a href="#bettor.v1alpha.DiscreteOutcome"><span class="badge">M</span>DiscreteOutcome</a>
+                  <a href="#bettor.v1alpha.GetMarketRequest"><span class="badge">M</span>GetMarketRequest</a>
                 </li>
               
                 <li>
-                  <a href="#bettor.v1alpha.DiscreteOutcomeEvent"><span class="badge">M</span>DiscreteOutcomeEvent</a>
+                  <a href="#bettor.v1alpha.GetMarketResponse"><span class="badge">M</span>GetMarketResponse</a>
                 </li>
               
                 <li>
@@ -211,12 +215,48 @@
                 </li>
               
                 <li>
+                  <a href="#bettor.v1alpha.LockMarketRequest"><span class="badge">M</span>LockMarketRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.LockMarketResponse"><span class="badge">M</span>LockMarketResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.Market"><span class="badge">M</span>Market</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.Outcome"><span class="badge">M</span>Outcome</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.PlaceBetRequest"><span class="badge">M</span>PlaceBetRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.PlaceBetResponse"><span class="badge">M</span>PlaceBetResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.Pool"><span class="badge">M</span>Pool</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.SettleMarketRequest"><span class="badge">M</span>SettleMarketRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.SettleMarketResponse"><span class="badge">M</span>SettleMarketResponse</a>
+                </li>
+              
+                <li>
                   <a href="#bettor.v1alpha.User"><span class="badge">M</span>User</a>
                 </li>
               
               
                 <li>
-                  <a href="#bettor.v1alpha.BettingEvent.Status"><span class="badge">E</span>BettingEvent.Status</a>
+                  <a href="#bettor.v1alpha.Market.Status"><span class="badge">E</span>Market.Status</a>
                 </li>
               
               
@@ -307,7 +347,7 @@
                 </tr>
               
                 <tr>
-                  <td>discrete_outcome_id</td>
+                  <td>outcome_id</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -320,7 +360,247 @@
 
         
       
-        <h3 id="bettor.v1alpha.BettingEvent">BettingEvent</h3>
+        <h3 id="bettor.v1alpha.CreateMarketRequest">CreateMarketRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>market</td>
+                  <td><a href="#bettor.v1alpha.Market">Market</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.CreateMarketResponse">CreateMarketResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>market</td>
+                  <td><a href="#bettor.v1alpha.Market">Market</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.CreateUserRequest">CreateUserRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#bettor.v1alpha.User">User</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.CreateUserResponse">CreateUserResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#bettor.v1alpha.User">User</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.GetMarketRequest">GetMarketRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>market_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.GetMarketResponse">GetMarketResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>market</td>
+                  <td><a href="#bettor.v1alpha.Market">Market</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.GetUserRequest">GetUserRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.GetUserResponse">GetUserResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#bettor.v1alpha.User">User</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.LockMarketRequest">LockMarketRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>market_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.LockMarketResponse">LockMarketResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>market</td>
+                  <td><a href="#bettor.v1alpha.Market">Market</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.Market">Market</h3>
         <p></p>
 
         
@@ -381,14 +661,14 @@
               
                 <tr>
                   <td>status</td>
-                  <td><a href="#bettor.v1alpha.BettingEvent.Status">BettingEvent.Status</a></td>
+                  <td><a href="#bettor.v1alpha.Market.Status">Market.Status</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>discrete_outcome</td>
-                  <td><a href="#bettor.v1alpha.DiscreteOutcomeEvent">DiscreteOutcomeEvent</a></td>
+                  <td>pool</td>
+                  <td><a href="#bettor.v1alpha.Pool">Pool</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -400,55 +680,7 @@
 
         
       
-        <h3 id="bettor.v1alpha.CreateUserRequest">CreateUserRequest</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>user</td>
-                  <td><a href="#bettor.v1alpha.User">User</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
-
-        
-      
-        <h3 id="bettor.v1alpha.CreateUserResponse">CreateUserResponse</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>user</td>
-                  <td><a href="#bettor.v1alpha.User">User</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
-
-        
-      
-        <h3 id="bettor.v1alpha.DiscreteOutcome">DiscreteOutcome</h3>
+        <h3 id="bettor.v1alpha.Outcome">Outcome</h3>
         <p></p>
 
         
@@ -480,7 +712,7 @@
                 </tr>
               
                 <tr>
-                  <td>users</td>
+                  <td>user_count</td>
                   <td><a href="#int32">int32</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -493,7 +725,62 @@
 
         
       
-        <h3 id="bettor.v1alpha.DiscreteOutcomeEvent">DiscreteOutcomeEvent</h3>
+        <h3 id="bettor.v1alpha.PlaceBetRequest">PlaceBetRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>market_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>bet</td>
+                  <td><a href="#bettor.v1alpha.Bet">Bet</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.PlaceBetResponse">PlaceBetResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>bet</td>
+                  <td><a href="#bettor.v1alpha.Bet">Bet</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.Pool">Pool</h3>
         <p></p>
 
         
@@ -505,13 +792,13 @@
               
                 <tr>
                   <td>outcomes</td>
-                  <td><a href="#bettor.v1alpha.DiscreteOutcome">DiscreteOutcome</a></td>
+                  <td><a href="#bettor.v1alpha.Outcome">Outcome</a></td>
                   <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>winner</td>
+                  <td>winner_id</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -524,7 +811,7 @@
 
         
       
-        <h3 id="bettor.v1alpha.GetUserRequest">GetUserRequest</h3>
+        <h3 id="bettor.v1alpha.SettleMarketRequest">SettleMarketRequest</h3>
         <p></p>
 
         
@@ -535,7 +822,14 @@
             <tbody>
               
                 <tr>
-                  <td>user_id</td>
+                  <td>market_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>winner_id</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -548,7 +842,7 @@
 
         
       
-        <h3 id="bettor.v1alpha.GetUserResponse">GetUserResponse</h3>
+        <h3 id="bettor.v1alpha.SettleMarketResponse">SettleMarketResponse</h3>
         <p></p>
 
         
@@ -559,8 +853,8 @@
             <tbody>
               
                 <tr>
-                  <td>user</td>
-                  <td><a href="#bettor.v1alpha.User">User</a></td>
+                  <td>market</td>
+                  <td><a href="#bettor.v1alpha.Market">Market</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -593,7 +887,7 @@
                   <td>points</td>
                   <td><a href="#double">double</a></td>
                   <td></td>
-                  <td><p>NOTE: is double precision okay? use an integer centipoint and disallow long fractional parts? </p></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -605,7 +899,7 @@
       
 
       
-        <h3 id="bettor.v1alpha.BettingEvent.Status">BettingEvent.Status</h3>
+        <h3 id="bettor.v1alpha.Market.Status">Market.Status</h3>
         <p></p>
         <table class="enum-table">
           <thead>
@@ -664,6 +958,41 @@
                 <td><a href="#bettor.v1alpha.GetUserRequest">GetUserRequest</a></td>
                 <td><a href="#bettor.v1alpha.GetUserResponse">GetUserResponse</a></td>
                 <td><p>GetUser returns a user by ID.</p></td>
+              </tr>
+            
+              <tr>
+                <td>CreateMarket</td>
+                <td><a href="#bettor.v1alpha.CreateMarketRequest">CreateMarketRequest</a></td>
+                <td><a href="#bettor.v1alpha.CreateMarketResponse">CreateMarketResponse</a></td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>GetMarket</td>
+                <td><a href="#bettor.v1alpha.GetMarketRequest">GetMarketRequest</a></td>
+                <td><a href="#bettor.v1alpha.GetMarketResponse">GetMarketResponse</a></td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>LockMarket</td>
+                <td><a href="#bettor.v1alpha.LockMarketRequest">LockMarketRequest</a></td>
+                <td><a href="#bettor.v1alpha.LockMarketResponse">LockMarketResponse</a></td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>SettleMarket</td>
+                <td><a href="#bettor.v1alpha.SettleMarketRequest">SettleMarketRequest</a></td>
+                <td><a href="#bettor.v1alpha.SettleMarketResponse">SettleMarketResponse</a></td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>PlaceBet</td>
+                <td><a href="#bettor.v1alpha.PlaceBetRequest">PlaceBetRequest</a></td>
+                <td><a href="#bettor.v1alpha.PlaceBetResponse">PlaceBetResponse</a></td>
+                <td><p></p></td>
               </tr>
             
           </tbody>
