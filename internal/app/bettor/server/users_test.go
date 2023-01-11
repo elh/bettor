@@ -34,3 +34,29 @@ func TestCreateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestGetUser(t *testing.T) {
+	testCases := []struct {
+		desc      string
+		userID    string
+		expectErr bool
+	}{
+		{
+			desc:      "unimplemented",
+			userID:    "rusty",
+			expectErr: true,
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s := server.New()
+			_, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{UserId: tC.userID}))
+			if tC.expectErr {
+				require.NotNil(t, err)
+				return
+			}
+			require.Nil(t, err)
+		})
+	}
+}

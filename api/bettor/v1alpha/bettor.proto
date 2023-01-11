@@ -7,8 +7,10 @@ import "google/type/datetime.proto";
 // User identifies a user and their properties.
 message User {
   string id = 1;
+  google.type.DateTime created_at = 2;
+  google.type.DateTime updated_at = 3;
   /* @exclude NOTE: is double precision okay? use an integer centipoint and disallow long fractional parts? */
-  double points = 2;
+  double points = 4;
 }
 
 message Market {
