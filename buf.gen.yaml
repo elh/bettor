@@ -12,3 +12,5 @@ managed:
   enabled: true
   go_package_prefix:
     default: github.com/elh/bettor/api
+    except:
+      - buf.build/googleapis/googleapis

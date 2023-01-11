@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := gen
-.PHONY: run test lint gen wc
+.PHONY: run test lint gen breaking wc
 
 run:
 	@go run cmd/server.go # run from binary

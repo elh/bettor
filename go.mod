@@ -9,7 +9,8 @@ require (
 	go.opentelemetry.io/otel v1.11.2
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.11.2
 	go.opentelemetry.io/otel/sdk v1.11.2
-	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
+	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b
+	google.golang.org/genproto v0.0.0-20230109162033-3c3c17ce83e6
 	google.golang.org/protobuf v1.28.1
 )
 
