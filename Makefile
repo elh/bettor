@@ -13,6 +13,7 @@ lint:
 	@buf lint
 
 gen:
+	@buf format -w
 	@buf generate
 
 breaking: # detect breaking proto changes
