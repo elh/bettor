@@ -93,6 +93,28 @@ func (m *User) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if l := utf8.RuneCountInString(m.GetUsername()); l < 1 || l > 128 {
+		err := UserValidationError{
+			field:  "Username",
+			reason: "value length must be between 1 and 128 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_User_Username_Pattern.MatchString(m.GetUsername()) {
+		err := UserValidationError{
+			field:  "Username",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	// no validation rules for Centipoints
 
 	if len(errors) > 0 {
@@ -179,6 +201,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UserValidationError{}
+
+var _User_Username_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
 // Validate checks the field values on Market with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -1184,7 +1208,16 @@ func (m *GetUserRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if utf8.RuneCountInString(m.GetUserId()) < 1 {
+		err := GetUserRequestValidationError{
+			field:  "UserId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GetUserRequestMultiError(errors)

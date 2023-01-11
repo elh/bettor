@@ -525,6 +525,33 @@
           </table>
 
           
+            
+            
+            <h4>Validated Fields</h4>
+            <table>
+              <thead>
+                <tr>
+                  <td>Field</td>
+                  <td>Validations</td>
+                </tr>
+              </thead>
+              <tbody>
+              
+                <tr>
+                  <td>user_id</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+              </tbody>
+            </table>
+            
+          
 
         
       
@@ -898,6 +925,13 @@
                 </tr>
               
                 <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>centipoints</td>
                   <td><a href="#uint64">uint64</a></td>
                   <td></td>
@@ -948,6 +982,21 @@
                     <ul>
                     
                       <li>timestamp.required: true</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
+                    
+                      <li>string.max_len: 128</li>
+                    
+                      <li>string.pattern: ^[a-zA-Z0-9_]&#43;$</li>
                     
                     </ul>
                   </td>
