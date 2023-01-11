@@ -13,4 +13,5 @@ lint:
 	@buf lint
 
 gen:
+	@buf format -w
 	@buf generate

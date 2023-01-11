@@ -9,10 +9,5 @@ mkShell {
     golangci-lint
     golint
     buf
-    # Development dependencies
-    protoc-gen-go
-    protoc-gen-connect-go
-    protoc-gen-doc
-    jq # for buf generate
   ];
 }
