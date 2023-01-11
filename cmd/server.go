@@ -12,7 +12,7 @@ import (
 
 	otelconnect "github.com/bufbuild/connect-opentelemetry-go"
 	"github.com/elh/bettor/api/bettor/v1alpha/bettorv1alphaconnect"
-	"github.com/elh/bettor/internal/app/bettor/repo/mem"
+	"github.com/elh/bettor/internal/app/bettor/repo/gob"
 	"github.com/elh/bettor/internal/app/bettor/server"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -29,7 +29,12 @@ const serviceName = "bettor"
 func main() {
 	flag.Parse()
 
-	s := server.New(&mem.Repo{})
+	// server with gob file-backed repo
+	r, err := gob.New("bettor.gob")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := server.New(r)
 
 	// tracing
 	tp, err := tracerProvider(os.Stdout)
