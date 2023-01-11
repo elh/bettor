@@ -299,21 +299,21 @@
               
                 <tr>
                   <td>created_at</td>
-                  <td><a href="#google.type.DateTime">google.type.DateTime</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>updated_at</td>
-                  <td><a href="#google.type.DateTime">google.type.DateTime</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>settled_at</td>
-                  <td><a href="#google.type.DateTime">google.type.DateTime</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -333,15 +333,15 @@
                 </tr>
               
                 <tr>
-                  <td>points</td>
-                  <td><a href="#double">double</a></td>
+                  <td>centipoints</td>
+                  <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>settled_points</td>
-                  <td><a href="#double">double</a></td>
+                  <td>settled_centipoints</td>
+                  <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -619,28 +619,28 @@
               
                 <tr>
                   <td>created_at</td>
-                  <td><a href="#google.type.DateTime">google.type.DateTime</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>updated_at</td>
-                  <td><a href="#google.type.DateTime">google.type.DateTime</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>lock_at</td>
-                  <td><a href="#google.type.DateTime">google.type.DateTime</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>settled_at</td>
-                  <td><a href="#google.type.DateTime">google.type.DateTime</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -705,8 +705,8 @@
                 </tr>
               
                 <tr>
-                  <td>points</td>
-                  <td><a href="#double">double</a></td>
+                  <td>centipoints</td>
+                  <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -885,21 +885,21 @@
               
                 <tr>
                   <td>created_at</td>
-                  <td><a href="#google.type.DateTime">google.type.DateTime</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>updated_at</td>
-                  <td><a href="#google.type.DateTime">google.type.DateTime</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>points</td>
-                  <td><a href="#double">double</a></td>
+                  <td>centipoints</td>
+                  <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -907,6 +907,55 @@
             </tbody>
           </table>
 
+          
+            
+            
+            <h4>Validated Fields</h4>
+            <table>
+              <thead>
+                <tr>
+                  <td>Field</td>
+                  <td>Validations</td>
+                </tr>
+              </thead>
+              <tbody>
+              
+                <tr>
+                  <td>id</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.uuid: true</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td>created_at</td>
+                  <td>
+                    <ul>
+                    
+                      <li>timestamp.required: true</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td>updated_at</td>
+                  <td>
+                    <ul>
+                    
+                      <li>timestamp.required: true</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+              </tbody>
+            </table>
+            
           
 
         

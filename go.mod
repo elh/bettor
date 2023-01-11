@@ -5,12 +5,12 @@ go 1.19
 require (
 	github.com/bufbuild/connect-go v1.4.1
 	github.com/bufbuild/connect-opentelemetry-go v0.0.0-20230106165925-ca071675f107
+	github.com/envoyproxy/protoc-gen-validate v0.9.1
 	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/otel v1.11.2
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.11.2
 	go.opentelemetry.io/otel/sdk v1.11.2
-	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b
-	google.golang.org/genproto v0.0.0-20230109162033-3c3c17ce83e6
+	golang.org/x/net v0.2.0
 	google.golang.org/protobuf v1.28.1
 )
 
