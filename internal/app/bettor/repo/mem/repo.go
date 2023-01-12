@@ -13,7 +13,8 @@ var _ repo.Repo = (*Repo)(nil)
 
 // Repo is an in-memory persistence repository.
 type Repo struct {
-	Users []*api.User
+	Users   []*api.User
+	Markets []*api.Market
 }
 
 // CreateUser creates a new user.
@@ -38,4 +39,15 @@ func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 		}
 	}
 	return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
+}
+
+// CreateMarket creates a new market.
+func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
+	for _, u := range r.Users {
+		if u.Id == market.Id {
+			return connect.NewError(connect.CodeInvalidArgument, errors.New("market with id already exists"))
+		}
+	}
+	r.Markets = append(r.Markets, market)
+	return nil
 }

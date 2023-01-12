@@ -10,4 +10,5 @@ import (
 type Repo interface {
 	CreateUser(ctx context.Context, user *api.User) error
 	GetUser(ctx context.Context, id string) (*api.User, error)
+	CreateMarket(ctx context.Context, market *api.Market) error
 }

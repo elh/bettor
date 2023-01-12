@@ -225,64 +225,38 @@ func (m *Market) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
-
-	if all {
-		switch v := interface{}(m.GetCreatedAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, MarketValidationError{
-					field:  "CreatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, MarketValidationError{
-					field:  "CreatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = MarketValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
-	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return MarketValidationError{
-				field:  "CreatedAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
+		if !all {
+			return err
 		}
+		errors = append(errors, err)
 	}
 
-	if all {
-		switch v := interface{}(m.GetUpdatedAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, MarketValidationError{
-					field:  "UpdatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, MarketValidationError{
-					field:  "UpdatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
+	if m.GetCreatedAt() == nil {
+		err := MarketValidationError{
+			field:  "CreatedAt",
+			reason: "value is required",
 		}
-	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return MarketValidationError{
-				field:  "UpdatedAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
+		if !all {
+			return err
 		}
+		errors = append(errors, err)
+	}
+
+	if m.GetUpdatedAt() == nil {
+		err := MarketValidationError{
+			field:  "UpdatedAt",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if all {
@@ -343,12 +317,51 @@ func (m *Market) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for Title
+	if l := utf8.RuneCountInString(m.GetTitle()); l < 1 || l > 1024 {
+		err := MarketValidationError{
+			field:  "Title",
+			reason: "value length must be between 1 and 1024 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Creator
+	if utf8.RuneCountInString(m.GetCreator()) < 1 {
+		err := MarketValidationError{
+			field:  "Creator",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Status
+	if _, ok := _Market_Status_NotInLookup[m.GetStatus()]; ok {
+		err := MarketValidationError{
+			field:  "Status",
+			reason: "value must not be in list [0]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
+	if _, ok := Market_Status_name[int32(m.GetStatus())]; !ok {
+		err := MarketValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	oneofTypePresent := false
 	switch v := m.Type.(type) {
 	case *Market_Pool:
 		if v == nil {
@@ -361,6 +374,7 @@ func (m *Market) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
+		oneofTypePresent = true
 
 		if all {
 			switch v := interface{}(m.GetPool()).(type) {
@@ -394,9 +408,27 @@ func (m *Market) validate(all bool) error {
 	default:
 		_ = v // ensures v is used
 	}
+	if !oneofTypePresent {
+		err := MarketValidationError{
+			field:  "Type",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return MarketMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *Market) _validateUuid(uuid string) error {
+	if matched := _bettor_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -472,6 +504,10 @@ var _ interface {
 	ErrorName() string
 } = MarketValidationError{}
 
+var _Market_Status_NotInLookup = map[Market_Status]struct{}{
+	0: {},
+}
+
 // Validate checks the field values on Pool with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
 // encountered is returned, or nil if there are no violations.
@@ -492,6 +528,17 @@ func (m *Pool) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if len(m.GetOutcomes()) < 2 {
+		err := PoolValidationError{
+			field:  "Outcomes",
+			reason: "value must contain at least 2 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	for idx, item := range m.GetOutcomes() {
 		_, _ = idx, item
@@ -627,9 +674,28 @@ func (m *Outcome) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = OutcomeValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Title
+	if l := utf8.RuneCountInString(m.GetTitle()); l < 1 || l > 1024 {
+		err := OutcomeValidationError{
+			field:  "Title",
+			reason: "value length must be between 1 and 1024 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Centipoints
 
@@ -637,6 +703,14 @@ func (m *Outcome) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return OutcomeMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *Outcome) _validateUuid(uuid string) error {
+	if matched := _bettor_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil

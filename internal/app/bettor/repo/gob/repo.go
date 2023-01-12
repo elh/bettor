@@ -74,3 +74,11 @@ func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
 func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 	return r.Mem.GetUser(ctx, id)
 }
+
+// CreateMarket creates a new market.
+func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
+	if err := r.Mem.CreateMarket(ctx, market); err != nil {
+		return err
+	}
+	return r.persist()
+}

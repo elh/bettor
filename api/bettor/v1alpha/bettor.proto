@@ -19,15 +19,22 @@ message User {
 }
 
 message Market {
-  string id = 1;
-  google.protobuf.Timestamp created_at = 2;
-  google.protobuf.Timestamp updated_at = 3;
+  string id = 1 [(validate.rules).string.uuid = true];
+  google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
+  google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp lock_at = 4;
   google.protobuf.Timestamp settled_at = 5;
-  string title = 6;
-  string creator = 7;
-  Status status = 8;
+  string title = 6 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 1024,
+  }];
+  string creator = 7 [(validate.rules).string.min_len = 1];
+  Status status = 8 [(validate.rules).enum = {
+    defined_only: true,
+    not_in: [0]
+  }];
   oneof type {
+    option (validate.required) = true;
     Pool pool = 9;
   }
 
@@ -40,15 +47,18 @@ message Market {
 }
 
 message Pool {
-  repeated Outcome outcomes = 1;
+  repeated Outcome outcomes = 1 [(validate.rules).repeated.min_items = 2];
   string winner_id = 2;
 }
 
 message Outcome {
-  string id = 1;
-  string title = 2;
+  string id = 1 [(validate.rules).string.uuid = true];
+  string title = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 1024,
+  }];
   uint64 centipoints = 3;
-  int32 user_count = 4;
+  uint32 user_count = 4;
 }
 
 message Bet {
@@ -131,11 +141,10 @@ service BettorService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
   // GetUser returns a user by ID.
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
-
+  // CreateMarket creates a new betting market.
   rpc CreateMarket(CreateMarketRequest) returns (CreateMarketResponse) {}
   rpc GetMarket(GetMarketRequest) returns (GetMarketResponse) {}
   rpc LockMarket(LockMarketRequest) returns (LockMarketResponse) {}
   rpc SettleMarket(SettleMarketRequest) returns (SettleMarketResponse) {}
-
   rpc PlaceBet(PlaceBetRequest) returns (PlaceBetResponse) {}
 }
