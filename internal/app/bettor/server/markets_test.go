@@ -256,9 +256,10 @@ func TestCreateBet(t *testing.T) {
 		},
 	}
 	testCases := []struct {
-		desc      string
-		bet       *api.Bet
-		expectErr bool
+		desc                  string
+		bet                   *api.Bet
+		expectUserCentipoints uint64
+		expectErr             bool
 	}{
 		// pool bets
 		{
@@ -269,6 +270,7 @@ func TestCreateBet(t *testing.T) {
 				Centipoints: 100,
 				Type:        &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
 			},
+			expectUserCentipoints: 900,
 		},
 		{
 			desc: "fails if user does not exist",
@@ -352,6 +354,15 @@ func TestCreateBet(t *testing.T) {
 			require.Nil(t, err)
 
 			assert.NotEmpty(t, out)
+
+			u, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{UserId: tC.bet.GetUserId()}))
+			require.Nil(t, err)
+			assert.Equal(t, tC.expectUserCentipoints, u.Msg.User.GetCentipoints())
+
+			m, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{MarketId: tC.bet.GetMarketId()}))
+			require.Nil(t, err)
+			assert.Equal(t, tC.bet.GetCentipoints(), m.Msg.Market.GetPool().GetOutcomes()[0].GetCentipoints())
+			assert.Equal(t, uint32(1), m.Msg.Market.GetPool().GetOutcomes()[0].GetUserCount())
 		})
 	}
 }

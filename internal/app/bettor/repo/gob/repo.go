@@ -75,6 +75,14 @@ func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
 	return r.persist()
 }
 
+// UpdateUser updates a user.
+func (r *Repo) UpdateUser(ctx context.Context, user *api.User) error {
+	if err := r.Mem.UpdateUser(ctx, user); err != nil {
+		return err
+	}
+	return r.persist()
+}
+
 // GetUser gets a user by ID.
 func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 	return r.Mem.GetUser(ctx, id)
@@ -83,6 +91,14 @@ func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 // CreateMarket creates a new market.
 func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 	if err := r.Mem.CreateMarket(ctx, market); err != nil {
+		return err
+	}
+	return r.persist()
+}
+
+// UpdateMarket updates a market.
+func (r *Repo) UpdateMarket(ctx context.Context, market *api.Market) error {
+	if err := r.Mem.UpdateMarket(ctx, market); err != nil {
 		return err
 	}
 	return r.persist()

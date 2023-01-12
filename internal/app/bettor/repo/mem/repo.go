@@ -32,6 +32,24 @@ func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
 	return nil
 }
 
+// UpdateUser updates a user.
+func (r *Repo) UpdateUser(ctx context.Context, user *api.User) error {
+	var found bool
+	var idx int
+	for i, u := range r.Users {
+		if u.Id == user.Id {
+			found = true
+			idx = i
+			break
+		}
+	}
+	if !found {
+		return connect.NewError(connect.CodeNotFound, errors.New("user not found"))
+	}
+	r.Users[idx] = user
+	return nil
+}
+
 // GetUser gets a user by ID.
 func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 	for _, u := range r.Users {
@@ -50,6 +68,24 @@ func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 		}
 	}
 	r.Markets = append(r.Markets, market)
+	return nil
+}
+
+// UpdateMarket updates a market.
+func (r *Repo) UpdateMarket(ctx context.Context, market *api.Market) error {
+	var found bool
+	var idx int
+	for i, m := range r.Markets {
+		if m.Id == market.Id {
+			found = true
+			idx = i
+			break
+		}
+	}
+	if !found {
+		return connect.NewError(connect.CodeNotFound, errors.New("market not found"))
+	}
+	r.Markets[idx] = market
 	return nil
 }
 

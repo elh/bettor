@@ -9,8 +9,10 @@ import (
 // Repo is a persistence repository.
 type Repo interface {
 	CreateUser(ctx context.Context, user *api.User) error
+	UpdateUser(ctx context.Context, user *api.User) error
 	GetUser(ctx context.Context, id string) (*api.User, error)
 	CreateMarket(ctx context.Context, market *api.Market) error
+	UpdateMarket(ctx context.Context, market *api.Market) error
 	GetMarket(ctx context.Context, id string) (*api.Market, error)
 	CreateBet(ctx context.Context, bet *api.Bet) error
 }

@@ -115,12 +115,23 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
+	// writes
 	if err := s.Repo.CreateBet(ctx, bet); err != nil {
 		return nil, err
 	}
-
-	// TODO: update user centipoints
-	// TODO: update pool market outcome user count and centipoints
+	user.Centipoints -= bet.GetCentipoints()
+	if err := s.Repo.UpdateUser(ctx, user); err != nil {
+		return nil, err
+	}
+	if bet.GetOutcomeId() != "" && market.GetPool() != nil {
+		for _, outcome := range market.GetPool().GetOutcomes() {
+			if outcome.GetId() == bet.GetOutcomeId() {
+				outcome.Centipoints += bet.GetCentipoints()
+				outcome.UserCount++ // NOTE: this assumes that a user can only bet once per outcome
+				break
+			}
+		}
+	}
 
 	return connect.NewResponse(&api.CreateBetResponse{
 		Bet: bet,
