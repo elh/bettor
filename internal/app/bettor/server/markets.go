@@ -66,3 +66,56 @@ func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarke
 		Market: market,
 	}), nil
 }
+
+// CreateBet places a bet on an active betting market.
+func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBetRequest]) (*connect.Response[api.CreateBetResponse], error) {
+	if in.Msg == nil || in.Msg.GetBet() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("bet is required"))
+	}
+	bet := proto.Clone(in.Msg.GetBet()).(*api.Bet)
+
+	bet.Id = uuid.NewString()
+	bet.CreatedAt = timestamppb.Now()
+	bet.UpdatedAt = timestamppb.Now()
+	bet.SettledAt = nil
+	bet.Centipoints = 0
+	bet.SettledCentipoints = 0
+
+	if _, err := s.Repo.GetUser(ctx, bet.GetUserId()); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	market, err := s.Repo.GetMarket(ctx, bet.GetMarketId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	if market.GetStatus() != api.Market_STATUS_ACTIVE {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market is not active"))
+	}
+	if bet.GetOutcomeId() != "" {
+		if market.GetPool() == nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market does not have a pool"))
+		}
+		found := false
+		for _, outcome := range market.GetPool().GetOutcomes() {
+			if outcome.GetId() == bet.GetOutcomeId() {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("outcome not found in market"))
+		}
+	}
+
+	if err := bet.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	if err := s.Repo.CreateBet(ctx, bet); err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&api.CreateBetResponse{
+		Bet: bet,
+	}), nil
+}

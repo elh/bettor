@@ -87,3 +87,11 @@ func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
 	return r.Mem.GetMarket(ctx, id)
 }
+
+// CreateBet creates a new user.
+func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
+	if err := r.Mem.CreateBet(ctx, bet); err != nil {
+		return err
+	}
+	return r.persist()
+}

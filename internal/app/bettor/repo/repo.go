@@ -12,4 +12,5 @@ type Repo interface {
 	GetUser(ctx context.Context, id string) (*api.User, error)
 	CreateMarket(ctx context.Context, market *api.Market) error
 	GetMarket(ctx context.Context, id string) (*api.Market, error)
+	CreateBet(ctx context.Context, bet *api.Bet) error
 }

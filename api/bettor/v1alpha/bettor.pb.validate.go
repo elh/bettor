@@ -807,64 +807,38 @@ func (m *Bet) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
-
-	if all {
-		switch v := interface{}(m.GetCreatedAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, BetValidationError{
-					field:  "CreatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, BetValidationError{
-					field:  "CreatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = BetValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
-	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return BetValidationError{
-				field:  "CreatedAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
+		if !all {
+			return err
 		}
+		errors = append(errors, err)
 	}
 
-	if all {
-		switch v := interface{}(m.GetUpdatedAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, BetValidationError{
-					field:  "UpdatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, BetValidationError{
-					field:  "UpdatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
+	if m.GetCreatedAt() == nil {
+		err := BetValidationError{
+			field:  "CreatedAt",
+			reason: "value is required",
 		}
-	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return BetValidationError{
-				field:  "UpdatedAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
+		if !all {
+			return err
 		}
+		errors = append(errors, err)
+	}
+
+	if m.GetUpdatedAt() == nil {
+		err := BetValidationError{
+			field:  "UpdatedAt",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if all {
@@ -896,14 +870,33 @@ func (m *Bet) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for UserId
+	if utf8.RuneCountInString(m.GetUserId()) < 1 {
+		err := BetValidationError{
+			field:  "UserId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for BettingEventId
+	if utf8.RuneCountInString(m.GetMarketId()) < 1 {
+		err := BetValidationError{
+			field:  "MarketId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Centipoints
 
 	// no validation rules for SettledCentipoints
 
+	oneofTypePresent := false
 	switch v := m.Type.(type) {
 	case *Bet_OutcomeId:
 		if v == nil {
@@ -916,13 +909,32 @@ func (m *Bet) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
+		oneofTypePresent = true
 		// no validation rules for OutcomeId
 	default:
 		_ = v // ensures v is used
 	}
+	if !oneofTypePresent {
+		err := BetValidationError{
+			field:  "Type",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return BetMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *Bet) _validateUuid(uuid string) error {
+	if matched := _bettor_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -2467,35 +2479,33 @@ var _ interface {
 	ErrorName() string
 } = SettleMarketResponseValidationError{}
 
-// Validate checks the field values on PlaceBetRequest with the rules defined
+// Validate checks the field values on CreateBetRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
-func (m *PlaceBetRequest) Validate() error {
+func (m *CreateBetRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on PlaceBetRequest with the rules
+// ValidateAll checks the field values on CreateBetRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// PlaceBetRequestMultiError, or nil if none found.
-func (m *PlaceBetRequest) ValidateAll() error {
+// CreateBetRequestMultiError, or nil if none found.
+func (m *CreateBetRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *PlaceBetRequest) validate(all bool) error {
+func (m *CreateBetRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for MarketId
-
 	if all {
 		switch v := interface{}(m.GetBet()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PlaceBetRequestValidationError{
+				errors = append(errors, CreateBetRequestValidationError{
 					field:  "Bet",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -2503,7 +2513,7 @@ func (m *PlaceBetRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, PlaceBetRequestValidationError{
+				errors = append(errors, CreateBetRequestValidationError{
 					field:  "Bet",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -2512,7 +2522,7 @@ func (m *PlaceBetRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetBet()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return PlaceBetRequestValidationError{
+			return CreateBetRequestValidationError{
 				field:  "Bet",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -2521,19 +2531,19 @@ func (m *PlaceBetRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return PlaceBetRequestMultiError(errors)
+		return CreateBetRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// PlaceBetRequestMultiError is an error wrapping multiple validation errors
-// returned by PlaceBetRequest.ValidateAll() if the designated constraints
+// CreateBetRequestMultiError is an error wrapping multiple validation errors
+// returned by CreateBetRequest.ValidateAll() if the designated constraints
 // aren't met.
-type PlaceBetRequestMultiError []error
+type CreateBetRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m PlaceBetRequestMultiError) Error() string {
+func (m CreateBetRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -2542,11 +2552,11 @@ func (m PlaceBetRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m PlaceBetRequestMultiError) AllErrors() []error { return m }
+func (m CreateBetRequestMultiError) AllErrors() []error { return m }
 
-// PlaceBetRequestValidationError is the validation error returned by
-// PlaceBetRequest.Validate if the designated constraints aren't met.
-type PlaceBetRequestValidationError struct {
+// CreateBetRequestValidationError is the validation error returned by
+// CreateBetRequest.Validate if the designated constraints aren't met.
+type CreateBetRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -2554,22 +2564,22 @@ type PlaceBetRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e PlaceBetRequestValidationError) Field() string { return e.field }
+func (e CreateBetRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e PlaceBetRequestValidationError) Reason() string { return e.reason }
+func (e CreateBetRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e PlaceBetRequestValidationError) Cause() error { return e.cause }
+func (e CreateBetRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e PlaceBetRequestValidationError) Key() bool { return e.key }
+func (e CreateBetRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e PlaceBetRequestValidationError) ErrorName() string { return "PlaceBetRequestValidationError" }
+func (e CreateBetRequestValidationError) ErrorName() string { return "CreateBetRequestValidationError" }
 
 // Error satisfies the builtin error interface
-func (e PlaceBetRequestValidationError) Error() string {
+func (e CreateBetRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -2581,14 +2591,14 @@ func (e PlaceBetRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sPlaceBetRequest.%s: %s%s",
+		"invalid %sCreateBetRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = PlaceBetRequestValidationError{}
+var _ error = CreateBetRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -2596,24 +2606,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = PlaceBetRequestValidationError{}
+} = CreateBetRequestValidationError{}
 
-// Validate checks the field values on PlaceBetResponse with the rules defined
+// Validate checks the field values on CreateBetResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
-func (m *PlaceBetResponse) Validate() error {
+func (m *CreateBetResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on PlaceBetResponse with the rules
+// ValidateAll checks the field values on CreateBetResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// PlaceBetResponseMultiError, or nil if none found.
-func (m *PlaceBetResponse) ValidateAll() error {
+// CreateBetResponseMultiError, or nil if none found.
+func (m *CreateBetResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *PlaceBetResponse) validate(all bool) error {
+func (m *CreateBetResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -2624,7 +2634,7 @@ func (m *PlaceBetResponse) validate(all bool) error {
 		switch v := interface{}(m.GetBet()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PlaceBetResponseValidationError{
+				errors = append(errors, CreateBetResponseValidationError{
 					field:  "Bet",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -2632,7 +2642,7 @@ func (m *PlaceBetResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, PlaceBetResponseValidationError{
+				errors = append(errors, CreateBetResponseValidationError{
 					field:  "Bet",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -2641,7 +2651,7 @@ func (m *PlaceBetResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetBet()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return PlaceBetResponseValidationError{
+			return CreateBetResponseValidationError{
 				field:  "Bet",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -2650,19 +2660,19 @@ func (m *PlaceBetResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return PlaceBetResponseMultiError(errors)
+		return CreateBetResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// PlaceBetResponseMultiError is an error wrapping multiple validation errors
-// returned by PlaceBetResponse.ValidateAll() if the designated constraints
+// CreateBetResponseMultiError is an error wrapping multiple validation errors
+// returned by CreateBetResponse.ValidateAll() if the designated constraints
 // aren't met.
-type PlaceBetResponseMultiError []error
+type CreateBetResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m PlaceBetResponseMultiError) Error() string {
+func (m CreateBetResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -2671,11 +2681,11 @@ func (m PlaceBetResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m PlaceBetResponseMultiError) AllErrors() []error { return m }
+func (m CreateBetResponseMultiError) AllErrors() []error { return m }
 
-// PlaceBetResponseValidationError is the validation error returned by
-// PlaceBetResponse.Validate if the designated constraints aren't met.
-type PlaceBetResponseValidationError struct {
+// CreateBetResponseValidationError is the validation error returned by
+// CreateBetResponse.Validate if the designated constraints aren't met.
+type CreateBetResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -2683,22 +2693,24 @@ type PlaceBetResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e PlaceBetResponseValidationError) Field() string { return e.field }
+func (e CreateBetResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e PlaceBetResponseValidationError) Reason() string { return e.reason }
+func (e CreateBetResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e PlaceBetResponseValidationError) Cause() error { return e.cause }
+func (e CreateBetResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e PlaceBetResponseValidationError) Key() bool { return e.key }
+func (e CreateBetResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e PlaceBetResponseValidationError) ErrorName() string { return "PlaceBetResponseValidationError" }
+func (e CreateBetResponseValidationError) ErrorName() string {
+	return "CreateBetResponseValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e PlaceBetResponseValidationError) Error() string {
+func (e CreateBetResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -2710,14 +2722,14 @@ func (e PlaceBetResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sPlaceBetResponse.%s: %s%s",
+		"invalid %sCreateBetResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = PlaceBetResponseValidationError{}
+var _ error = CreateBetResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -2725,4 +2737,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = PlaceBetResponseValidationError{}
+} = CreateBetResponseValidationError{}

@@ -150,3 +150,135 @@ func TestGetMarket(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateBet(t *testing.T) {
+	user := &api.User{
+		Id:          uuid.NewString(),
+		Username:    "rusty",
+		Centipoints: 100,
+	}
+	poolMarket := &api.Market{
+		Id:      uuid.NewString(),
+		Title:   "Will I PB?",
+		Creator: user.Id,
+		Status:  api.Market_STATUS_ACTIVE,
+		Type: &api.Market_Pool{
+			Pool: &api.Pool{
+				Outcomes: []*api.Outcome{
+					{Id: uuid.NewString(), Title: "Yes"},
+					{Id: uuid.NewString(), Title: "No"},
+				},
+			},
+		},
+	}
+	lockedPoolMarket := &api.Market{
+		Id:      uuid.NewString(),
+		Title:   "Will I PB?",
+		Creator: user.Id,
+		Status:  api.Market_STATUS_BETS_LOCKED,
+		Type: &api.Market_Pool{
+			Pool: &api.Pool{
+				Outcomes: []*api.Outcome{
+					{Id: uuid.NewString(), Title: "Yes"},
+					{Id: uuid.NewString(), Title: "No"},
+				},
+			},
+		},
+	}
+	settledPoolMarket := &api.Market{
+		Id:      uuid.NewString(),
+		Title:   "Will I PB?",
+		Creator: user.Id,
+		Status:  api.Market_STATUS_SETTLED,
+		Type: &api.Market_Pool{
+			Pool: &api.Pool{
+				Outcomes: []*api.Outcome{
+					{Id: uuid.NewString(), Title: "Yes"},
+					{Id: uuid.NewString(), Title: "No"},
+				},
+			},
+		},
+	}
+	testCases := []struct {
+		desc      string
+		bet       *api.Bet
+		expectErr bool
+	}{
+		// pool bets
+		{
+			desc: "basic case - pool bet",
+			bet: &api.Bet{
+				UserId:   user.Id,
+				MarketId: poolMarket.Id,
+				Type:     &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
+			},
+		},
+		{
+			desc: "fails if user does not exist",
+			bet: &api.Bet{
+				UserId:   "other",
+				MarketId: poolMarket.Id,
+				Type:     &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if market does not exist",
+			bet: &api.Bet{
+				UserId:   user.Id,
+				MarketId: "other",
+				Type:     &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if type not provided",
+			bet: &api.Bet{
+				UserId:   user.Id,
+				MarketId: poolMarket.Id,
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if outcome does not exist",
+			bet: &api.Bet{
+				UserId:   user.Id,
+				MarketId: poolMarket.Id,
+				Type:     &api.Bet_OutcomeId{OutcomeId: "other"},
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if creating a bet on a locked market",
+			bet: &api.Bet{
+				UserId:   user.Id,
+				MarketId: lockedPoolMarket.Id,
+				Type:     &api.Bet_OutcomeId{OutcomeId: lockedPoolMarket.GetPool().Outcomes[0].Id},
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if creating a bet on a settled market",
+			bet: &api.Bet{
+				UserId:   user.Id,
+				MarketId: settledPoolMarket.Id,
+				Type:     &api.Bet_OutcomeId{OutcomeId: settledPoolMarket.GetPool().Outcomes[0].Id},
+			},
+			expectErr: true,
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket, lockedPoolMarket, settledPoolMarket}})
+			out, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Bet: tC.bet}))
+			if tC.expectErr {
+				require.NotNil(t, err)
+				return
+			}
+			require.Nil(t, err)
+
+			assert.NotEmpty(t, out)
+		})
+	}
+}

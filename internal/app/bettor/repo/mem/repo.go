@@ -15,6 +15,7 @@ var _ repo.Repo = (*Repo)(nil)
 type Repo struct {
 	Users   []*api.User
 	Markets []*api.Market
+	Bets    []*api.Bet
 }
 
 // CreateUser creates a new user.
@@ -60,4 +61,15 @@ func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
 		}
 	}
 	return nil, connect.NewError(connect.CodeNotFound, errors.New("market not found"))
+}
+
+// CreateBet creates a new bet.
+func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
+	for _, u := range r.Users {
+		if u.Id == bet.Id {
+			return connect.NewError(connect.CodeInvalidArgument, errors.New("bet with id already exists"))
+		}
+	}
+	r.Bets = append(r.Bets, bet)
+	return nil
 }
