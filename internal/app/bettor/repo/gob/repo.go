@@ -16,6 +16,11 @@ import (
 
 var _ repo.Repo = (*Repo)(nil)
 
+func init() {
+	// interface types need to be registered
+	gob.Register(&api.Market_Pool{})
+}
+
 // Repo is an file-backed gob persistence repository.
 type Repo struct {
 	Mem      *mem.Repo
