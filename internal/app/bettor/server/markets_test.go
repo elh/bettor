@@ -362,7 +362,6 @@ func TestCreateBet(t *testing.T) {
 			m, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{MarketId: tC.bet.GetMarketId()}))
 			require.Nil(t, err)
 			assert.Equal(t, tC.bet.GetCentipoints(), m.Msg.Market.GetPool().GetOutcomes()[0].GetCentipoints())
-			assert.Equal(t, uint32(1), m.Msg.Market.GetPool().GetOutcomes()[0].GetUserCount())
 		})
 	}
 }

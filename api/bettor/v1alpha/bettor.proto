@@ -61,7 +61,6 @@ message Outcome {
     max_len: 1024,
   }];
   uint64 centipoints = 3;
-  uint32 user_count = 4;
 }
 
 // A user's bet on a betting market.

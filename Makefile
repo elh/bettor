@@ -2,7 +2,7 @@
 .PHONY: run test lint gen breaking wc
 
 run:
-	@go run cmd/server/main.go # run from binary
+	@go run cmd/server/main.go
 
 test:
 	@go test -race -covermode=atomic -coverprofile=coverage.out ./...

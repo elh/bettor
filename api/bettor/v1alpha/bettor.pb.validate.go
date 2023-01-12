@@ -699,8 +699,6 @@ func (m *Outcome) validate(all bool) error {
 
 	// no validation rules for Centipoints
 
-	// no validation rules for UserCount
-
 	if len(errors) > 0 {
 		return OutcomeMultiError(errors)
 	}
