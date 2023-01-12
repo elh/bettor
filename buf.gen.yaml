@@ -8,7 +8,16 @@ plugins:
     opt: paths=source_relative
   - plugin: doc
     out: docs
+  - plugin: validate
+    out: api
+    opt:
+      - lang=go
+      - paths=source_relative
+
 managed:
   enabled: true
   go_package_prefix:
     default: github.com/elh/bettor/api
+    except:
+      - buf.build/googleapis/googleapis
+      - buf.build/envoyproxy/protoc-gen-validate

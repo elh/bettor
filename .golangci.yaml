@@ -13,3 +13,6 @@ linters:
     # - style
     # - test
     - unused
+  disable:
+    - funlen
+    - cyclop

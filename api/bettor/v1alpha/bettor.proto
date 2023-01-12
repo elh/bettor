@@ -2,10 +2,85 @@ syntax = "proto3";
 
 package bettor.v1alpha;
 
-// User identifies a user and their properties.
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+// User information.
 message User {
-  string id = 1;
+  string id = 1 [(validate.rules).string.uuid = true];
+  google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
+  google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
+  string username = 4 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 128,
+    pattern: "^[a-zA-Z0-9_]+$"
+  }];
+  uint64 centipoints = 5;
 }
+
+// A betting market.
+message Market {
+  string id = 1 [(validate.rules).string.uuid = true];
+  google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
+  google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
+  google.protobuf.Timestamp lock_at = 4;
+  google.protobuf.Timestamp settled_at = 5;
+  string title = 6 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 1024,
+  }];
+  string creator = 7 [(validate.rules).string.min_len = 1];
+  Status status = 8 [(validate.rules).enum = {
+    defined_only: true,
+    not_in: [0]
+  }];
+  oneof type {
+    option (validate.required) = true;
+    Pool pool = 9;
+  }
+
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    STATUS_ACTIVE = 1;
+    STATUS_BETS_LOCKED = 2;
+    STATUS_SETTLED = 3;
+  }
+}
+
+// Pool or parimutuel betting market.
+message Pool {
+  repeated Outcome outcomes = 1 [(validate.rules).repeated.min_items = 2];
+  string winner_id = 2;
+}
+
+// An outcome in a pool betting market.
+message Outcome {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string title = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 1024,
+  }];
+  uint64 centipoints = 3;
+  uint32 user_count = 4;
+}
+
+// A user's bet on a betting market.
+message Bet {
+  string id = 1 [(validate.rules).string.uuid = true];
+  google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
+  google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
+  google.protobuf.Timestamp settled_at = 4;
+  string user_id = 5 [(validate.rules).string.min_len = 1];
+  string market_id = 6 [(validate.rules).string.min_len = 1];
+  uint64 centipoints = 7 [(validate.rules).uint64.gt = 0];
+  uint64 settled_centipoints = 8;
+  oneof type {
+    option (validate.required) = true;
+    string outcome_id = 9;
+  }
+}
+
+// API requests and responses.
 
 message CreateUserRequest {
   User user = 1;
@@ -16,11 +91,52 @@ message CreateUserResponse {
 }
 
 message GetUserRequest {
-  string user_id = 1;
+  string user_id = 1 [(validate.rules).string.min_len = 1];
 }
 
 message GetUserResponse {
   User user = 1;
+}
+
+message CreateMarketRequest {
+  Market market = 1;
+}
+
+message CreateMarketResponse {
+  Market market = 1;
+}
+
+message GetMarketRequest {
+  string market_id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message GetMarketResponse {
+  Market market = 1;
+}
+
+message LockMarketRequest {
+  string market_id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message LockMarketResponse {
+  Market market = 1;
+}
+
+message SettleMarketRequest {
+  string market_id = 1 [(validate.rules).string.min_len = 1];
+  string winner_id = 2;
+}
+
+message SettleMarketResponse {
+  Market market = 1;
+}
+
+message CreateBetRequest {
+  Bet bet = 2;
+}
+
+message CreateBetResponse {
+  Bet bet = 1;
 }
 
 // BettorService is a service for bets and predictions.
@@ -29,4 +145,14 @@ service BettorService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
   // GetUser returns a user by ID.
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+  // CreateMarket creates a new betting market.
+  rpc CreateMarket(CreateMarketRequest) returns (CreateMarketResponse) {}
+  // CreateMarket gets a betting market by ID.
+  rpc GetMarket(GetMarketRequest) returns (GetMarketResponse) {}
+  // LockMarket locks a betting market preventing further bets.
+  rpc LockMarket(LockMarketRequest) returns (LockMarketResponse) {}
+  // SettleMarket settles a betting market and pays out bets.
+  rpc SettleMarket(SettleMarketRequest) returns (SettleMarketResponse) {}
+  // CreateBet places a bet on an active betting market.
+  rpc CreateBet(CreateBetRequest) returns (CreateBetResponse) {}
 }
