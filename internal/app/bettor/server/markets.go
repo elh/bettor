@@ -30,7 +30,6 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 		for _, outcome := range market.GetPool().GetOutcomes() {
 			outcome.Id = uuid.NewString()
 			outcome.Centipoints = 0
-			outcome.UserCount = 0
 		}
 	}
 
@@ -127,7 +126,6 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 		for _, outcome := range market.GetPool().GetOutcomes() {
 			if outcome.GetId() == bet.GetOutcomeId() {
 				outcome.Centipoints += bet.GetCentipoints()
-				outcome.UserCount++ // NOTE: this assumes that a user can only bet once per outcome
 				break
 			}
 		}
