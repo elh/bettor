@@ -72,7 +72,7 @@ message Bet {
   google.protobuf.Timestamp settled_at = 4;
   string user_id = 5 [(validate.rules).string.min_len = 1];
   string market_id = 6 [(validate.rules).string.min_len = 1];
-  uint64 centipoints = 7;
+  uint64 centipoints = 7 [(validate.rules).uint64.gt = 0];
   uint64 settled_centipoints = 8;
   oneof type {
     option (validate.required) = true;

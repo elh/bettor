@@ -892,7 +892,16 @@ func (m *Bet) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Centipoints
+	if m.GetCentipoints() <= 0 {
+		err := BetValidationError{
+			field:  "Centipoints",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for SettledCentipoints
 

@@ -78,12 +78,16 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	bet.CreatedAt = timestamppb.Now()
 	bet.UpdatedAt = timestamppb.Now()
 	bet.SettledAt = nil
-	bet.Centipoints = 0
 	bet.SettledCentipoints = 0
 
-	if _, err := s.Repo.GetUser(ctx, bet.GetUserId()); err != nil {
+	user, err := s.Repo.GetUser(ctx, bet.GetUserId())
+	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
+	if user.GetCentipoints() < bet.GetCentipoints() {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user does not have enough balance"))
+	}
+
 	market, err := s.Repo.GetMarket(ctx, bet.GetMarketId())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
@@ -114,6 +118,9 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	if err := s.Repo.CreateBet(ctx, bet); err != nil {
 		return nil, err
 	}
+
+	// TODO: update user centipoints
+	// TODO: update pool market outcome user count and centipoints
 
 	return connect.NewResponse(&api.CreateBetResponse{
 		Bet: bet,

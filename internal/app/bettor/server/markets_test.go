@@ -211,7 +211,7 @@ func TestCreateBet(t *testing.T) {
 	user := &api.User{
 		Id:          uuid.NewString(),
 		Username:    "rusty",
-		Centipoints: 100,
+		Centipoints: 1000,
 	}
 	poolMarket := &api.Market{
 		Id:      uuid.NewString(),
@@ -264,61 +264,78 @@ func TestCreateBet(t *testing.T) {
 		{
 			desc: "basic case - pool bet",
 			bet: &api.Bet{
-				UserId:   user.Id,
-				MarketId: poolMarket.Id,
-				Type:     &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
+				UserId:      user.Id,
+				MarketId:    poolMarket.Id,
+				Centipoints: 100,
+				Type:        &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
 			},
 		},
 		{
 			desc: "fails if user does not exist",
 			bet: &api.Bet{
-				UserId:   "other",
-				MarketId: poolMarket.Id,
-				Type:     &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
+				UserId:      "other",
+				MarketId:    poolMarket.Id,
+				Centipoints: 100,
+				Type:        &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
 			},
 			expectErr: true,
 		},
 		{
 			desc: "fails if market does not exist",
 			bet: &api.Bet{
-				UserId:   user.Id,
-				MarketId: "other",
-				Type:     &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
+				UserId:      user.Id,
+				MarketId:    "other",
+				Centipoints: 100,
+				Type:        &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
 			},
 			expectErr: true,
 		},
 		{
 			desc: "fails if type not provided",
 			bet: &api.Bet{
-				UserId:   user.Id,
-				MarketId: poolMarket.Id,
+				UserId:      user.Id,
+				MarketId:    poolMarket.Id,
+				Centipoints: 100,
 			},
 			expectErr: true,
 		},
 		{
 			desc: "fails if outcome does not exist",
 			bet: &api.Bet{
-				UserId:   user.Id,
-				MarketId: poolMarket.Id,
-				Type:     &api.Bet_OutcomeId{OutcomeId: "other"},
+				UserId:      user.Id,
+				MarketId:    poolMarket.Id,
+				Centipoints: 100,
+				Type:        &api.Bet_OutcomeId{OutcomeId: "other"},
 			},
 			expectErr: true,
 		},
 		{
 			desc: "fails if creating a bet on a locked market",
 			bet: &api.Bet{
-				UserId:   user.Id,
-				MarketId: lockedPoolMarket.Id,
-				Type:     &api.Bet_OutcomeId{OutcomeId: lockedPoolMarket.GetPool().Outcomes[0].Id},
+				UserId:      user.Id,
+				MarketId:    lockedPoolMarket.Id,
+				Centipoints: 100,
+				Type:        &api.Bet_OutcomeId{OutcomeId: lockedPoolMarket.GetPool().Outcomes[0].Id},
 			},
 			expectErr: true,
 		},
 		{
 			desc: "fails if creating a bet on a settled market",
 			bet: &api.Bet{
-				UserId:   user.Id,
-				MarketId: settledPoolMarket.Id,
-				Type:     &api.Bet_OutcomeId{OutcomeId: settledPoolMarket.GetPool().Outcomes[0].Id},
+				UserId:      user.Id,
+				MarketId:    settledPoolMarket.Id,
+				Centipoints: 100,
+				Type:        &api.Bet_OutcomeId{OutcomeId: settledPoolMarket.GetPool().Outcomes[0].Id},
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if betting more points than user has",
+			bet: &api.Bet{
+				UserId:      user.Id,
+				MarketId:    poolMarket.Id,
+				Centipoints: 2000,
+				Type:        &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
 			},
 			expectErr: true,
 		},
