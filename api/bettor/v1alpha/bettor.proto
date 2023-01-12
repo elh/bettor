@@ -143,6 +143,7 @@ service BettorService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   // CreateMarket creates a new betting market.
   rpc CreateMarket(CreateMarketRequest) returns (CreateMarketResponse) {}
+  // CreateMarket gets a betting market by ID.
   rpc GetMarket(GetMarketRequest) returns (GetMarketResponse) {}
   rpc LockMarket(LockMarketRequest) returns (LockMarketResponse) {}
   rpc SettleMarket(SettleMarketRequest) returns (SettleMarketResponse) {}

@@ -50,3 +50,19 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 		Market: market,
 	}), nil
 }
+
+// GetMarket returns a market by ID.
+func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarketRequest]) (*connect.Response[api.GetMarketResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	market, err := s.Repo.GetMarket(ctx, in.Msg.GetMarketId())
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&api.GetMarketResponse{
+		Market: market,
+	}), nil
+}

@@ -33,6 +33,7 @@ type BettorServiceClient interface {
 	GetUser(context.Context, *connect_go.Request[v1alpha.GetUserRequest]) (*connect_go.Response[v1alpha.GetUserResponse], error)
 	// CreateMarket creates a new betting market.
 	CreateMarket(context.Context, *connect_go.Request[v1alpha.CreateMarketRequest]) (*connect_go.Response[v1alpha.CreateMarketResponse], error)
+	// CreateMarket gets a betting market by ID.
 	GetMarket(context.Context, *connect_go.Request[v1alpha.GetMarketRequest]) (*connect_go.Response[v1alpha.GetMarketResponse], error)
 	LockMarket(context.Context, *connect_go.Request[v1alpha.LockMarketRequest]) (*connect_go.Response[v1alpha.LockMarketResponse], error)
 	SettleMarket(context.Context, *connect_go.Request[v1alpha.SettleMarketRequest]) (*connect_go.Response[v1alpha.SettleMarketResponse], error)
@@ -141,6 +142,7 @@ type BettorServiceHandler interface {
 	GetUser(context.Context, *connect_go.Request[v1alpha.GetUserRequest]) (*connect_go.Response[v1alpha.GetUserResponse], error)
 	// CreateMarket creates a new betting market.
 	CreateMarket(context.Context, *connect_go.Request[v1alpha.CreateMarketRequest]) (*connect_go.Response[v1alpha.CreateMarketResponse], error)
+	// CreateMarket gets a betting market by ID.
 	GetMarket(context.Context, *connect_go.Request[v1alpha.GetMarketRequest]) (*connect_go.Response[v1alpha.GetMarketResponse], error)
 	LockMarket(context.Context, *connect_go.Request[v1alpha.LockMarketRequest]) (*connect_go.Response[v1alpha.LockMarketResponse], error)
 	SettleMarket(context.Context, *connect_go.Request[v1alpha.SettleMarketRequest]) (*connect_go.Response[v1alpha.SettleMarketResponse], error)

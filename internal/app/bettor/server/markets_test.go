@@ -109,3 +109,44 @@ func TestCreateMarket(t *testing.T) {
 		})
 	}
 }
+
+func TestGetMarket(t *testing.T) {
+	market := &api.Market{
+		Id: uuid.NewString(),
+	}
+	testCases := []struct {
+		desc      string
+		marketID  string
+		expected  *api.Market
+		expectErr bool
+	}{
+		{
+			desc:     "basic case",
+			marketID: market.Id,
+			expected: market,
+		},
+		{
+			desc:      "fails if market does not exist",
+			marketID:  "does-not-exist",
+			expectErr: true,
+		},
+		{
+			desc:      "fails if id is empty",
+			marketID:  "",
+			expectErr: true,
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s := server.New(&mem.Repo{Markets: []*api.Market{market}})
+			out, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{MarketId: tC.marketID}))
+			if tC.expectErr {
+				require.NotNil(t, err)
+				return
+			}
+			require.Nil(t, err)
+			assert.Equal(t, tC.expected, out.Msg.GetMarket())
+		})
+	}
+}

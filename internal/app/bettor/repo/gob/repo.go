@@ -82,3 +82,8 @@ func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 	}
 	return r.persist()
 }
+
+// GetMarket gets a market by ID.
+func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
+	return r.Mem.GetMarket(ctx, id)
+}

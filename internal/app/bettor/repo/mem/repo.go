@@ -51,3 +51,13 @@ func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 	r.Markets = append(r.Markets, market)
 	return nil
 }
+
+// GetMarket gets a market by ID.
+func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
+	for _, m := range r.Markets {
+		if m.Id == id {
+			return m, nil
+		}
+	}
+	return nil, connect.NewError(connect.CodeNotFound, errors.New("market not found"))
+}
