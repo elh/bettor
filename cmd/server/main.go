@@ -26,11 +26,13 @@ var port = flag.Int("port", 8080, "The server port")
 
 const serviceName = "bettor"
 
+const gobDBFile = "bettor.gob"
+
 func main() {
 	flag.Parse()
 
 	// server with gob file-backed repo
-	r, err := gob.New("bettor.gob")
+	r, err := gob.New(gobDBFile)
 	if err != nil {
 		log.Fatal(err)
 	}

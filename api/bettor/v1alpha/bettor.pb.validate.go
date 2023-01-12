@@ -1796,7 +1796,16 @@ func (m *GetMarketRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for MarketId
+	if utf8.RuneCountInString(m.GetMarketId()) < 1 {
+		err := GetMarketRequestValidationError{
+			field:  "MarketId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GetMarketRequestMultiError(errors)
@@ -2029,7 +2038,16 @@ func (m *LockMarketRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for MarketId
+	if utf8.RuneCountInString(m.GetMarketId()) < 1 {
+		err := LockMarketRequestValidationError{
+			field:  "MarketId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return LockMarketRequestMultiError(errors)
@@ -2264,7 +2282,16 @@ func (m *SettleMarketRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for MarketId
+	if utf8.RuneCountInString(m.GetMarketId()) < 1 {
+		err := SettleMarketRequestValidationError{
+			field:  "MarketId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for WinnerId
 

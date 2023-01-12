@@ -10,7 +10,7 @@ var _ bettorv1alphaconnect.BettorServiceHandler = (*Server)(nil)
 // Server is an implementation of the Bettor service.
 type Server struct {
 	bettorv1alphaconnect.UnimplementedBettorServiceHandler
-	Repo repo.Repo // NOTE: no tx right now
+	Repo repo.Repo
 }
 
 // New initializes a new Server.

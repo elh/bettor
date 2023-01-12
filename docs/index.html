@@ -281,7 +281,7 @@
 
       
         <h3 id="bettor.v1alpha.Bet">Bet</h3>
-        <p></p>
+        <p>A user's bet on a betting market.</p>
 
         
           <table class="field-table">
@@ -596,6 +596,33 @@
           </table>
 
           
+            
+            
+            <h4>Validated Fields</h4>
+            <table>
+              <thead>
+                <tr>
+                  <td>Field</td>
+                  <td>Validations</td>
+                </tr>
+              </thead>
+              <tbody>
+              
+                <tr>
+                  <td>market_id</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+              </tbody>
+            </table>
+            
+          
 
         
       
@@ -719,6 +746,33 @@
           </table>
 
           
+            
+            
+            <h4>Validated Fields</h4>
+            <table>
+              <thead>
+                <tr>
+                  <td>Field</td>
+                  <td>Validations</td>
+                </tr>
+              </thead>
+              <tbody>
+              
+                <tr>
+                  <td>market_id</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+              </tbody>
+            </table>
+            
+          
 
         
       
@@ -747,7 +801,7 @@
         
       
         <h3 id="bettor.v1alpha.Market">Market</h3>
-        <p></p>
+        <p>A betting market.</p>
 
         
           <table class="field-table">
@@ -913,7 +967,7 @@
         
       
         <h3 id="bettor.v1alpha.Outcome">Outcome</h3>
-        <p></p>
+        <p>An outcome in a pool betting market.</p>
 
         
           <table class="field-table">
@@ -998,7 +1052,7 @@
         
       
         <h3 id="bettor.v1alpha.Pool">Pool</h3>
-        <p></p>
+        <p>Pool or parimutuel betting market.</p>
 
         
           <table class="field-table">
@@ -1083,6 +1137,33 @@
           </table>
 
           
+            
+            
+            <h4>Validated Fields</h4>
+            <table>
+              <thead>
+                <tr>
+                  <td>Field</td>
+                  <td>Validations</td>
+                </tr>
+              </thead>
+              <tbody>
+              
+                <tr>
+                  <td>market_id</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+              </tbody>
+            </table>
+            
+          
 
         
       
@@ -1111,7 +1192,7 @@
         
       
         <h3 id="bettor.v1alpha.User">User</h3>
-        <p>User identifies a user and their properties.</p>
+        <p>User information.</p>
 
         
           <table class="field-table">
@@ -1307,14 +1388,14 @@
                 <td>LockMarket</td>
                 <td><a href="#bettor.v1alpha.LockMarketRequest">LockMarketRequest</a></td>
                 <td><a href="#bettor.v1alpha.LockMarketResponse">LockMarketResponse</a></td>
-                <td><p></p></td>
+                <td><p>LockMarket locks a betting market preventing further bets.</p></td>
               </tr>
             
               <tr>
                 <td>SettleMarket</td>
                 <td><a href="#bettor.v1alpha.SettleMarketRequest">SettleMarketRequest</a></td>
                 <td><a href="#bettor.v1alpha.SettleMarketResponse">SettleMarketResponse</a></td>
-                <td><p></p></td>
+                <td><p>SettleMarket settles a betting market and pays out bets.</p></td>
               </tr>
             
               <tr>

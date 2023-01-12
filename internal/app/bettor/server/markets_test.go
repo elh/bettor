@@ -151,6 +151,62 @@ func TestGetMarket(t *testing.T) {
 	}
 }
 
+func TestLockMarket(t *testing.T) {
+	testCases := []struct {
+		desc      string
+		marketID  string
+		expected  *api.Market
+		expectErr bool
+	}{
+		{
+			desc:      "unimplemented",
+			marketID:  "todo",
+			expectErr: true,
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s := server.New(&mem.Repo{})
+			out, err := s.LockMarket(context.Background(), connect.NewRequest(&api.LockMarketRequest{MarketId: tC.marketID}))
+			if tC.expectErr {
+				require.NotNil(t, err)
+				return
+			}
+			require.Nil(t, err)
+			assert.Equal(t, tC.expected, out.Msg.GetMarket())
+		})
+	}
+}
+
+func TestSettleMarket(t *testing.T) {
+	testCases := []struct {
+		desc      string
+		marketID  string
+		expected  *api.Market
+		expectErr bool
+	}{
+		{
+			desc:      "unimplemented",
+			marketID:  "todo",
+			expectErr: true,
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s := server.New(&mem.Repo{})
+			out, err := s.SettleMarket(context.Background(), connect.NewRequest(&api.SettleMarketRequest{MarketId: tC.marketID}))
+			if tC.expectErr {
+				require.NotNil(t, err)
+				return
+			}
+			require.Nil(t, err)
+			assert.Equal(t, tC.expected, out.Msg.GetMarket())
+		})
+	}
+}
+
 func TestCreateBet(t *testing.T) {
 	user := &api.User{
 		Id:          uuid.NewString(),
