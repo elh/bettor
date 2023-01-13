@@ -468,3 +468,44 @@ func TestCreateBet(t *testing.T) {
 		})
 	}
 }
+
+func TestGetBet(t *testing.T) {
+	bet := &api.Bet{
+		Id: uuid.NewString(),
+	}
+	testCases := []struct {
+		desc      string
+		betID     string
+		expected  *api.Bet
+		expectErr bool
+	}{
+		{
+			desc:     "basic case",
+			betID:    bet.Id,
+			expected: bet,
+		},
+		{
+			desc:      "fails if bet does not exist",
+			betID:     "does-not-exist",
+			expectErr: true,
+		},
+		{
+			desc:      "fails if id is empty",
+			betID:     "",
+			expectErr: true,
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s := server.New(&mem.Repo{Bets: []*api.Bet{bet}})
+			out, err := s.GetBet(context.Background(), connect.NewRequest(&api.GetBetRequest{BetId: tC.betID}))
+			if tC.expectErr {
+				require.NotNil(t, err)
+				return
+			}
+			require.Nil(t, err)
+			assert.Equal(t, tC.expected, out.Msg.GetBet())
+		})
+	}
+}

@@ -109,3 +109,13 @@ func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 	r.Bets = append(r.Bets, bet)
 	return nil
 }
+
+// GetBet gets a bet by ID.
+func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
+	for _, b := range r.Bets {
+		if b.Id == id {
+			return b, nil
+		}
+	}
+	return nil, connect.NewError(connect.CodeNotFound, errors.New("bet not found"))
+}

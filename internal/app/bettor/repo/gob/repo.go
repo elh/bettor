@@ -116,3 +116,8 @@ func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 	}
 	return r.persist()
 }
+
+// GetBet gets a bet by ID.
+func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
+	return r.Mem.GetBet(ctx, id)
+}

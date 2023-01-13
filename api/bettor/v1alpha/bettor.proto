@@ -137,6 +137,14 @@ message CreateBetResponse {
   Bet bet = 1;
 }
 
+message GetBetRequest {
+  string bet_id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message GetBetResponse {
+  Bet bet = 1;
+}
+
 // BettorService is a service for bets and predictions.
 service BettorService {
   // CreateUser creates a new user.
@@ -145,7 +153,7 @@ service BettorService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   // CreateMarket creates a new betting market.
   rpc CreateMarket(CreateMarketRequest) returns (CreateMarketResponse) {}
-  // CreateMarket gets a betting market by ID.
+  // GetMarket gets a betting market by ID.
   rpc GetMarket(GetMarketRequest) returns (GetMarketResponse) {}
   // LockMarket locks a betting market preventing further bets.
   rpc LockMarket(LockMarketRequest) returns (LockMarketResponse) {}
@@ -153,4 +161,6 @@ service BettorService {
   rpc SettleMarket(SettleMarketRequest) returns (SettleMarketResponse) {}
   // CreateBet places a bet on an open betting market.
   rpc CreateBet(CreateBetRequest) returns (CreateBetResponse) {}
+  // GetBet gets a bet.
+  rpc GetBet(GetBetRequest) returns (GetBetResponse) {}
 }

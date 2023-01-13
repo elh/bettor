@@ -33,7 +33,7 @@ type BettorServiceClient interface {
 	GetUser(context.Context, *connect_go.Request[v1alpha.GetUserRequest]) (*connect_go.Response[v1alpha.GetUserResponse], error)
 	// CreateMarket creates a new betting market.
 	CreateMarket(context.Context, *connect_go.Request[v1alpha.CreateMarketRequest]) (*connect_go.Response[v1alpha.CreateMarketResponse], error)
-	// CreateMarket gets a betting market by ID.
+	// GetMarket gets a betting market by ID.
 	GetMarket(context.Context, *connect_go.Request[v1alpha.GetMarketRequest]) (*connect_go.Response[v1alpha.GetMarketResponse], error)
 	// LockMarket locks a betting market preventing further bets.
 	LockMarket(context.Context, *connect_go.Request[v1alpha.LockMarketRequest]) (*connect_go.Response[v1alpha.LockMarketResponse], error)
@@ -41,6 +41,8 @@ type BettorServiceClient interface {
 	SettleMarket(context.Context, *connect_go.Request[v1alpha.SettleMarketRequest]) (*connect_go.Response[v1alpha.SettleMarketResponse], error)
 	// CreateBet places a bet on an open betting market.
 	CreateBet(context.Context, *connect_go.Request[v1alpha.CreateBetRequest]) (*connect_go.Response[v1alpha.CreateBetResponse], error)
+	// GetBet gets a bet.
+	GetBet(context.Context, *connect_go.Request[v1alpha.GetBetRequest]) (*connect_go.Response[v1alpha.GetBetResponse], error)
 }
 
 // NewBettorServiceClient constructs a client for the bettor.v1alpha.BettorService service. By
@@ -88,6 +90,11 @@ func NewBettorServiceClient(httpClient connect_go.HTTPClient, baseURL string, op
 			baseURL+"/bettor.v1alpha.BettorService/CreateBet",
 			opts...,
 		),
+		getBet: connect_go.NewClient[v1alpha.GetBetRequest, v1alpha.GetBetResponse](
+			httpClient,
+			baseURL+"/bettor.v1alpha.BettorService/GetBet",
+			opts...,
+		),
 	}
 }
 
@@ -100,6 +107,7 @@ type bettorServiceClient struct {
 	lockMarket   *connect_go.Client[v1alpha.LockMarketRequest, v1alpha.LockMarketResponse]
 	settleMarket *connect_go.Client[v1alpha.SettleMarketRequest, v1alpha.SettleMarketResponse]
 	createBet    *connect_go.Client[v1alpha.CreateBetRequest, v1alpha.CreateBetResponse]
+	getBet       *connect_go.Client[v1alpha.GetBetRequest, v1alpha.GetBetResponse]
 }
 
 // CreateUser calls bettor.v1alpha.BettorService.CreateUser.
@@ -137,6 +145,11 @@ func (c *bettorServiceClient) CreateBet(ctx context.Context, req *connect_go.Req
 	return c.createBet.CallUnary(ctx, req)
 }
 
+// GetBet calls bettor.v1alpha.BettorService.GetBet.
+func (c *bettorServiceClient) GetBet(ctx context.Context, req *connect_go.Request[v1alpha.GetBetRequest]) (*connect_go.Response[v1alpha.GetBetResponse], error) {
+	return c.getBet.CallUnary(ctx, req)
+}
+
 // BettorServiceHandler is an implementation of the bettor.v1alpha.BettorService service.
 type BettorServiceHandler interface {
 	// CreateUser creates a new user.
@@ -145,7 +158,7 @@ type BettorServiceHandler interface {
 	GetUser(context.Context, *connect_go.Request[v1alpha.GetUserRequest]) (*connect_go.Response[v1alpha.GetUserResponse], error)
 	// CreateMarket creates a new betting market.
 	CreateMarket(context.Context, *connect_go.Request[v1alpha.CreateMarketRequest]) (*connect_go.Response[v1alpha.CreateMarketResponse], error)
-	// CreateMarket gets a betting market by ID.
+	// GetMarket gets a betting market by ID.
 	GetMarket(context.Context, *connect_go.Request[v1alpha.GetMarketRequest]) (*connect_go.Response[v1alpha.GetMarketResponse], error)
 	// LockMarket locks a betting market preventing further bets.
 	LockMarket(context.Context, *connect_go.Request[v1alpha.LockMarketRequest]) (*connect_go.Response[v1alpha.LockMarketResponse], error)
@@ -153,6 +166,8 @@ type BettorServiceHandler interface {
 	SettleMarket(context.Context, *connect_go.Request[v1alpha.SettleMarketRequest]) (*connect_go.Response[v1alpha.SettleMarketResponse], error)
 	// CreateBet places a bet on an open betting market.
 	CreateBet(context.Context, *connect_go.Request[v1alpha.CreateBetRequest]) (*connect_go.Response[v1alpha.CreateBetResponse], error)
+	// GetBet gets a bet.
+	GetBet(context.Context, *connect_go.Request[v1alpha.GetBetRequest]) (*connect_go.Response[v1alpha.GetBetResponse], error)
 }
 
 // NewBettorServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -197,6 +212,11 @@ func NewBettorServiceHandler(svc BettorServiceHandler, opts ...connect_go.Handle
 		svc.CreateBet,
 		opts...,
 	))
+	mux.Handle("/bettor.v1alpha.BettorService/GetBet", connect_go.NewUnaryHandler(
+		"/bettor.v1alpha.BettorService/GetBet",
+		svc.GetBet,
+		opts...,
+	))
 	return "/bettor.v1alpha.BettorService/", mux
 }
 
@@ -229,4 +249,8 @@ func (UnimplementedBettorServiceHandler) SettleMarket(context.Context, *connect_
 
 func (UnimplementedBettorServiceHandler) CreateBet(context.Context, *connect_go.Request[v1alpha.CreateBetRequest]) (*connect_go.Response[v1alpha.CreateBetResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("bettor.v1alpha.BettorService.CreateBet is not implemented"))
+}
+
+func (UnimplementedBettorServiceHandler) GetBet(context.Context, *connect_go.Request[v1alpha.GetBetRequest]) (*connect_go.Response[v1alpha.GetBetResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("bettor.v1alpha.BettorService.GetBet is not implemented"))
 }

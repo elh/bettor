@@ -159,3 +159,19 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 		Bet: bet,
 	}), nil
 }
+
+// GetBet returns a bet by ID.
+func (s *Server) GetBet(ctx context.Context, in *connect.Request[api.GetBetRequest]) (*connect.Response[api.GetBetResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	bet, err := s.Repo.GetBet(ctx, in.Msg.GetBetId())
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&api.GetBetResponse{
+		Bet: bet,
+	}), nil
+}
