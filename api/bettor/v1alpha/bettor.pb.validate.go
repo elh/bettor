@@ -260,35 +260,6 @@ func (m *Market) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetLockAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, MarketValidationError{
-					field:  "LockAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, MarketValidationError{
-					field:  "LockAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetLockAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return MarketValidationError{
-				field:  "LockAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if all {
 		switch v := interface{}(m.GetSettledAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {

@@ -225,29 +225,87 @@ func TestLockMarket(t *testing.T) {
 }
 
 func TestSettleMarket(t *testing.T) {
+	user1 := &api.User{
+		Id:       uuid.NewString(),
+		Username: "rusty",
+	}
+	user2 := &api.User{
+		Id:       uuid.NewString(),
+		Username: "danny",
+	}
+	user3 := &api.User{
+		Id:       uuid.NewString(),
+		Username: "linus",
+	}
+	lockedMarket := &api.Market{
+		Id:      uuid.NewString(),
+		Title:   "Will I PB?",
+		Creator: user1.Id,
+		Status:  api.Market_STATUS_BETS_LOCKED,
+		Type: &api.Market_Pool{
+			Pool: &api.Pool{
+				Outcomes: []*api.Outcome{
+					{Title: "Yes"},
+					{Title: "No"},
+				},
+			},
+		},
+	}
+	settledMarket := &api.Market{
+		Id:      uuid.NewString(),
+		Title:   "Will I PB?",
+		Creator: user1.Id,
+		Status:  api.Market_STATUS_SETTLED,
+		Type: &api.Market_Pool{
+			Pool: &api.Pool{
+				Outcomes: []*api.Outcome{
+					{Title: "Yes"},
+					{Title: "No"},
+				},
+			},
+		},
+	}
 	testCases := []struct {
-		desc      string
-		marketID  string
-		expected  *api.Market
-		expectErr bool
+		desc                          string
+		marketID                      string
+		markets                       []*api.Market
+		bets                          []*api.Bet
+		expectedBetSettledCentipoints map[string]uint64
+		expectedUserCentipoints       map[string]uint64
+		expectErr                     bool
 	}{
 		{
-			desc:      "unimplemented",
-			marketID:  "todo",
+			desc:      "fails if market does not exist",
+			marketID:  "other",
+			expectErr: true,
+		},
+		{
+			desc:      "fails if market is not locked",
+			markets:   []*api.Market{lockedMarket, settledMarket},
+			marketID:  settledMarket.Id,
 			expectErr: true,
 		},
 	}
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{})
+			s := server.New(&mem.Repo{Users: []*api.User{user1, user2, user3}, Markets: tC.markets, Bets: tC.bets})
 			out, err := s.SettleMarket(context.Background(), connect.NewRequest(&api.SettleMarketRequest{MarketId: tC.marketID}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
 			}
 			require.Nil(t, err)
-			assert.Equal(t, tC.expected, out.Msg.GetMarket())
+			assert.Equal(t, out.Msg.GetMarket().GetStatus(), out.Msg.GetMarket().GetStatus())
+			assert.NotEmpty(t, out.Msg.GetMarket().GetSettledAt())
+
+			got, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{MarketId: tC.marketID}))
+			require.Nil(t, err)
+			assert.Equal(t, out.Msg.GetMarket().GetStatus(), got.Msg.GetMarket().GetStatus())
+			assert.NotEmpty(t, got.Msg.GetMarket().GetSettledAt())
+
+			// TODO: assert on bets
+			// TODO: assert on users
 		})
 	}
 }

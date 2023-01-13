@@ -21,7 +21,6 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	market.Id = uuid.NewString()
 	market.CreatedAt = timestamppb.Now()
 	market.UpdatedAt = timestamppb.Now()
-	market.LockAt = nil
 	market.SettledAt = nil
 	market.Status = api.Market_STATUS_OPEN
 

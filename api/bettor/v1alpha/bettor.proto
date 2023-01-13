@@ -23,20 +23,19 @@ message Market {
   string id = 1 [(validate.rules).string.uuid = true];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
-  google.protobuf.Timestamp lock_at = 4;
-  google.protobuf.Timestamp settled_at = 5;
-  string title = 6 [(validate.rules).string = {
+  google.protobuf.Timestamp settled_at = 4;
+  string title = 5 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
   }];
-  string creator = 7 [(validate.rules).string.min_len = 1];
-  Status status = 8 [(validate.rules).enum = {
+  string creator = 6 [(validate.rules).string.min_len = 1];
+  Status status = 7 [(validate.rules).enum = {
     defined_only: true,
     not_in: [0]
   }];
   oneof type {
     option (validate.required) = true;
-    Pool pool = 9;
+    Pool pool = 8;
   }
 
   enum Status {
