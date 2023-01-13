@@ -96,6 +96,14 @@ message GetUserResponse {
   User user = 1;
 }
 
+message GetUserByUsernameRequest {
+  string username = 1 [(validate.rules).string.min_len = 1];
+}
+
+message GetUserByUsernameResponse {
+  User user = 1;
+}
+
 message CreateMarketRequest {
   Market market = 1;
 }
@@ -154,6 +162,8 @@ service BettorService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
   // GetUser returns a user by ID.
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+  // GetUserByUsername returns a user by ID.
+  rpc GetUserByUsername(GetUserByUsernameRequest) returns (GetUserByUsernameResponse) {}
   // CreateMarket creates a new betting market.
   rpc CreateMarket(CreateMarketRequest) returns (CreateMarketResponse) {}
   // GetMarket gets a betting market by ID.
