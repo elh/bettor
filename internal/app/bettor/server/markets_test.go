@@ -2,7 +2,6 @@ package server_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/bufbuild/connect-go"
@@ -433,15 +432,12 @@ func TestSettleMarket(t *testing.T) {
 				require.Nil(t, err)
 				assert.NotEmpty(t, gotBet.Msg.GetBet().GetSettledAt())
 				assert.Equal(t, cp, gotBet.Msg.GetBet().GetSettledCentipoints(), betID)
-				fmt.Println(cp, gotBet.Msg.GetBet().GetSettledCentipoints())
 			}
 
 			for userID, cp := range tC.expectedUserCentipoints {
 				gotUser, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{UserId: userID}))
 				require.Nil(t, err)
 				assert.Equal(t, cp, gotUser.Msg.GetUser().GetCentipoints())
-				fmt.Println(user1.Id, user2.Id, user3.Id)
-				fmt.Println(gotUser.Msg.GetUser().GetCentipoints())
 			}
 		})
 	}
