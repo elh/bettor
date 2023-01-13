@@ -41,7 +41,7 @@ message Market {
 
   enum Status {
     STATUS_UNSPECIFIED = 0;
-    STATUS_ACTIVE = 1;
+    STATUS_OPEN = 1;
     STATUS_BETS_LOCKED = 2;
     STATUS_SETTLED = 3;
   }
@@ -152,6 +152,6 @@ service BettorService {
   rpc LockMarket(LockMarketRequest) returns (LockMarketResponse) {}
   // SettleMarket settles a betting market and pays out bets.
   rpc SettleMarket(SettleMarketRequest) returns (SettleMarketResponse) {}
-  // CreateBet places a bet on an active betting market.
+  // CreateBet places a bet on an open betting market.
   rpc CreateBet(CreateBetRequest) returns (CreateBetResponse) {}
 }

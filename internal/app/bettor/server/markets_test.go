@@ -152,29 +152,74 @@ func TestGetMarket(t *testing.T) {
 }
 
 func TestLockMarket(t *testing.T) {
+	user := &api.User{
+		Id:          uuid.NewString(),
+		Username:    "rusty",
+		Centipoints: 100,
+	}
+	market := &api.Market{
+		Id:      uuid.NewString(),
+		Title:   "Will I PB?",
+		Creator: user.Id,
+		Status:  api.Market_STATUS_OPEN,
+		Type: &api.Market_Pool{
+			Pool: &api.Pool{
+				Outcomes: []*api.Outcome{
+					{Title: "Yes"},
+					{Title: "No"},
+				},
+			},
+		},
+	}
+	lockedMarket := &api.Market{
+		Id:      uuid.NewString(),
+		Title:   "Will I PB?",
+		Creator: user.Id,
+		Status:  api.Market_STATUS_BETS_LOCKED,
+		Type: &api.Market_Pool{
+			Pool: &api.Pool{
+				Outcomes: []*api.Outcome{
+					{Title: "Yes"},
+					{Title: "No"},
+				},
+			},
+		},
+	}
 	testCases := []struct {
 		desc      string
 		marketID  string
-		expected  *api.Market
 		expectErr bool
 	}{
 		{
-			desc:      "unimplemented",
-			marketID:  "todo",
+			desc:     "basic case",
+			marketID: market.Id,
+		},
+		{
+			desc:      "fails if market does not exist",
+			marketID:  "other",
+			expectErr: true,
+		},
+		{
+			desc:      "fails if market is not open",
+			marketID:  lockedMarket.Id,
 			expectErr: true,
 		},
 	}
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{})
+			s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{market, lockedMarket}})
 			out, err := s.LockMarket(context.Background(), connect.NewRequest(&api.LockMarketRequest{MarketId: tC.marketID}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
 			}
 			require.Nil(t, err)
-			assert.Equal(t, tC.expected, out.Msg.GetMarket())
+			assert.Equal(t, api.Market_STATUS_BETS_LOCKED, out.Msg.GetMarket().GetStatus())
+
+			got, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{MarketId: tC.marketID}))
+			require.Nil(t, err)
+			assert.Equal(t, api.Market_STATUS_BETS_LOCKED, got.Msg.GetMarket().GetStatus())
 		})
 	}
 }
@@ -217,7 +262,7 @@ func TestCreateBet(t *testing.T) {
 		Id:      uuid.NewString(),
 		Title:   "Will I PB?",
 		Creator: user.Id,
-		Status:  api.Market_STATUS_ACTIVE,
+		Status:  api.Market_STATUS_OPEN,
 		Type: &api.Market_Pool{
 			Pool: &api.Pool{
 				Outcomes: []*api.Outcome{

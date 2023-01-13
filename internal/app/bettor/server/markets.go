@@ -23,7 +23,7 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	market.UpdatedAt = timestamppb.Now()
 	market.LockAt = nil
 	market.SettledAt = nil
-	market.Status = api.Market_STATUS_ACTIVE
+	market.Status = api.Market_STATUS_OPEN
 
 	if market.GetPool() != nil {
 		market.GetPool().WinnerId = ""
@@ -66,7 +66,29 @@ func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarke
 	}), nil
 }
 
-// CreateBet places a bet on an active betting market.
+// LockMarket locks a betting market preventing further bets.
+func (s *Server) LockMarket(ctx context.Context, in *connect.Request[api.LockMarketRequest]) (*connect.Response[api.LockMarketResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	market, err := s.Repo.GetMarket(ctx, in.Msg.GetMarketId())
+	if err != nil {
+		return nil, err
+	}
+	if market.GetStatus() != api.Market_STATUS_OPEN {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market is not open"))
+	}
+	market.Status = api.Market_STATUS_BETS_LOCKED
+
+	if err := s.Repo.UpdateMarket(ctx, market); err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&api.LockMarketResponse{Market: market}), nil
+}
+
+// CreateBet places a bet on an open betting market.
 func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBetRequest]) (*connect.Response[api.CreateBetResponse], error) {
 	if in.Msg == nil || in.Msg.GetBet() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("bet is required"))
@@ -91,8 +113,8 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
-	if market.GetStatus() != api.Market_STATUS_ACTIVE {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market is not active"))
+	if market.GetStatus() != api.Market_STATUS_OPEN {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market is not open"))
 	}
 	if bet.GetOutcomeId() != "" {
 		if market.GetPool() == nil {
@@ -129,6 +151,9 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 				break
 			}
 		}
+	}
+	if err := s.Repo.UpdateMarket(ctx, market); err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&api.CreateBetResponse{
