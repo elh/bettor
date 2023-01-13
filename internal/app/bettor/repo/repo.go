@@ -15,4 +15,7 @@ type Repo interface {
 	UpdateMarket(ctx context.Context, market *api.Market) error
 	GetMarket(ctx context.Context, id string) (*api.Market, error)
 	CreateBet(ctx context.Context, bet *api.Bet) error
+	UpdateBet(ctx context.Context, bet *api.Bet) error
+	GetBet(ctx context.Context, id string) (*api.Bet, error)
+	ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) // TODO: generalize and paginate
 }

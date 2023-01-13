@@ -116,3 +116,21 @@ func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 	}
 	return r.persist()
 }
+
+// UpdateBet updates a bet.
+func (r *Repo) UpdateBet(ctx context.Context, bet *api.Bet) error {
+	if err := r.Mem.UpdateBet(ctx, bet); err != nil {
+		return err
+	}
+	return r.persist()
+}
+
+// GetBet gets a bet by ID.
+func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
+	return r.Mem.GetBet(ctx, id)
+}
+
+// ListBetsByMarket lists bets by market ID.
+func (r *Repo) ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) {
+	return r.Mem.ListBetsByMarket(ctx, marketID)
+}

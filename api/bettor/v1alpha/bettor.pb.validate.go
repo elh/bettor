@@ -260,35 +260,6 @@ func (m *Market) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetLockAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, MarketValidationError{
-					field:  "LockAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, MarketValidationError{
-					field:  "LockAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetLockAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return MarketValidationError{
-				field:  "LockAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if all {
 		switch v := interface{}(m.GetSettledAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
@@ -2300,7 +2271,34 @@ func (m *SettleMarketRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for WinnerId
+	oneofTypePresent := false
+	switch v := m.Type.(type) {
+	case *SettleMarketRequest_WinnerId:
+		if v == nil {
+			err := SettleMarketRequestValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+		// no validation rules for WinnerId
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofTypePresent {
+		err := SettleMarketRequestValidationError{
+			field:  "Type",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return SettleMarketRequestMultiError(errors)
@@ -2772,3 +2770,243 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateBetResponseValidationError{}
+
+// Validate checks the field values on GetBetRequest with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *GetBetRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetBetRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in GetBetRequestMultiError, or
+// nil if none found.
+func (m *GetBetRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetBetRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetBetId()) < 1 {
+		err := GetBetRequestValidationError{
+			field:  "BetId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetBetRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetBetRequestMultiError is an error wrapping multiple validation errors
+// returned by GetBetRequest.ValidateAll() if the designated constraints
+// aren't met.
+type GetBetRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetBetRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetBetRequestMultiError) AllErrors() []error { return m }
+
+// GetBetRequestValidationError is the validation error returned by
+// GetBetRequest.Validate if the designated constraints aren't met.
+type GetBetRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetBetRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetBetRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetBetRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetBetRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetBetRequestValidationError) ErrorName() string { return "GetBetRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GetBetRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetBetRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetBetRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetBetRequestValidationError{}
+
+// Validate checks the field values on GetBetResponse with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *GetBetResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetBetResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in GetBetResponseMultiError,
+// or nil if none found.
+func (m *GetBetResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetBetResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetBet()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetBetResponseValidationError{
+					field:  "Bet",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetBetResponseValidationError{
+					field:  "Bet",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBet()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetBetResponseValidationError{
+				field:  "Bet",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetBetResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetBetResponseMultiError is an error wrapping multiple validation errors
+// returned by GetBetResponse.ValidateAll() if the designated constraints
+// aren't met.
+type GetBetResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetBetResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetBetResponseMultiError) AllErrors() []error { return m }
+
+// GetBetResponseValidationError is the validation error returned by
+// GetBetResponse.Validate if the designated constraints aren't met.
+type GetBetResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetBetResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetBetResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetBetResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetBetResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetBetResponseValidationError) ErrorName() string { return "GetBetResponseValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GetBetResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetBetResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetBetResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetBetResponseValidationError{}

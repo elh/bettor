@@ -21,7 +21,6 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	market.Id = uuid.NewString()
 	market.CreatedAt = timestamppb.Now()
 	market.UpdatedAt = timestamppb.Now()
-	market.LockAt = nil
 	market.SettledAt = nil
 	market.Status = api.Market_STATUS_OPEN
 
@@ -66,6 +65,91 @@ func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarke
 	}), nil
 }
 
+// SettleMarket settles a betting market and pays out bets.
+func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.SettleMarketRequest]) (*connect.Response[api.SettleMarketResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	market, err := s.Repo.GetMarket(ctx, in.Msg.GetMarketId())
+	if err != nil {
+		return nil, err
+	}
+	if market.GetStatus() != api.Market_STATUS_BETS_LOCKED {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market is not locked"))
+	}
+	market.Status = api.Market_STATUS_SETTLED
+	market.UpdatedAt = timestamppb.Now()
+	market.SettledAt = timestamppb.Now()
+
+	// NOTE: only Pool is supported right now
+	if in.Msg.GetWinnerId() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("winner is required"))
+	}
+
+	if market.GetPool() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market has no pool"))
+	}
+	var found bool
+	for _, outcome := range market.GetPool().GetOutcomes() {
+		if outcome.GetId() == in.Msg.GetWinnerId() {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("winner is not in pool"))
+	}
+	market.GetPool().WinnerId = in.Msg.GetWinnerId()
+
+	// compute return ratio
+	var totalCentipointsBet, winnerCentipointsBet uint64
+	for _, outcome := range market.GetPool().GetOutcomes() {
+		totalCentipointsBet += outcome.GetCentipoints()
+		if outcome.GetId() == in.Msg.GetWinnerId() {
+			winnerCentipointsBet = outcome.GetCentipoints()
+		}
+	}
+	if totalCentipointsBet > 0 {
+		winnerRatio := float64(totalCentipointsBet) / float64(winnerCentipointsBet)
+
+		bets, err := s.Repo.ListBetsByMarket(ctx, market.GetId())
+		if err != nil {
+			return nil, err
+		}
+		for _, bet := range bets {
+			bet.UpdatedAt = timestamppb.Now()
+			bet.SettledAt = timestamppb.Now()
+			if bet.GetOutcomeId() == market.GetPool().GetWinnerId() {
+				bet.SettledCentipoints = uint64(float64(bet.GetCentipoints()) * winnerRatio)
+			}
+		}
+
+		for _, bet := range bets {
+			user, err := s.Repo.GetUser(ctx, bet.GetUserId())
+			if err != nil {
+				return nil, err
+			}
+			user.UpdatedAt = timestamppb.Now()
+			user.Centipoints += bet.GetSettledCentipoints()
+
+			if err := s.Repo.UpdateUser(ctx, user); err != nil {
+				return nil, err
+			}
+
+			if err := s.Repo.UpdateBet(ctx, bet); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if err := s.Repo.UpdateMarket(ctx, market); err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&api.SettleMarketResponse{Market: market}), nil
+}
+
 // LockMarket locks a betting market preventing further bets.
 func (s *Server) LockMarket(ctx context.Context, in *connect.Request[api.LockMarketRequest]) (*connect.Response[api.LockMarketResponse], error) {
 	if err := in.Msg.Validate(); err != nil {
@@ -80,6 +164,7 @@ func (s *Server) LockMarket(ctx context.Context, in *connect.Request[api.LockMar
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market is not open"))
 	}
 	market.Status = api.Market_STATUS_BETS_LOCKED
+	market.UpdatedAt = timestamppb.Now()
 
 	if err := s.Repo.UpdateMarket(ctx, market); err != nil {
 		return nil, err
@@ -115,6 +200,9 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	}
 	if market.GetStatus() != api.Market_STATUS_OPEN {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market is not open"))
+	}
+	if bet.Type == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("bet type is required"))
 	}
 	if bet.GetOutcomeId() != "" {
 		if market.GetPool() == nil {
@@ -157,6 +245,22 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	}
 
 	return connect.NewResponse(&api.CreateBetResponse{
+		Bet: bet,
+	}), nil
+}
+
+// GetBet returns a bet by ID.
+func (s *Server) GetBet(ctx context.Context, in *connect.Request[api.GetBetRequest]) (*connect.Response[api.GetBetResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	bet, err := s.Repo.GetBet(ctx, in.Msg.GetBetId())
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&api.GetBetResponse{
 		Bet: bet,
 	}), nil
 }

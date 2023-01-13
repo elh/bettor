@@ -17,3 +17,5 @@ linters:
     - funlen
     - cyclop
     - gocognit
+    - godox
+    - nestif

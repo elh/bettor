@@ -109,3 +109,42 @@ func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 	r.Bets = append(r.Bets, bet)
 	return nil
 }
+
+// UpdateBet updates a bet.
+func (r *Repo) UpdateBet(ctx context.Context, bet *api.Bet) error {
+	var found bool
+	var idx int
+	for i, b := range r.Bets {
+		if b.Id == bet.Id {
+			found = true
+			idx = i
+			break
+		}
+	}
+	if !found {
+		return connect.NewError(connect.CodeNotFound, errors.New("bet not found"))
+	}
+	r.Bets[idx] = bet
+	return nil
+}
+
+// GetBet gets a bet by ID.
+func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
+	for _, b := range r.Bets {
+		if b.Id == id {
+			return b, nil
+		}
+	}
+	return nil, connect.NewError(connect.CodeNotFound, errors.New("bet not found"))
+}
+
+// ListBetsByMarket lists bets by market ID.
+func (r *Repo) ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) {
+	var bets []*api.Bet
+	for _, b := range r.Bets {
+		if b.MarketId == marketID {
+			bets = append(bets, b)
+		}
+	}
+	return bets, nil
+}

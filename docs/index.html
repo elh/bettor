@@ -207,6 +207,14 @@
                 </li>
               
                 <li>
+                  <a href="#bettor.v1alpha.GetBetRequest"><span class="badge">M</span>GetBetRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.GetBetResponse"><span class="badge">M</span>GetBetResponse</a>
+                </li>
+              
+                <li>
                   <a href="#bettor.v1alpha.GetMarketRequest"><span class="badge">M</span>GetMarketRequest</a>
                 </li>
               
@@ -586,6 +594,81 @@
 
         
       
+        <h3 id="bettor.v1alpha.GetBetRequest">GetBetRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>bet_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+            
+            
+            <h4>Validated Fields</h4>
+            <table>
+              <thead>
+                <tr>
+                  <td>Field</td>
+                  <td>Validations</td>
+                </tr>
+              </thead>
+              <tbody>
+              
+                <tr>
+                  <td>bet_id</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+              </tbody>
+            </table>
+            
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.GetBetResponse">GetBetResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>bet</td>
+                  <td><a href="#bettor.v1alpha.Bet">Bet</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
         <h3 id="bettor.v1alpha.GetMarketRequest">GetMarketRequest</h3>
         <p></p>
 
@@ -837,13 +920,6 @@
               
                 <tr>
                   <td>updated_at</td>
-                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>lock_at</td>
                   <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -1385,7 +1461,7 @@
                 <td>GetMarket</td>
                 <td><a href="#bettor.v1alpha.GetMarketRequest">GetMarketRequest</a></td>
                 <td><a href="#bettor.v1alpha.GetMarketResponse">GetMarketResponse</a></td>
-                <td><p>CreateMarket gets a betting market by ID.</p></td>
+                <td><p>GetMarket gets a betting market by ID.</p></td>
               </tr>
             
               <tr>
@@ -1407,6 +1483,13 @@
                 <td><a href="#bettor.v1alpha.CreateBetRequest">CreateBetRequest</a></td>
                 <td><a href="#bettor.v1alpha.CreateBetResponse">CreateBetResponse</a></td>
                 <td><p>CreateBet places a bet on an open betting market.</p></td>
+              </tr>
+            
+              <tr>
+                <td>GetBet</td>
+                <td><a href="#bettor.v1alpha.GetBetRequest">GetBetRequest</a></td>
+                <td><a href="#bettor.v1alpha.GetBetResponse">GetBetResponse</a></td>
+                <td><p>GetBet gets a bet.</p></td>
               </tr>
             
           </tbody>

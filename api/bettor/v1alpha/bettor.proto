@@ -23,20 +23,19 @@ message Market {
   string id = 1 [(validate.rules).string.uuid = true];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
-  google.protobuf.Timestamp lock_at = 4;
-  google.protobuf.Timestamp settled_at = 5;
-  string title = 6 [(validate.rules).string = {
+  google.protobuf.Timestamp settled_at = 4;
+  string title = 5 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
   }];
-  string creator = 7 [(validate.rules).string.min_len = 1];
-  Status status = 8 [(validate.rules).enum = {
+  string creator = 6 [(validate.rules).string.min_len = 1];
+  Status status = 7 [(validate.rules).enum = {
     defined_only: true,
     not_in: [0]
   }];
   oneof type {
     option (validate.required) = true;
-    Pool pool = 9;
+    Pool pool = 8;
   }
 
   enum Status {
@@ -123,7 +122,10 @@ message LockMarketResponse {
 
 message SettleMarketRequest {
   string market_id = 1 [(validate.rules).string.min_len = 1];
-  string winner_id = 2;
+  oneof type {
+    option (validate.required) = true;
+    string winner_id = 2;
+  }
 }
 
 message SettleMarketResponse {
@@ -138,6 +140,14 @@ message CreateBetResponse {
   Bet bet = 1;
 }
 
+message GetBetRequest {
+  string bet_id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message GetBetResponse {
+  Bet bet = 1;
+}
+
 // BettorService is a service for bets and predictions.
 service BettorService {
   // CreateUser creates a new user.
@@ -146,7 +156,7 @@ service BettorService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   // CreateMarket creates a new betting market.
   rpc CreateMarket(CreateMarketRequest) returns (CreateMarketResponse) {}
-  // CreateMarket gets a betting market by ID.
+  // GetMarket gets a betting market by ID.
   rpc GetMarket(GetMarketRequest) returns (GetMarketResponse) {}
   // LockMarket locks a betting market preventing further bets.
   rpc LockMarket(LockMarketRequest) returns (LockMarketResponse) {}
@@ -154,4 +164,6 @@ service BettorService {
   rpc SettleMarket(SettleMarketRequest) returns (SettleMarketResponse) {}
   // CreateBet places a bet on an open betting market.
   rpc CreateBet(CreateBetRequest) returns (CreateBetResponse) {}
+  // GetBet gets a bet.
+  rpc GetBet(GetBetRequest) returns (GetBetResponse) {}
 }
