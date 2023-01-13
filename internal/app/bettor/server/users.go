@@ -50,3 +50,19 @@ func (s *Server) GetUser(ctx context.Context, in *connect.Request[api.GetUserReq
 		User: user,
 	}), nil
 }
+
+// GetUserByUsername returns a user by username.
+func (s *Server) GetUserByUsername(ctx context.Context, in *connect.Request[api.GetUserByUsernameRequest]) (*connect.Response[api.GetUserByUsernameResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	user, err := s.Repo.GetUserByUsername(ctx, in.Msg.GetUsername())
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&api.GetUserByUsernameResponse{
+		User: user,
+	}), nil
+}

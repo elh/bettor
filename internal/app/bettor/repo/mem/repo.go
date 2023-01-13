@@ -60,6 +60,16 @@ func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 	return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
 }
 
+// GetUserByUsername gets a user by username.
+func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.User, error) {
+	for _, u := range r.Users {
+		if u.Username == username {
+			return u, nil
+		}
+	}
+	return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
+}
+
 // CreateMarket creates a new market.
 func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 	for _, u := range r.Users {

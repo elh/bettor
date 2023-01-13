@@ -105,3 +105,46 @@ func TestGetUser(t *testing.T) {
 		})
 	}
 }
+
+func TestGetUserByUsername(t *testing.T) {
+	user := &api.User{
+		Id:          uuid.NewString(),
+		Username:    "rusty",
+		Centipoints: 100,
+	}
+	testCases := []struct {
+		desc      string
+		username  string
+		expected  *api.User
+		expectErr bool
+	}{
+		{
+			desc:     "basic case",
+			username: "rusty",
+			expected: user,
+		},
+		{
+			desc:      "fails if user does not exist",
+			username:  "does-not-exist",
+			expectErr: true,
+		},
+		{
+			desc:      "fails if id is empty",
+			username:  "",
+			expectErr: true,
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s := server.New(&mem.Repo{Users: []*api.User{user}})
+			out, err := s.GetUserByUsername(context.Background(), connect.NewRequest(&api.GetUserByUsernameRequest{Username: tC.username}))
+			if tC.expectErr {
+				require.NotNil(t, err)
+				return
+			}
+			require.Nil(t, err)
+			assert.Equal(t, tC.expected, out.Msg.GetUser())
+		})
+	}
+}

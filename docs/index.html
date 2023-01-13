@@ -223,6 +223,14 @@
                 </li>
               
                 <li>
+                  <a href="#bettor.v1alpha.GetUserByUsernameRequest"><span class="badge">M</span>GetUserByUsernameRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.GetUserByUsernameResponse"><span class="badge">M</span>GetUserByUsernameResponse</a>
+                </li>
+              
+                <li>
                   <a href="#bettor.v1alpha.GetUserRequest"><span class="badge">M</span>GetUserRequest</a>
                 </li>
               
@@ -733,6 +741,81 @@
                 <tr>
                   <td>market</td>
                   <td><a href="#bettor.v1alpha.Market">Market</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.GetUserByUsernameRequest">GetUserByUsernameRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+            
+            
+            <h4>Validated Fields</h4>
+            <table>
+              <thead>
+                <tr>
+                  <td>Field</td>
+                  <td>Validations</td>
+                </tr>
+              </thead>
+              <tbody>
+              
+                <tr>
+                  <td>username</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+              </tbody>
+            </table>
+            
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.GetUserByUsernameResponse">GetUserByUsernameResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#bettor.v1alpha.User">User</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1448,6 +1531,13 @@
                 <td><a href="#bettor.v1alpha.GetUserRequest">GetUserRequest</a></td>
                 <td><a href="#bettor.v1alpha.GetUserResponse">GetUserResponse</a></td>
                 <td><p>GetUser returns a user by ID.</p></td>
+              </tr>
+            
+              <tr>
+                <td>GetUserByUsername</td>
+                <td><a href="#bettor.v1alpha.GetUserByUsernameRequest">GetUserByUsernameRequest</a></td>
+                <td><a href="#bettor.v1alpha.GetUserByUsernameResponse">GetUserByUsernameResponse</a></td>
+                <td><p>GetUserByUsername returns a user by ID.</p></td>
               </tr>
             
               <tr>
