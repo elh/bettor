@@ -39,7 +39,7 @@ type BettorServiceClient interface {
 	LockMarket(context.Context, *connect_go.Request[v1alpha.LockMarketRequest]) (*connect_go.Response[v1alpha.LockMarketResponse], error)
 	// SettleMarket settles a betting market and pays out bets.
 	SettleMarket(context.Context, *connect_go.Request[v1alpha.SettleMarketRequest]) (*connect_go.Response[v1alpha.SettleMarketResponse], error)
-	// CreateBet places a bet on an active betting market.
+	// CreateBet places a bet on an open betting market.
 	CreateBet(context.Context, *connect_go.Request[v1alpha.CreateBetRequest]) (*connect_go.Response[v1alpha.CreateBetResponse], error)
 }
 
@@ -151,7 +151,7 @@ type BettorServiceHandler interface {
 	LockMarket(context.Context, *connect_go.Request[v1alpha.LockMarketRequest]) (*connect_go.Response[v1alpha.LockMarketResponse], error)
 	// SettleMarket settles a betting market and pays out bets.
 	SettleMarket(context.Context, *connect_go.Request[v1alpha.SettleMarketRequest]) (*connect_go.Response[v1alpha.SettleMarketResponse], error)
-	// CreateBet places a bet on an active betting market.
+	// CreateBet places a bet on an open betting market.
 	CreateBet(context.Context, *connect_go.Request[v1alpha.CreateBetRequest]) (*connect_go.Response[v1alpha.CreateBetResponse], error)
 }
 

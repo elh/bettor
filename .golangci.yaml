@@ -16,3 +16,4 @@ linters:
   disable:
     - funlen
     - cyclop
+    - gocognit
