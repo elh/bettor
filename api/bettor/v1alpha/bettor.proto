@@ -122,7 +122,10 @@ message LockMarketResponse {
 
 message SettleMarketRequest {
   string market_id = 1 [(validate.rules).string.min_len = 1];
-  string winner_id = 2;
+  oneof type {
+    option (validate.required) = true;
+    string winner_id = 2;
+  }
 }
 
 message SettleMarketResponse {

@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/bufbuild/connect-go"
@@ -11,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestCreateMarket(t *testing.T) {
@@ -226,30 +228,19 @@ func TestLockMarket(t *testing.T) {
 
 func TestSettleMarket(t *testing.T) {
 	user1 := &api.User{
-		Id:       uuid.NewString(),
-		Username: "rusty",
+		Id:          uuid.NewString(),
+		Username:    "rusty",
+		Centipoints: 1000,
 	}
 	user2 := &api.User{
-		Id:       uuid.NewString(),
-		Username: "danny",
+		Id:          uuid.NewString(),
+		Username:    "danny",
+		Centipoints: 1000,
 	}
 	user3 := &api.User{
-		Id:       uuid.NewString(),
-		Username: "linus",
-	}
-	lockedMarket := &api.Market{
-		Id:      uuid.NewString(),
-		Title:   "Will I PB?",
-		Creator: user1.Id,
-		Status:  api.Market_STATUS_BETS_LOCKED,
-		Type: &api.Market_Pool{
-			Pool: &api.Pool{
-				Outcomes: []*api.Outcome{
-					{Title: "Yes"},
-					{Title: "No"},
-				},
-			},
-		},
+		Id:          uuid.NewString(),
+		Username:    "linus",
+		Centipoints: 1000,
 	}
 	settledMarket := &api.Market{
 		Id:      uuid.NewString(),
@@ -259,8 +250,8 @@ func TestSettleMarket(t *testing.T) {
 		Type: &api.Market_Pool{
 			Pool: &api.Pool{
 				Outcomes: []*api.Outcome{
-					{Title: "Yes"},
-					{Title: "No"},
+					{Id: "outcome-1", Title: "Yes"},
+					{Id: "outcome-2", Title: "No"},
 				},
 			},
 		},
@@ -268,6 +259,7 @@ func TestSettleMarket(t *testing.T) {
 	testCases := []struct {
 		desc                          string
 		marketID                      string
+		winnerID                      string
 		markets                       []*api.Market
 		bets                          []*api.Bet
 		expectedBetSettledCentipoints map[string]uint64
@@ -277,20 +269,150 @@ func TestSettleMarket(t *testing.T) {
 		{
 			desc:      "fails if market does not exist",
 			marketID:  "other",
+			winnerID:  "outcome-1",
 			expectErr: true,
 		},
 		{
 			desc:      "fails if market is not locked",
-			markets:   []*api.Market{lockedMarket, settledMarket},
+			markets:   []*api.Market{settledMarket},
 			marketID:  settledMarket.Id,
+			winnerID:  "outcome-1",
 			expectErr: true,
+		},
+		{
+			desc: "fails if winner does not exist",
+			markets: []*api.Market{
+				{
+					Id:      "z",
+					Title:   "Will I PB?",
+					Creator: user1.Id,
+					Status:  api.Market_STATUS_BETS_LOCKED,
+					Type: &api.Market_Pool{
+						Pool: &api.Pool{
+							Outcomes: []*api.Outcome{
+								{Id: "outcome-1", Title: "Yes", Centipoints: 100},
+								{Id: "outcome-2", Title: "No", Centipoints: 100},
+							},
+						},
+					},
+				},
+			},
+			marketID: "z",
+			winnerID: "other",
+			bets: []*api.Bet{
+				{Id: "a", UserId: user1.Id, MarketId: "z", Centipoints: 100, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-1"}},
+				{Id: "b", UserId: user2.Id, MarketId: "z", Centipoints: 100, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-2"}},
+			},
+			expectErr: true,
+		},
+		{
+			markets: []*api.Market{
+				{
+					Id:      "z",
+					Title:   "Will I PB?",
+					Creator: user1.Id,
+					Status:  api.Market_STATUS_BETS_LOCKED,
+					Type: &api.Market_Pool{
+						Pool: &api.Pool{
+							Outcomes: []*api.Outcome{
+								{Id: "outcome-1", Title: "Yes", Centipoints: 100},
+								{Id: "outcome-2", Title: "No", Centipoints: 100},
+							},
+						},
+					},
+				},
+			},
+			marketID: "z",
+			winnerID: "outcome-1",
+			bets: []*api.Bet{
+				{Id: "a", UserId: user1.Id, MarketId: "z", Centipoints: 100, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-1"}},
+				{Id: "b", UserId: user2.Id, MarketId: "z", Centipoints: 100, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-2"}},
+			},
+			expectedBetSettledCentipoints: map[string]uint64{
+				"a": 200,
+				"b": 0,
+			},
+			expectedUserCentipoints: map[string]uint64{
+				user1.Id: 1200,
+				user2.Id: 1000,
+			},
+		},
+		{
+			markets: []*api.Market{
+				{
+					Id:      "z",
+					Title:   "Will I PB?",
+					Creator: user1.Id,
+					Status:  api.Market_STATUS_BETS_LOCKED,
+					Type: &api.Market_Pool{
+						Pool: &api.Pool{
+							Outcomes: []*api.Outcome{
+								{Id: "outcome-1", Title: "Yes", Centipoints: 100},
+								{Id: "outcome-2", Title: "No", Centipoints: 150},
+							},
+						},
+					},
+				},
+			},
+			marketID: "z",
+			winnerID: "outcome-1",
+			bets: []*api.Bet{
+				{Id: "a", UserId: user1.Id, MarketId: "z", Centipoints: 100, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-1"}},
+				{Id: "b", UserId: user2.Id, MarketId: "z", Centipoints: 100, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-2"}},
+				{Id: "c", UserId: user3.Id, MarketId: "z", Centipoints: 50, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-2"}},
+			},
+			expectedBetSettledCentipoints: map[string]uint64{
+				"a": 250,
+				"b": 0,
+				"c": 0,
+			},
+			expectedUserCentipoints: map[string]uint64{
+				user1.Id: 1250,
+				user2.Id: 1000,
+				user3.Id: 1000,
+			},
+		},
+		{
+			markets: []*api.Market{
+				{
+					Id:      "z",
+					Title:   "Will I PB?",
+					Creator: user1.Id,
+					Status:  api.Market_STATUS_BETS_LOCKED,
+					Type: &api.Market_Pool{
+						Pool: &api.Pool{
+							Outcomes: []*api.Outcome{
+								{Id: "outcome-1", Title: "Yes", Centipoints: 100},
+								{Id: "outcome-2", Title: "No", Centipoints: 200},
+							},
+						},
+					},
+				},
+			},
+			marketID: "z",
+			winnerID: "outcome-1",
+			bets: []*api.Bet{
+				{Id: "a", UserId: user1.Id, MarketId: "z", Centipoints: 25, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-1"}},
+				{Id: "b", UserId: user2.Id, MarketId: "z", Centipoints: 75, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-1"}},
+				{Id: "c", UserId: user3.Id, MarketId: "z", Centipoints: 200, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-2"}},
+			},
+			expectedBetSettledCentipoints: map[string]uint64{
+				"a": 75,
+				"b": 225,
+				"c": 0,
+			},
+			expectedUserCentipoints: map[string]uint64{
+				user1.Id: 1075,
+				user2.Id: 1225,
+				user3.Id: 1000,
+			},
 		},
 	}
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Users: []*api.User{user1, user2, user3}, Markets: tC.markets, Bets: tC.bets})
-			out, err := s.SettleMarket(context.Background(), connect.NewRequest(&api.SettleMarketRequest{MarketId: tC.marketID}))
+			s := server.New(&mem.Repo{Users: []*api.User{proto.Clone(user1).(*api.User), proto.Clone(user2).(*api.User), proto.Clone(user3).(*api.User)}, Markets: tC.markets, Bets: tC.bets})
+			out, err := s.SettleMarket(context.Background(), connect.NewRequest(&api.SettleMarketRequest{MarketId: tC.marketID, Type: &api.SettleMarketRequest_WinnerId{WinnerId: tC.winnerID}}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
@@ -298,14 +420,29 @@ func TestSettleMarket(t *testing.T) {
 			require.Nil(t, err)
 			assert.Equal(t, out.Msg.GetMarket().GetStatus(), out.Msg.GetMarket().GetStatus())
 			assert.NotEmpty(t, out.Msg.GetMarket().GetSettledAt())
+			assert.Equal(t, tC.winnerID, out.Msg.GetMarket().GetPool().GetWinnerId())
 
 			got, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{MarketId: tC.marketID}))
 			require.Nil(t, err)
 			assert.Equal(t, out.Msg.GetMarket().GetStatus(), got.Msg.GetMarket().GetStatus())
 			assert.NotEmpty(t, got.Msg.GetMarket().GetSettledAt())
+			assert.Equal(t, tC.winnerID, got.Msg.GetMarket().GetPool().GetWinnerId())
 
-			// TODO: assert on bets
-			// TODO: assert on users
+			for betID, cp := range tC.expectedBetSettledCentipoints {
+				gotBet, err := s.GetBet(context.Background(), connect.NewRequest(&api.GetBetRequest{BetId: betID}))
+				require.Nil(t, err)
+				assert.NotEmpty(t, gotBet.Msg.GetBet().GetSettledAt())
+				assert.Equal(t, cp, gotBet.Msg.GetBet().GetSettledCentipoints(), betID)
+				fmt.Println(cp, gotBet.Msg.GetBet().GetSettledCentipoints())
+			}
+
+			for userID, cp := range tC.expectedUserCentipoints {
+				gotUser, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{UserId: userID}))
+				require.Nil(t, err)
+				assert.Equal(t, cp, gotUser.Msg.GetUser().GetCentipoints())
+				fmt.Println(user1.Id, user2.Id, user3.Id)
+				fmt.Println(gotUser.Msg.GetUser().GetCentipoints())
+			}
 		})
 	}
 }

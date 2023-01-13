@@ -2271,7 +2271,34 @@ func (m *SettleMarketRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for WinnerId
+	oneofTypePresent := false
+	switch v := m.Type.(type) {
+	case *SettleMarketRequest_WinnerId:
+		if v == nil {
+			err := SettleMarketRequestValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+		// no validation rules for WinnerId
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofTypePresent {
+		err := SettleMarketRequestValidationError{
+			field:  "Type",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return SettleMarketRequestMultiError(errors)
