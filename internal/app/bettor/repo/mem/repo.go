@@ -3,6 +3,7 @@ package mem
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/bufbuild/connect-go" // too lazy to isolate errors. repo pkgs will return connect errors
 	api "github.com/elh/bettor/api/bettor/v1alpha"
@@ -13,13 +14,18 @@ var _ repo.Repo = (*Repo)(nil)
 
 // Repo is an in-memory persistence repository.
 type Repo struct {
-	Users   []*api.User
-	Markets []*api.Market
-	Bets    []*api.Bet
+	Users     []*api.User
+	Markets   []*api.Market
+	Bets      []*api.Bet
+	userMtx   sync.RWMutex
+	marketMtx sync.RWMutex
+	betMtx    sync.RWMutex
 }
 
 // CreateUser creates a new user.
 func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
+	r.userMtx.Lock()
+	defer r.userMtx.Unlock()
 	for _, u := range r.Users {
 		if u.Id == user.Id {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("user with id already exists"))
@@ -34,6 +40,8 @@ func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
 
 // UpdateUser updates a user.
 func (r *Repo) UpdateUser(ctx context.Context, user *api.User) error {
+	r.userMtx.Lock()
+	defer r.userMtx.Unlock()
 	var found bool
 	var idx int
 	for i, u := range r.Users {
@@ -52,6 +60,8 @@ func (r *Repo) UpdateUser(ctx context.Context, user *api.User) error {
 
 // GetUser gets a user by ID.
 func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
+	r.userMtx.RLock()
+	defer r.userMtx.RUnlock()
 	for _, u := range r.Users {
 		if u.Id == id {
 			return u, nil
@@ -62,6 +72,8 @@ func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 
 // GetUserByUsername gets a user by username.
 func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.User, error) {
+	r.userMtx.RLock()
+	defer r.userMtx.RUnlock()
 	for _, u := range r.Users {
 		if u.Username == username {
 			return u, nil
@@ -72,6 +84,8 @@ func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.Use
 
 // CreateMarket creates a new market.
 func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
+	r.marketMtx.Lock()
+	defer r.marketMtx.Unlock()
 	for _, u := range r.Users {
 		if u.Id == market.Id {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("market with id already exists"))
@@ -83,6 +97,8 @@ func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 
 // UpdateMarket updates a market.
 func (r *Repo) UpdateMarket(ctx context.Context, market *api.Market) error {
+	r.marketMtx.Lock()
+	defer r.marketMtx.Unlock()
 	var found bool
 	var idx int
 	for i, m := range r.Markets {
@@ -101,6 +117,8 @@ func (r *Repo) UpdateMarket(ctx context.Context, market *api.Market) error {
 
 // GetMarket gets a market by ID.
 func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
+	r.marketMtx.RLock()
+	defer r.marketMtx.RUnlock()
 	for _, m := range r.Markets {
 		if m.Id == id {
 			return m, nil
@@ -111,6 +129,8 @@ func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
 
 // CreateBet creates a new bet.
 func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
+	r.betMtx.Lock()
+	defer r.betMtx.Unlock()
 	for _, u := range r.Users {
 		if u.Id == bet.Id {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("bet with id already exists"))
@@ -122,6 +142,8 @@ func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 
 // UpdateBet updates a bet.
 func (r *Repo) UpdateBet(ctx context.Context, bet *api.Bet) error {
+	r.betMtx.Lock()
+	defer r.betMtx.Unlock()
 	var found bool
 	var idx int
 	for i, b := range r.Bets {
@@ -140,6 +162,8 @@ func (r *Repo) UpdateBet(ctx context.Context, bet *api.Bet) error {
 
 // GetBet gets a bet by ID.
 func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
+	r.betMtx.RLock()
+	defer r.betMtx.RUnlock()
 	for _, b := range r.Bets {
 		if b.Id == id {
 			return b, nil
@@ -150,6 +174,8 @@ func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
 
 // ListBetsByMarket lists bets by market ID.
 func (r *Repo) ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) {
+	r.betMtx.RLock()
+	defer r.betMtx.RUnlock()
 	var bets []*api.Bet
 	for _, b := range r.Bets {
 		if b.MarketId == marketID {

@@ -51,6 +51,8 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 
 // GetMarket returns a market by ID.
 func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarketRequest]) (*connect.Response[api.GetMarketResponse], error) {
+	s.marketMtx.RLock()
+	defer s.marketMtx.RUnlock()
 	if err := in.Msg.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -67,6 +69,8 @@ func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarke
 
 // SettleMarket settles a betting market and pays out bets.
 func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.SettleMarketRequest]) (*connect.Response[api.SettleMarketResponse], error) {
+	s.marketMtx.Lock()
+	defer s.marketMtx.Unlock()
 	if err := in.Msg.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -152,6 +156,8 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 
 // LockMarket locks a betting market preventing further bets.
 func (s *Server) LockMarket(ctx context.Context, in *connect.Request[api.LockMarketRequest]) (*connect.Response[api.LockMarketResponse], error) {
+	s.marketMtx.Lock()
+	defer s.marketMtx.Unlock()
 	if err := in.Msg.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -175,6 +181,8 @@ func (s *Server) LockMarket(ctx context.Context, in *connect.Request[api.LockMar
 
 // CreateBet places a bet on an open betting market.
 func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBetRequest]) (*connect.Response[api.CreateBetResponse], error) {
+	s.marketMtx.Lock()
+	defer s.marketMtx.Unlock()
 	if in.Msg == nil || in.Msg.GetBet() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("bet is required"))
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"sync"
 
 	"github.com/bufbuild/connect-go" // too lazy to isolate errors :shrug:
 	api "github.com/elh/bettor/api/bettor/v1alpha"
@@ -25,6 +26,7 @@ func init() {
 type Repo struct {
 	Mem      *mem.Repo
 	FileName string
+	writeMtx sync.Mutex
 }
 
 // New initializes a Gob-backed repository.
@@ -69,6 +71,8 @@ func (r *Repo) persist() error {
 
 // CreateUser creates a new user.
 func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
+	r.writeMtx.Lock()
+	defer r.writeMtx.Unlock()
 	if err := r.Mem.CreateUser(ctx, user); err != nil {
 		return err
 	}
@@ -77,6 +81,8 @@ func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
 
 // UpdateUser updates a user.
 func (r *Repo) UpdateUser(ctx context.Context, user *api.User) error {
+	r.writeMtx.Lock()
+	defer r.writeMtx.Unlock()
 	if err := r.Mem.UpdateUser(ctx, user); err != nil {
 		return err
 	}
@@ -95,6 +101,8 @@ func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.Use
 
 // CreateMarket creates a new market.
 func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
+	r.writeMtx.Lock()
+	defer r.writeMtx.Unlock()
 	if err := r.Mem.CreateMarket(ctx, market); err != nil {
 		return err
 	}
@@ -103,6 +111,8 @@ func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 
 // UpdateMarket updates a market.
 func (r *Repo) UpdateMarket(ctx context.Context, market *api.Market) error {
+	r.writeMtx.Lock()
+	defer r.writeMtx.Unlock()
 	if err := r.Mem.UpdateMarket(ctx, market); err != nil {
 		return err
 	}
@@ -116,6 +126,8 @@ func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
 
 // CreateBet creates a new user.
 func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
+	r.writeMtx.Lock()
+	defer r.writeMtx.Unlock()
 	if err := r.Mem.CreateBet(ctx, bet); err != nil {
 		return err
 	}
@@ -124,6 +136,8 @@ func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 
 // UpdateBet updates a bet.
 func (r *Repo) UpdateBet(ctx context.Context, bet *api.Bet) error {
+	r.writeMtx.Lock()
+	defer r.writeMtx.Unlock()
 	if err := r.Mem.UpdateBet(ctx, bet); err != nil {
 		return err
 	}
