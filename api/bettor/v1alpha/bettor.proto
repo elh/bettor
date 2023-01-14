@@ -104,6 +104,16 @@ message GetUserByUsernameResponse {
   User user = 1;
 }
 
+message ListUsersRequest {
+  int32 page_size = 1 [(validate.rules).int32.lte = 50];
+  string page_token = 2;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  string next_page_token = 2;
+}
+
 message CreateMarketRequest {
   Market market = 1;
 }
@@ -118,6 +128,17 @@ message GetMarketRequest {
 
 message GetMarketResponse {
   Market market = 1;
+}
+
+message ListMarketsRequest {
+  int32 page_size = 1 [(validate.rules).int32.lte = 50];
+  string page_token = 2;
+  Market.Status status = 3;
+}
+
+message ListMarketsResponse {
+  repeated Market markets = 1;
+  string next_page_token = 2;
 }
 
 message LockMarketRequest {
@@ -156,6 +177,18 @@ message GetBetResponse {
   Bet bet = 1;
 }
 
+message ListBetsRequest {
+  int32 page_size = 1 [(validate.rules).int32.lte = 50];
+  string page_token = 2;
+  string user_id = 3;
+  string market_id = 4;
+}
+
+message ListBetsResponse {
+  repeated Bet bets = 1;
+  string next_page_token = 2;
+}
+
 // BettorService is a service for bets and predictions.
 service BettorService {
   // CreateUser creates a new user.
@@ -164,10 +197,14 @@ service BettorService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   // GetUserByUsername returns a user by ID.
   rpc GetUserByUsername(GetUserByUsernameRequest) returns (GetUserByUsernameResponse) {}
+  // ListUsers lists users by filters.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
   // CreateMarket creates a new betting market.
   rpc CreateMarket(CreateMarketRequest) returns (CreateMarketResponse) {}
   // GetMarket gets a betting market by ID.
   rpc GetMarket(GetMarketRequest) returns (GetMarketResponse) {}
+  // ListMarket lists markets by filters.
+  rpc ListMarket(ListMarketsRequest) returns (ListMarketsResponse) {}
   // LockMarket locks a betting market preventing further bets.
   rpc LockMarket(LockMarketRequest) returns (LockMarketResponse) {}
   // SettleMarket settles a betting market and pays out bets.
@@ -176,4 +213,6 @@ service BettorService {
   rpc CreateBet(CreateBetRequest) returns (CreateBetResponse) {}
   // GetBet gets a bet.
   rpc GetBet(GetBetRequest) returns (GetBetResponse) {}
+  // ListBet lists bets by filters.
+  rpc ListBet(ListBetsRequest) returns (ListBetsResponse) {}
 }
