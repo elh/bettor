@@ -2,6 +2,8 @@ package server_test
 
 import (
 	"context"
+	"errors"
+	"sync"
 	"testing"
 
 	"github.com/bufbuild/connect-go"
@@ -640,5 +642,104 @@ func TestGetBet(t *testing.T) {
 			require.Nil(t, err)
 			assert.Equal(t, tC.expected, out.Msg.GetBet())
 		})
+	}
+}
+
+func TestCreateBetConcurrency(t *testing.T) {
+	user := &api.User{
+		Id:          uuid.NewString(),
+		Centipoints: 1000,
+		Username:    "rusty",
+	}
+	poolMarket := &api.Market{
+		Id:     uuid.NewString(),
+		Status: api.Market_STATUS_OPEN,
+		Type: &api.Market_Pool{
+			Pool: &api.Pool{
+				Outcomes: []*api.Outcome{
+					{Id: uuid.NewString()},
+					{Id: uuid.NewString()},
+				},
+			},
+		},
+	}
+	s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket}})
+	var wg sync.WaitGroup
+	wg.Add(100)
+	for i := 0; i < 100; i++ {
+		go func() {
+			defer wg.Done()
+			_, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Bet: &api.Bet{
+				UserId:      user.Id,
+				MarketId:    poolMarket.Id,
+				Centipoints: 10,
+				Type:        &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
+			}}))
+			require.Nil(t, err)
+		}()
+	}
+	wg.Wait()
+	m, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{MarketId: poolMarket.Id}))
+	require.Nil(t, err)
+	assert.Equal(t, uint64(1000), m.Msg.Market.GetPool().GetOutcomes()[0].GetCentipoints())
+	assert.Equal(t, uint64(0), m.Msg.Market.GetPool().GetOutcomes()[1].GetCentipoints())
+	u, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{UserId: user.Id}))
+	require.Nil(t, err)
+	assert.Equal(t, uint64(0), u.Msg.GetUser().GetCentipoints())
+}
+
+func TestCreateBetLockMarketConcurrency(t *testing.T) {
+	for i := 0; i < 50; i++ {
+		user := &api.User{
+			Id:          uuid.NewString(),
+			Centipoints: 1000,
+			Username:    "rusty",
+		}
+		poolMarket := &api.Market{
+			Id:     uuid.NewString(),
+			Status: api.Market_STATUS_OPEN,
+			Type: &api.Market_Pool{
+				Pool: &api.Pool{
+					Outcomes: []*api.Outcome{
+						{Id: uuid.NewString()},
+						{Id: uuid.NewString()},
+					},
+				},
+			},
+		}
+
+		s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket}})
+		var wg sync.WaitGroup
+
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			_, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Bet: &api.Bet{
+				UserId:      user.Id,
+				MarketId:    poolMarket.Id,
+				Centipoints: 10,
+				Type:        &api.Bet_OutcomeId{OutcomeId: poolMarket.GetPool().Outcomes[0].Id},
+			}}))
+			if err != nil {
+				var connectErr *connect.Error
+				if errors.As(err, &connectErr) {
+					require.NotEqual(t, connect.CodeInternal, connectErr.Code())
+					return
+				}
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			_, err := s.LockMarket(context.Background(), connect.NewRequest(&api.LockMarketRequest{MarketId: poolMarket.Id}))
+			require.Nil(t, err)
+		}()
+
+		wg.Wait()
+		m, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{MarketId: poolMarket.Id}))
+		require.Nil(t, err)
+		u, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{UserId: user.Id}))
+		require.Nil(t, err)
+
+		assert.Equal(t, uint64(1000), u.Msg.GetUser().GetCentipoints()+m.Msg.GetMarket().GetPool().GetOutcomes()[0].GetCentipoints())
 	}
 }
