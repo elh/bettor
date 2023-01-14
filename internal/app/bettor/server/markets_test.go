@@ -680,7 +680,7 @@ func TestCreateBetConcurrency(t *testing.T) {
 	wg.Wait()
 	m, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{MarketId: poolMarket.Id}))
 	require.Nil(t, err)
-	assert.Equal(t, 1000, m.Msg.Market.GetPool().GetOutcomes()[0].GetCentipoints())
+	assert.Equal(t, uint64(1000), m.Msg.Market.GetPool().GetOutcomes()[0].GetCentipoints())
 	assert.Equal(t, uint64(0), m.Msg.Market.GetPool().GetOutcomes()[1].GetCentipoints())
 	u, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{UserId: user.Id}))
 	assert.Equal(t, uint64(0), u.Msg.GetUser().GetCentipoints())
