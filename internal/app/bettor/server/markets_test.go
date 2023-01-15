@@ -154,6 +154,95 @@ func TestGetMarket(t *testing.T) {
 	}
 }
 
+func TestListMarkets(t *testing.T) {
+	// tests pagination until all users are returned
+	// alphabetically ordered ids
+	market1 := &api.Market{
+		Id:     "a",
+		Status: api.Market_STATUS_OPEN,
+	}
+	market2 := &api.Market{
+		Id:     "b",
+		Status: api.Market_STATUS_OPEN,
+	}
+	market3 := &api.Market{
+		Id:     "c",
+		Status: api.Market_STATUS_BETS_LOCKED,
+	}
+	testCases := []struct {
+		desc          string
+		req           *api.ListMarketsRequest
+		expected      []*api.Market
+		expectedCalls int
+		expectErr     bool
+	}{
+		{
+			desc:          "basic case",
+			req:           &api.ListMarketsRequest{},
+			expected:      []*api.Market{market1, market2, market3},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "page size 1",
+			req:           &api.ListMarketsRequest{PageSize: 1},
+			expected:      []*api.Market{market1, market2, market3},
+			expectedCalls: 3,
+		},
+		{
+			desc:          "page size 2",
+			req:           &api.ListMarketsRequest{PageSize: 2},
+			expected:      []*api.Market{market1, market2, market3},
+			expectedCalls: 2,
+		},
+		{
+			desc:          "page size 3",
+			req:           &api.ListMarketsRequest{PageSize: 3},
+			expected:      []*api.Market{market1, market2, market3},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "page size 4",
+			req:           &api.ListMarketsRequest{PageSize: 4},
+			expected:      []*api.Market{market1, market2, market3},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "list by status",
+			req:           &api.ListMarketsRequest{Status: api.Market_STATUS_OPEN},
+			expected:      []*api.Market{market1, market2},
+			expectedCalls: 1,
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s := server.New(&mem.Repo{Markets: []*api.Market{market1, market2, market3}})
+			var all []*api.Market
+			var calls int
+			var pageToken string
+			for {
+				req := proto.Clone(tC.req).(*api.ListMarketsRequest)
+				req.PageToken = pageToken
+				out, err := s.ListMarkets(context.Background(), connect.NewRequest(req))
+				if tC.expectErr {
+					require.NotNil(t, err)
+					return
+				}
+				calls++
+				require.Nil(t, err)
+				require.NotNil(t, out)
+				all = append(all, out.Msg.GetMarkets()...)
+				if out.Msg.GetNextPageToken() == "" {
+					break
+				}
+				pageToken = out.Msg.GetNextPageToken()
+			}
+			assert.Equal(t, tC.expected, all)
+			assert.Equal(t, tC.expectedCalls, calls)
+		})
+	}
+}
+
 func TestLockMarket(t *testing.T) {
 	user := &api.User{
 		Id:          uuid.NewString(),

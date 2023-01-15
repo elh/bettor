@@ -129,6 +129,11 @@ func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
 	return r.Mem.GetMarket(ctx, id)
 }
 
+// ListMarkets lists markets.
+func (r *Repo) ListMarkets(ctx context.Context, args *repo.ListMarketsArgs) ([]*api.Market, bool, error) {
+	return r.Mem.ListMarkets(ctx, args)
+}
+
 // CreateBet creates a new user.
 func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 	r.writeMtx.Lock()

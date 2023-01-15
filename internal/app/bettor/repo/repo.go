@@ -16,13 +16,22 @@ type Repo interface {
 	CreateMarket(ctx context.Context, market *api.Market) error
 	UpdateMarket(ctx context.Context, market *api.Market) error
 	GetMarket(ctx context.Context, id string) (*api.Market, error)
+	ListMarkets(ctx context.Context, args *ListMarketsArgs) (markets []*api.Market, hasMore bool, err error)
 	CreateBet(ctx context.Context, bet *api.Bet) error
 	UpdateBet(ctx context.Context, bet *api.Bet) error
 	GetBet(ctx context.Context, id string) (*api.Bet, error)
 	ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) // TODO: generalize and paginate
 }
 
+// ListUsersArgs are the arguments for listing users.
 type ListUsersArgs struct {
 	GreaterThanID string
+	Limit         int
+}
+
+// ListMarketsArgs are the arguments for listing markets.
+type ListMarketsArgs struct {
+	GreaterThanID string
+	Status        api.Market_Status
 	Limit         int
 }

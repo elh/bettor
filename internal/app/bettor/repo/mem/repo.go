@@ -146,6 +146,29 @@ func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
 	return nil, connect.NewError(connect.CodeNotFound, errors.New("market not found"))
 }
 
+// ListMarkets lists markets by filters.
+func (r *Repo) ListMarkets(ctx context.Context, args *repo.ListMarketsArgs) (markets []*api.Market, hasMore bool, err error) {
+	r.marketMtx.RLock()
+	defer r.marketMtx.RUnlock()
+	var out []*api.Market //nolint:prealloc
+	for _, m := range r.Markets {
+		if m.Id <= args.GreaterThanID {
+			continue
+		}
+		if args.Status != api.Market_STATUS_UNSPECIFIED && m.Status != args.Status {
+			continue
+		}
+		out = append(out, m)
+		if len(out) >= args.Limit+1 {
+			break
+		}
+	}
+	if len(out) > args.Limit {
+		return out[:args.Limit], true, nil
+	}
+	return out, false, nil
+}
+
 // CreateBet creates a new bet.
 func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 	r.betMtx.Lock()

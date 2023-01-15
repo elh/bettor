@@ -2,14 +2,21 @@ package server
 
 import (
 	"context"
+	"encoding/gob"
 	"errors"
 
 	"github.com/bufbuild/connect-go"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
+	"github.com/elh/bettor/internal/app/bettor/repo"
+	"github.com/elh/bettor/internal/pkg/pagination"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func init() {
+	gob.Register(&api.ListMarketsRequest{})
+}
 
 // CreateMarket creates a new betting market.
 func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.CreateMarketRequest]) (*connect.Response[api.CreateMarketResponse], error) {
@@ -64,6 +71,54 @@ func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarke
 
 	return connect.NewResponse(&api.GetMarketResponse{
 		Market: market,
+	}), nil
+}
+
+// ListMarkets lists markets by filters.
+func (s *Server) ListMarkets(ctx context.Context, in *connect.Request[api.ListMarketsRequest]) (*connect.Response[api.ListMarketsResponse], error) {
+	pageSize := defaultPageSize
+	if in.Msg.GetPageSize() > 0 && in.Msg.GetPageSize() <= maxPageSize {
+		pageSize = int(in.Msg.GetPageSize())
+	}
+
+	var cursor string
+	if in.Msg.GetPageToken() != "" {
+		p, err := pagination.FromToken(in.Msg.GetPageToken())
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		cursor = p.Cursor
+		fromToken, ok := proto.Clone(p.ListRequest).(*api.ListMarketsRequest)
+		if !ok {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid page token"))
+		}
+		if !proto.Equal(api.StripListMarketsPagination(in.Msg), api.StripListMarketsPagination(fromToken)) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid page token"))
+		}
+	}
+
+	markets, hasMore, err := s.Repo.ListMarkets(ctx, &repo.ListMarketsArgs{
+		GreaterThanID: cursor,
+		Status:        in.Msg.GetStatus(),
+		Limit:         pageSize,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var nextPageToken string
+	if hasMore {
+		nextPageToken, err = pagination.ToToken(pagination.Pagination{
+			Cursor:      markets[len(markets)-1].Id,
+			ListRequest: in.Msg,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return connect.NewResponse(&api.ListMarketsResponse{
+		Markets:       markets,
+		NextPageToken: nextPageToken,
 	}), nil
 }
 
