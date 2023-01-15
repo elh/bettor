@@ -22,3 +22,10 @@ go.work
 
 # Gob files
 *.gob
+
+# Secrets
+secrets/
+.env
+
+# Testing
+cmd/testing/
