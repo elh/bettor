@@ -2,14 +2,26 @@ package server
 
 import (
 	"context"
+	"encoding/gob"
 	"errors"
 
 	"github.com/bufbuild/connect-go"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
+	"github.com/elh/bettor/internal/app/bettor/repo"
+	"github.com/elh/bettor/internal/pkg/pagination"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+const (
+	defaultPageSize = 10
+	maxPageSize     = 100
+)
+
+func init() {
+	gob.Register(&api.ListUsersRequest{})
+}
 
 // CreateUser creates a new user.
 func (s *Server) CreateUser(ctx context.Context, in *connect.Request[api.CreateUserRequest]) (*connect.Response[api.CreateUserResponse], error) {
@@ -64,5 +76,49 @@ func (s *Server) GetUserByUsername(ctx context.Context, in *connect.Request[api.
 
 	return connect.NewResponse(&api.GetUserByUsernameResponse{
 		User: user,
+	}), nil
+}
+
+// ListUsers lists users by filters.
+func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUsersRequest]) (*connect.Response[api.ListUsersResponse], error) {
+	pageSize := defaultPageSize
+	if in.Msg.GetPageSize() > 0 && in.Msg.GetPageSize() <= maxPageSize {
+		pageSize = int(in.Msg.GetPageSize())
+	}
+
+	var cursor string
+	if in.Msg.GetPageToken() != "" {
+		p, err := pagination.FromToken(in.Msg.GetPageToken())
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		cursor = p.Cursor
+		fromToken, ok := proto.Clone(p.ListRequest).(*api.ListUsersRequest)
+		if !ok {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid page token"))
+		}
+		if !proto.Equal(api.StripListUsersPagination(in.Msg), api.StripListUsersPagination(fromToken)) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid page token"))
+		}
+	}
+
+	users, hasMore, err := s.Repo.ListUsers(ctx, &repo.ListUsersArgs{GreaterThanID: cursor, Limit: pageSize})
+	if err != nil {
+		return nil, err
+	}
+
+	var nextPageToken string
+	if hasMore {
+		nextPageToken, err = pagination.ToToken(pagination.Pagination{
+			Cursor:      users[len(users)-1].Id,
+			ListRequest: in.Msg,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return connect.NewResponse(&api.ListUsersResponse{
+		Users:         users,
+		NextPageToken: nextPageToken,
 	}), nil
 }

@@ -82,6 +82,25 @@ func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.Use
 	return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
 }
 
+// ListUsers lists users by filters.
+func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users []*api.User, hasMore bool, err error) {
+	r.userMtx.RLock()
+	defer r.userMtx.RUnlock()
+	var out []*api.User
+	for _, u := range r.Users {
+		if u.Id > args.GreaterThanID {
+			out = append(out, u)
+		}
+		if len(out) >= args.Limit+1 {
+			break
+		}
+	}
+	if len(out) > args.Limit {
+		return out[:args.Limit], true, nil
+	}
+	return out, false, nil
+}
+
 // CreateMarket creates a new market.
 func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 	r.marketMtx.Lock()

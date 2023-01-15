@@ -99,6 +99,11 @@ func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.Use
 	return r.Mem.GetUserByUsername(ctx, username)
 }
 
+// ListUsers lists users.
+func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) ([]*api.User, bool, error) {
+	return r.Mem.ListUsers(ctx, args)
+}
+
 // CreateMarket creates a new market.
 func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 	r.writeMtx.Lock()

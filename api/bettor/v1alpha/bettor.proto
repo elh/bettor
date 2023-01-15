@@ -203,8 +203,8 @@ service BettorService {
   rpc CreateMarket(CreateMarketRequest) returns (CreateMarketResponse) {}
   // GetMarket gets a betting market by ID.
   rpc GetMarket(GetMarketRequest) returns (GetMarketResponse) {}
-  // ListMarket lists markets by filters.
-  rpc ListMarket(ListMarketsRequest) returns (ListMarketsResponse) {}
+  // ListMarkets lists markets by filters.
+  rpc ListMarkets(ListMarketsRequest) returns (ListMarketsResponse) {}
   // LockMarket locks a betting market preventing further bets.
   rpc LockMarket(LockMarketRequest) returns (LockMarketResponse) {}
   // SettleMarket settles a betting market and pays out bets.
@@ -214,5 +214,5 @@ service BettorService {
   // GetBet gets a bet.
   rpc GetBet(GetBetRequest) returns (GetBetResponse) {}
   // ListBet lists bets by filters.
-  rpc ListBet(ListBetsRequest) returns (ListBetsResponse) {}
+  rpc ListBets(ListBetsRequest) returns (ListBetsResponse) {}
 }

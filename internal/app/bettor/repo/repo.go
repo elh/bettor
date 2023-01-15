@@ -12,6 +12,7 @@ type Repo interface {
 	UpdateUser(ctx context.Context, user *api.User) error
 	GetUser(ctx context.Context, id string) (*api.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*api.User, error)
+	ListUsers(ctx context.Context, args *ListUsersArgs) (users []*api.User, hasMore bool, err error)
 	CreateMarket(ctx context.Context, market *api.Market) error
 	UpdateMarket(ctx context.Context, market *api.Market) error
 	GetMarket(ctx context.Context, id string) (*api.Market, error)
@@ -19,4 +20,9 @@ type Repo interface {
 	UpdateBet(ctx context.Context, bet *api.Bet) error
 	GetBet(ctx context.Context, id string) (*api.Bet, error)
 	ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) // TODO: generalize and paginate
+}
+
+type ListUsersArgs struct {
+	GreaterThanID string
+	Limit         int
 }
