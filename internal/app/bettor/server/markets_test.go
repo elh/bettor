@@ -155,7 +155,7 @@ func TestGetMarket(t *testing.T) {
 }
 
 func TestListMarkets(t *testing.T) {
-	// tests pagination until all users are returned
+	// tests pagination until all markets are returned
 	// alphabetically ordered ids
 	market1 := &api.Market{
 		Id:     "a",
@@ -730,6 +730,116 @@ func TestGetBet(t *testing.T) {
 			}
 			require.Nil(t, err)
 			assert.Equal(t, tC.expected, out.Msg.GetBet())
+		})
+	}
+}
+
+func TestListBets(t *testing.T) {
+	// tests pagination until all bets are returned
+	// alphabetically ordered ids
+	bet1 := &api.Bet{
+		Id:       "a",
+		UserId:   "rusty",
+		MarketId: "one",
+	}
+	bet2 := &api.Bet{
+		Id:       "b",
+		UserId:   "danny",
+		MarketId: "two",
+	}
+	bet3 := &api.Bet{
+		Id:       "c",
+		UserId:   "linus",
+		MarketId: "three",
+	}
+	testCases := []struct {
+		desc          string
+		req           *api.ListBetsRequest
+		expected      []*api.Bet
+		expectedCalls int
+		expectErr     bool
+	}{
+		{
+			desc:          "basic case",
+			req:           &api.ListBetsRequest{},
+			expected:      []*api.Bet{bet1, bet2, bet3},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "page size 1",
+			req:           &api.ListBetsRequest{PageSize: 1},
+			expected:      []*api.Bet{bet1, bet2, bet3},
+			expectedCalls: 3,
+		},
+		{
+			desc:          "page size 2",
+			req:           &api.ListBetsRequest{PageSize: 2},
+			expected:      []*api.Bet{bet1, bet2, bet3},
+			expectedCalls: 2,
+		},
+		{
+			desc:          "page size 3",
+			req:           &api.ListBetsRequest{PageSize: 3},
+			expected:      []*api.Bet{bet1, bet2, bet3},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "page size 4",
+			req:           &api.ListBetsRequest{PageSize: 4},
+			expected:      []*api.Bet{bet1, bet2, bet3},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "list by user",
+			req:           &api.ListBetsRequest{UserId: "rusty"},
+			expected:      []*api.Bet{bet1},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "list by market",
+			req:           &api.ListBetsRequest{MarketId: "two"},
+			expected:      []*api.Bet{bet2},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "list by user and market - match",
+			req:           &api.ListBetsRequest{UserId: "linus", MarketId: "three"},
+			expected:      []*api.Bet{bet3},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "list by user and market - no match",
+			req:           &api.ListBetsRequest{UserId: "linus", MarketId: "two"},
+			expected:      nil,
+			expectedCalls: 1,
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s := server.New(&mem.Repo{Bets: []*api.Bet{bet1, bet2, bet3}})
+			var all []*api.Bet
+			var calls int
+			var pageToken string
+			for {
+				req := proto.Clone(tC.req).(*api.ListBetsRequest)
+				req.PageToken = pageToken
+				out, err := s.ListBets(context.Background(), connect.NewRequest(req))
+				if tC.expectErr {
+					require.NotNil(t, err)
+					return
+				}
+				calls++
+				require.Nil(t, err)
+				require.NotNil(t, out)
+				all = append(all, out.Msg.GetBets()...)
+				if out.Msg.GetNextPageToken() == "" {
+					break
+				}
+				pageToken = out.Msg.GetNextPageToken()
+			}
+			assert.Equal(t, tC.expected, all)
+			assert.Equal(t, tC.expectedCalls, calls)
 		})
 	}
 }

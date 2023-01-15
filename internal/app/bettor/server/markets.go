@@ -16,6 +16,7 @@ import (
 
 func init() {
 	gob.Register(&api.ListMarketsRequest{})
+	gob.Register(&api.ListBetsRequest{})
 }
 
 // CreateMarket creates a new betting market.
@@ -334,5 +335,54 @@ func (s *Server) GetBet(ctx context.Context, in *connect.Request[api.GetBetReque
 
 	return connect.NewResponse(&api.GetBetResponse{
 		Bet: bet,
+	}), nil
+}
+
+// ListBets lists bets by filters.
+func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsRequest]) (*connect.Response[api.ListBetsResponse], error) {
+	pageSize := defaultPageSize
+	if in.Msg.GetPageSize() > 0 && in.Msg.GetPageSize() <= maxPageSize {
+		pageSize = int(in.Msg.GetPageSize())
+	}
+
+	var cursor string
+	if in.Msg.GetPageToken() != "" {
+		p, err := pagination.FromToken(in.Msg.GetPageToken())
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		cursor = p.Cursor
+		fromToken, ok := proto.Clone(p.ListRequest).(*api.ListBetsRequest)
+		if !ok {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid page token"))
+		}
+		if !proto.Equal(api.StripListBetsPagination(in.Msg), api.StripListBetsPagination(fromToken)) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid page token"))
+		}
+	}
+
+	bets, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{
+		GreaterThanID: cursor,
+		UserID:        in.Msg.GetUserId(),
+		MarketID:      in.Msg.GetMarketId(),
+		Limit:         pageSize,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var nextPageToken string
+	if hasMore {
+		nextPageToken, err = pagination.ToToken(pagination.Pagination{
+			Cursor:      bets[len(bets)-1].Id,
+			ListRequest: in.Msg,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return connect.NewResponse(&api.ListBetsResponse{
+		Bets:          bets,
+		NextPageToken: nextPageToken,
 	}), nil
 }
