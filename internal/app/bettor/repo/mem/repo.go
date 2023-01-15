@@ -82,6 +82,25 @@ func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.Use
 	return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
 }
 
+// ListUsers lists users by filters.
+func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users []*api.User, hasMore bool, err error) {
+	r.userMtx.RLock()
+	defer r.userMtx.RUnlock()
+	var out []*api.User
+	for _, u := range r.Users {
+		if u.Id > args.GreaterThanID {
+			out = append(out, u)
+		}
+		if len(out) >= args.Limit+1 {
+			break
+		}
+	}
+	if len(out) > args.Limit {
+		return out[:args.Limit], true, nil
+	}
+	return out, false, nil
+}
+
 // CreateMarket creates a new market.
 func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 	r.marketMtx.Lock()
@@ -125,6 +144,29 @@ func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
 		}
 	}
 	return nil, connect.NewError(connect.CodeNotFound, errors.New("market not found"))
+}
+
+// ListMarkets lists markets by filters.
+func (r *Repo) ListMarkets(ctx context.Context, args *repo.ListMarketsArgs) (markets []*api.Market, hasMore bool, err error) {
+	r.marketMtx.RLock()
+	defer r.marketMtx.RUnlock()
+	var out []*api.Market //nolint:prealloc
+	for _, m := range r.Markets {
+		if m.Id <= args.GreaterThanID {
+			continue
+		}
+		if args.Status != api.Market_STATUS_UNSPECIFIED && m.Status != args.Status {
+			continue
+		}
+		out = append(out, m)
+		if len(out) >= args.Limit+1 {
+			break
+		}
+	}
+	if len(out) > args.Limit {
+		return out[:args.Limit], true, nil
+	}
+	return out, false, nil
 }
 
 // CreateBet creates a new bet.
@@ -172,15 +214,28 @@ func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
 	return nil, connect.NewError(connect.CodeNotFound, errors.New("bet not found"))
 }
 
-// ListBetsByMarket lists bets by market ID.
-func (r *Repo) ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) {
+// ListBets lists bets by filters.
+func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) (bets []*api.Bet, hasMore bool, err error) {
 	r.betMtx.RLock()
 	defer r.betMtx.RUnlock()
-	var bets []*api.Bet
+	var out []*api.Bet //nolint:prealloc
 	for _, b := range r.Bets {
-		if b.MarketId == marketID {
-			bets = append(bets, b)
+		if b.Id <= args.GreaterThanID {
+			continue
+		}
+		if args.UserID != "" && b.UserId != args.UserID {
+			continue
+		}
+		if args.MarketID != "" && b.MarketId != args.MarketID {
+			continue
+		}
+		out = append(out, b)
+		if len(out) >= args.Limit+1 {
+			break
 		}
 	}
-	return bets, nil
+	if len(out) > args.Limit {
+		return out[:args.Limit], true, nil
+	}
+	return out, false, nil
 }

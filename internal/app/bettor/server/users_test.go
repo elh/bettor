@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -145,6 +146,92 @@ func TestGetUserByUsername(t *testing.T) {
 			}
 			require.Nil(t, err)
 			assert.Equal(t, tC.expected, out.Msg.GetUser())
+		})
+	}
+}
+
+func TestListUsers(t *testing.T) {
+	// tests pagination until all users are returned
+	// alphabetically ordered ids
+	user1 := &api.User{
+		Id:          "a",
+		Username:    "rusty",
+		Centipoints: 100,
+	}
+	user2 := &api.User{
+		Id:          "b",
+		Username:    "danny",
+		Centipoints: 200,
+	}
+	user3 := &api.User{
+		Id:          "c",
+		Username:    "linus",
+		Centipoints: 300,
+	}
+	testCases := []struct {
+		desc          string
+		req           *api.ListUsersRequest
+		expected      []*api.User
+		expectedCalls int
+		expectErr     bool
+	}{
+		{
+			desc:          "basic case",
+			req:           &api.ListUsersRequest{},
+			expected:      []*api.User{user1, user2, user3},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "page size 1",
+			req:           &api.ListUsersRequest{PageSize: 1},
+			expected:      []*api.User{user1, user2, user3},
+			expectedCalls: 3,
+		},
+		{
+			desc:          "page size 2",
+			req:           &api.ListUsersRequest{PageSize: 2},
+			expected:      []*api.User{user1, user2, user3},
+			expectedCalls: 2,
+		},
+		{
+			desc:          "page size 3",
+			req:           &api.ListUsersRequest{PageSize: 3},
+			expected:      []*api.User{user1, user2, user3},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "page size 4",
+			req:           &api.ListUsersRequest{PageSize: 4},
+			expected:      []*api.User{user1, user2, user3},
+			expectedCalls: 1,
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s := server.New(&mem.Repo{Users: []*api.User{user1, user2, user3}})
+			var all []*api.User
+			var calls int
+			var pageToken string
+			for {
+				req := proto.Clone(tC.req).(*api.ListUsersRequest)
+				req.PageToken = pageToken
+				out, err := s.ListUsers(context.Background(), connect.NewRequest(req))
+				if tC.expectErr {
+					require.NotNil(t, err)
+					return
+				}
+				calls++
+				require.Nil(t, err)
+				require.NotNil(t, out)
+				all = append(all, out.Msg.GetUsers()...)
+				if out.Msg.GetNextPageToken() == "" {
+					break
+				}
+				pageToken = out.Msg.GetNextPageToken()
+			}
+			assert.Equal(t, tC.expected, all)
+			assert.Equal(t, tC.expectedCalls, calls)
 		})
 	}
 }

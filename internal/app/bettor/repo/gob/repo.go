@@ -99,6 +99,11 @@ func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.Use
 	return r.Mem.GetUserByUsername(ctx, username)
 }
 
+// ListUsers lists users.
+func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) ([]*api.User, bool, error) {
+	return r.Mem.ListUsers(ctx, args)
+}
+
 // CreateMarket creates a new market.
 func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 	r.writeMtx.Lock()
@@ -122,6 +127,11 @@ func (r *Repo) UpdateMarket(ctx context.Context, market *api.Market) error {
 // GetMarket gets a market by ID.
 func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
 	return r.Mem.GetMarket(ctx, id)
+}
+
+// ListMarkets lists markets.
+func (r *Repo) ListMarkets(ctx context.Context, args *repo.ListMarketsArgs) ([]*api.Market, bool, error) {
+	return r.Mem.ListMarkets(ctx, args)
 }
 
 // CreateBet creates a new user.
@@ -149,7 +159,7 @@ func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
 	return r.Mem.GetBet(ctx, id)
 }
 
-// ListBetsByMarket lists bets by market ID.
-func (r *Repo) ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) {
-	return r.Mem.ListBetsByMarket(ctx, marketID)
+// ListBets lists bets.
+func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) ([]*api.Bet, bool, error) {
+	return r.Mem.ListBets(ctx, args)
 }
