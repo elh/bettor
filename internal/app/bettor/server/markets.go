@@ -172,9 +172,18 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 	if totalCentipointsBet > 0 {
 		winnerRatio := float64(totalCentipointsBet) / float64(winnerCentipointsBet)
 
-		bets, err := s.Repo.ListBetsByMarket(ctx, market.GetId())
-		if err != nil {
-			return nil, err
+		var bets []*api.Bet
+		var greaterThanID string
+		for {
+			bs, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{GreaterThanID: greaterThanID, MarketID: market.GetId(), Limit: 100})
+			if err != nil {
+				return nil, err
+			}
+			greaterThanID = bs[len(bs)-1].GetId()
+			bets = append(bets, bs...)
+			if !hasMore {
+				break
+			}
 		}
 		for _, bet := range bets {
 			bet.UpdatedAt = timestamppb.Now()

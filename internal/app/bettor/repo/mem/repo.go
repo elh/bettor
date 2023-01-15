@@ -214,15 +214,28 @@ func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
 	return nil, connect.NewError(connect.CodeNotFound, errors.New("bet not found"))
 }
 
-// ListBetsByMarket lists bets by market ID.
-func (r *Repo) ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) {
+// ListBets lists bets by filters.
+func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) (bets []*api.Bet, hasMore bool, err error) {
 	r.betMtx.RLock()
 	defer r.betMtx.RUnlock()
-	var bets []*api.Bet
+	var out []*api.Bet //nolint:prealloc
 	for _, b := range r.Bets {
-		if b.MarketId == marketID {
-			bets = append(bets, b)
+		if b.Id <= args.GreaterThanID {
+			continue
+		}
+		if args.UserID != "" && b.UserId != args.UserID {
+			continue
+		}
+		if args.MarketID != "" && b.MarketId != args.MarketID {
+			continue
+		}
+		out = append(out, b)
+		if len(out) >= args.Limit+1 {
+			break
 		}
 	}
-	return bets, nil
+	if len(out) > args.Limit {
+		return out[:args.Limit], true, nil
+	}
+	return out, false, nil
 }

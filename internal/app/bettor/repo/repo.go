@@ -20,7 +20,7 @@ type Repo interface {
 	CreateBet(ctx context.Context, bet *api.Bet) error
 	UpdateBet(ctx context.Context, bet *api.Bet) error
 	GetBet(ctx context.Context, id string) (*api.Bet, error)
-	ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) // TODO: generalize and paginate
+	ListBets(ctx context.Context, args *ListBetsArgs) (bets []*api.Bet, hasMore bool, err error)
 }
 
 // ListUsersArgs are the arguments for listing users.
@@ -33,5 +33,13 @@ type ListUsersArgs struct {
 type ListMarketsArgs struct {
 	GreaterThanID string
 	Status        api.Market_Status
+	Limit         int
+}
+
+// ListBetsArgs are the arguments for listing bets.
+type ListBetsArgs struct {
+	GreaterThanID string
+	UserID        string
+	MarketID      string
 	Limit         int
 }

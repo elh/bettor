@@ -159,7 +159,7 @@ func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
 	return r.Mem.GetBet(ctx, id)
 }
 
-// ListBetsByMarket lists bets by market ID.
-func (r *Repo) ListBetsByMarket(ctx context.Context, marketID string) ([]*api.Bet, error) {
-	return r.Mem.ListBetsByMarket(ctx, marketID)
+// ListBets lists bets.
+func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) ([]*api.Bet, bool, error) {
+	return r.Mem.ListBets(ctx, args)
 }
