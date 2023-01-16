@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -97,8 +98,17 @@ func main() {
 	// Discord bot
 	go func() {
 		defer wg.Done()
-		// TODO: use a real client for Bettor service so we get telemetry
-		bot, err := discord.New(*discordToken, s, log.With(logger, "component", "discord-bot"))
+		netClient := &http.Client{
+			Timeout: time.Second * 5,
+			Transport: &http.Transport{
+				Dial: (&net.Dialer{
+					Timeout: 5 * time.Second,
+				}).Dial,
+				TLSHandshakeTimeout: 5 * time.Second,
+			},
+		}
+		client := bettorv1alphaconnect.NewBettorServiceClient(netClient, fmt.Sprintf("http://localhost:%d", *port))
+		bot, err := discord.New(*discordToken, client, log.With(logger, "component", "discord-bot"))
 		if err != nil {
 			logger.Log("msg", "error creating discord bot", "err", err)
 			cancelFn()
