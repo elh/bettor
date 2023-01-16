@@ -2,12 +2,10 @@
 package discord
 
 import (
+	"context"
 	"fmt"
 	"math"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/elh/bettor/api/bettor/v1alpha/bettorv1alphaconnect"
@@ -70,7 +68,7 @@ func New(token string, bettorClient bettorv1alphaconnect.BettorServiceClient, lo
 }
 
 // Run starts the bot. This blocks until the bot is terminated.
-func (b *Bot) Run() error {
+func (b *Bot) Run(ctx context.Context) error {
 	// Open websocket and begin listening
 	if err := b.D.Open(); err != nil {
 		return fmt.Errorf("error opening connection: %w", err)
@@ -78,10 +76,7 @@ func (b *Bot) Run() error {
 	defer b.D.Close()
 	defer b.cleanup()
 
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	<-sc
-
+	<-ctx.Done()
 	return nil
 }
 
@@ -126,12 +121,9 @@ func (b *Bot) guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	}
 
 	b.GuildIDs = append(b.GuildIDs, event.Guild.ID)
-	// TODO: sendWelcomeMessage
+	// TODO: sendWelcomeMessage. use when we have a better way to only send on first join to guild.
 }
 
-// NOTE: currently unused
-// NOTE: don't really want to use this until we can figure out if there is a way to only fire when bot joins for the first time; not on bot restarts
-//
 //nolint:deadcode,unused
 func (b *Bot) sendWelcomeMessage(s *discordgo.Session, guild *discordgo.Guild) {
 	var firstChannelID string

@@ -7,7 +7,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	otelconnect "github.com/bufbuild/connect-opentelemetry-go"
@@ -16,6 +18,7 @@ import (
 	"github.com/elh/bettor/internal/app/bettor/repo/gob"
 	"github.com/elh/bettor/internal/app/bettor/server"
 	"github.com/go-kit/log"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -42,7 +45,7 @@ func init() {
 func main() {
 	logger := log.NewJSONLogger(os.Stdout)
 
-	// server with gob file-backed repo
+	// Server with gob file-backed repo
 	r, err := gob.New(gobDBFile)
 	if err != nil {
 		logger.Log("msg", "error creating repo", "err", err)
@@ -50,7 +53,7 @@ func main() {
 	}
 	s := server.New(r)
 
-	// tracing
+	// Tracing
 	tp, err := tracerProvider(os.Stdout)
 	if err != nil {
 		logger.Log("msg", "error creating tracer provider", "err", err)
@@ -62,11 +65,12 @@ func main() {
 		}
 	}()
 
-	// exit if either goroutine exits
+	// Use context cancellation to coordinate graceful shutdown. Exit on interrupt or any worker exiting.
+	ctx, cancelFn := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	wg := sync.WaitGroup{}
-	wg.Add(1)
+	wg.Add(2)
 
-	// Buf connect server
+	// Buf Connect server
 	go func() {
 		defer wg.Done()
 		mux := http.NewServeMux()
@@ -77,9 +81,16 @@ func main() {
 			Handler:           h2c.NewHandler(mux, &http2.Server{}),
 			ReadHeaderTimeout: 2 * time.Second,
 		}
-		if err := httpServer.ListenAndServe(); err != nil {
-			logger.Log("msg", "http server error", "err", err)
-			panic(err)
+		go func() {
+			if err := httpServer.ListenAndServe(); err != nil {
+				logger.Log("msg", "http server error", "err", err)
+				cancelFn()
+				return
+			}
+		}()
+		<-ctx.Done()
+		if err := httpServer.Shutdown(ctx); err != nil {
+			logger.Log("msg", "error shutting down http server", "err", err)
 		}
 	}()
 
@@ -87,18 +98,20 @@ func main() {
 	go func() {
 		defer wg.Done()
 		// TODO: use a real client for Bettor service so we get telemetry
-		bot, err := discord.New(*discordToken, s, logger)
+		bot, err := discord.New(*discordToken, s, log.With(logger, "component", "discord-bot"))
 		if err != nil {
 			logger.Log("msg", "error creating discord bot", "err", err)
-			panic(err)
+			cancelFn()
+			return
 		}
-		if err := bot.Run(); err != nil {
+		if err := bot.Run(ctx); err != nil {
 			logger.Log("msg", "discord bot run exited", "err", err)
-			panic(err)
+			cancelFn()
+			return
 		}
 	}()
 
-	// TODO: shutdown is sloppy. we want graceful clean up in the bot but we should be taking the os kill signals here up top
+	// Wait for graceful shutdown of server and discord bot
 	wg.Wait()
 	logger.Log("msg", "exiting")
 }
@@ -109,6 +122,7 @@ func tracerProvider(w io.Writer) (*trace.TracerProvider, error) {
 		resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String(serviceName),
+			attribute.String("component", "server"),
 		),
 	)
 	if err != nil {
