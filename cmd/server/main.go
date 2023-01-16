@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"io"
 	"net"
@@ -18,7 +17,9 @@ import (
 	"github.com/elh/bettor/internal/app/bettor/discord"
 	"github.com/elh/bettor/internal/app/bettor/repo/gob"
 	"github.com/elh/bettor/internal/app/bettor/server"
+	"github.com/elh/bettor/internal/pkg/envflag"
 	"github.com/go-kit/log"
+	_ "github.com/joho/godotenv/autoload" // loads .env file before envflag reads from them
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -28,10 +29,9 @@ import (
 	"golang.org/x/net/http2/h2c"
 )
 
-// TODO: have Makefile commands run with environment variables -> flags.
 var (
-	port         = flag.Int("port", 8080, "The server port")
-	discordToken = flag.String("discordToken", "", "Discord bot token (secret)")
+	port         = envflag.Int("port", 8080, "The server port")
+	discordToken = envflag.String("discordToken", "", "Discord bot token (secret)")
 )
 
 const (
@@ -40,7 +40,7 @@ const (
 )
 
 func init() {
-	flag.Parse()
+	envflag.Parse()
 }
 
 func main() {
