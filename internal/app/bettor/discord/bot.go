@@ -53,7 +53,14 @@ func New(token string, bettorClient bettorv1alphaconnect.BettorServiceClient, lo
 		},
 	}
 	for k, v := range b.Commands {
+		k := k
 		v.Command.Name = k
+		handleFn := v.Handler
+		v.Handler = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			logger.Log("msg", "received command", "command", k, "user", i.Member.User.ID, "guild", i.GuildID)
+			handleFn(s, i)
+			// TODO: log success and failure when our command interface is explicit
+		}
 	}
 
 	// set up handlers
