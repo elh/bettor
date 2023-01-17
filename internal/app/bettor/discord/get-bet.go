@@ -12,7 +12,7 @@ import (
 
 var getBetCommand = &discordgo.ApplicationCommand{
 	Name:        "get-bet",
-	Description: "Get information about a pool bet",
+	Description: "Get information about a bet",
 	Options: []*discordgo.ApplicationCommandOption{
 		{
 			Type:         discordgo.ApplicationCommandOptionString,
@@ -75,7 +75,7 @@ func formatMarket(market *api.Market) (fmtStr string, args []interface{}) {
 	for _, outcome := range market.GetPool().GetOutcomes() {
 		if outcome.GetCentipoints() > 0 && totalCentipoints != outcome.GetCentipoints() {
 			margs = append(margs, outcome.GetTitle(), float32(outcome.GetCentipoints())/100, float32(totalCentipoints)/float32(outcome.GetCentipoints()))
-			msgformat += "- **%s** (Points: **%v**, Odds: **1:%v**)\n"
+			msgformat += "- **%s** (Points: **%v**, Odds: **1:%.3f**)\n"
 		} else {
 			margs = append(margs, outcome.GetTitle(), float32(outcome.GetCentipoints())/100)
 			msgformat += "- **%s** (Points: **%v**, Odds: **-**)\n"

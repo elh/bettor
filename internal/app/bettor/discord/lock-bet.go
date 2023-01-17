@@ -11,7 +11,7 @@ import (
 
 var lockBetCommand = &discordgo.ApplicationCommand{
 	Name:        "lock-bet",
-	Description: "Lock a pool bet",
+	Description: "Lock a bet preventing further bets",
 	Options: []*discordgo.ApplicationCommandOption{
 		{
 			Type:         discordgo.ApplicationCommandOptionString,
