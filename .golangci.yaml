@@ -19,6 +19,7 @@ linters:
     - gocognit
     - godox
     - nestif
+    - maintidx
 issues:
   exclude-rules:
     - linters: [errcheck]
