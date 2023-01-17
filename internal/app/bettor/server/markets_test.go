@@ -539,6 +539,63 @@ func TestSettleMarket(t *testing.T) {
 				user3.Id: 1000,
 			},
 		},
+		{
+			desc: "nop if there were no bets",
+			markets: []*api.Market{
+				{
+					Id:      "z",
+					Title:   "Will I PB?",
+					Creator: user1.Id,
+					Status:  api.Market_STATUS_BETS_LOCKED,
+					Type: &api.Market_Pool{
+						Pool: &api.Pool{
+							Outcomes: []*api.Outcome{
+								{Id: "outcome-1", Title: "Yes", Centipoints: 100},
+								{Id: "outcome-2", Title: "No", Centipoints: 100},
+							},
+						},
+					},
+				},
+			},
+			marketID:                      "z",
+			winnerID:                      "outcome-1",
+			bets:                          []*api.Bet{},
+			expectedBetSettledCentipoints: map[string]uint64{},
+			expectedUserCentipoints:       map[string]uint64{},
+		},
+		{
+			desc: "refund bets if there are no winning bets",
+			markets: []*api.Market{
+				{
+					Id:      "z",
+					Title:   "Will I PB?",
+					Creator: user1.Id,
+					Status:  api.Market_STATUS_BETS_LOCKED,
+					Type: &api.Market_Pool{
+						Pool: &api.Pool{
+							Outcomes: []*api.Outcome{
+								{Id: "outcome-1", Title: "Yes", Centipoints: 0},
+								{Id: "outcome-2", Title: "No", Centipoints: 150},
+							},
+						},
+					},
+				},
+			},
+			marketID: "z",
+			winnerID: "outcome-1",
+			bets: []*api.Bet{
+				{Id: "a", UserId: user1.Id, MarketId: "z", Centipoints: 100, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-2"}},
+				{Id: "b", UserId: user2.Id, MarketId: "z", Centipoints: 50, Type: &api.Bet_OutcomeId{OutcomeId: "outcome-2"}},
+			},
+			expectedBetSettledCentipoints: map[string]uint64{
+				"a": 100,
+				"b": 50,
+			},
+			expectedUserCentipoints: map[string]uint64{
+				user1.Id: 1100,
+				user2.Id: 1050,
+			},
+		},
 	}
 	for _, tC := range testCases {
 		tC := tC

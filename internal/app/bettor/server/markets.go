@@ -201,17 +201,29 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 			if err != nil {
 				return nil, err
 			}
-			greaterThanID = bs[len(bs)-1].GetId()
 			bets = append(bets, bs...)
 			if !hasMore {
 				break
 			}
+			greaterThanID = bs[len(bs)-1].GetId()
 		}
+		var hasWinner bool
+		for _, bet := range bets {
+			if bet.GetOutcomeId() == market.GetPool().GetWinnerId() {
+				hasWinner = true
+				break
+			}
+		}
+
 		for _, bet := range bets {
 			bet.UpdatedAt = timestamppb.Now()
 			bet.SettledAt = timestamppb.Now()
-			if bet.GetOutcomeId() == market.GetPool().GetWinnerId() {
-				bet.SettledCentipoints = uint64(float64(bet.GetCentipoints()) * winnerRatio)
+			if hasWinner {
+				if bet.GetOutcomeId() == market.GetPool().GetWinnerId() {
+					bet.SettledCentipoints = uint64(float64(bet.GetCentipoints()) * winnerRatio)
+				}
+			} else {
+				bet.SettledCentipoints = bet.GetCentipoints()
 			}
 		}
 
