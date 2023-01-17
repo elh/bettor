@@ -12,10 +12,13 @@ import (
 	"github.com/go-kit/log"
 )
 
+type bettorClient bettorv1alphaconnect.BettorServiceClient
+
 // Bot is a Discord Bot for Bettor. Only one instance can be running.
 type Bot struct {
+	Ctx    context.Context
 	D      *discordgo.Session
-	Client bettorv1alphaconnect.BettorServiceClient
+	Client bettorClient
 	Logger log.Logger
 
 	Commands map[string]*DGCommand
@@ -33,7 +36,7 @@ type DGCommand struct {
 }
 
 // New initializes a new Bot.
-func New(token string, bettorClient bettorv1alphaconnect.BettorServiceClient, logger log.Logger) (*Bot, error) {
+func New(ctx context.Context, token string, bettorClient bettorv1alphaconnect.BettorServiceClient, logger log.Logger) (*Bot, error) {
 	d, err := discordgo.New("Bot " + token)
 	if err != nil {
 		return nil, fmt.Errorf("error creating Discord session: %w", err)
@@ -41,12 +44,12 @@ func New(token string, bettorClient bettorv1alphaconnect.BettorServiceClient, lo
 	d.Identify.Intents = discordgo.IntentsGuilds
 
 	b := &Bot{
+		Ctx:      ctx,
 		D:        d,
 		Client:   bettorClient,
 		Logger:   logger,
-		Commands: nil, // manually set up w/ backwards reference to Bot...
+		Commands: initCommands(ctx, bettorClient, logger),
 	}
-	b.Commands = initCommands(b)
 
 	// set up handlers
 	d.AddHandler(b.guildCreate)
@@ -60,7 +63,7 @@ func New(token string, bettorClient bettorv1alphaconnect.BettorServiceClient, lo
 }
 
 // Run starts the bot. This blocks until the bot is terminated.
-func (b *Bot) Run(ctx context.Context) error {
+func (b *Bot) Run() error {
 	// Open websocket and begin listening
 	if err := b.D.Open(); err != nil {
 		return fmt.Errorf("error opening connection: %w", err)
@@ -68,7 +71,7 @@ func (b *Bot) Run(ctx context.Context) error {
 	defer b.D.Close()
 	defer b.cleanup()
 
-	<-ctx.Done()
+	<-b.Ctx.Done()
 	return nil
 }
 

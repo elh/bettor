@@ -110,13 +110,13 @@ func main() {
 			},
 		}
 		client := bettorv1alphaconnect.NewBettorServiceClient(netClient, fmt.Sprintf("http://localhost:%d", *port))
-		bot, err := discord.New(*discordToken, client, botLogger)
+		bot, err := discord.New(ctx, *discordToken, client, botLogger)
 		if err != nil {
 			botLogger.Log("msg", "error creating discord bot", "err", err)
 			cancelFn()
 			return
 		}
-		if err := bot.Run(ctx); err != nil {
+		if err := bot.Run(); err != nil {
 			botLogger.Log("msg", "discord bot run exited", "err", err)
 			cancelFn()
 			return

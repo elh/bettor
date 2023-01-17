@@ -1,6 +1,7 @@
 package discord
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -21,11 +22,11 @@ type Handler func(*discordgo.Session, *discordgo.InteractionCreate) (*discordgo.
 
 // initCommands initializes bot commands from a source of truth mapping. It ensure names are correct by defering to map
 // key and instruments the handler.
-func initCommands(b *Bot) map[string]*DGCommand {
+func initCommands(ctx context.Context, client bettorClient, logger log.Logger) map[string]*DGCommand {
 	commands := map[string]*Command{
 		"start-bet": {
 			Def:     startBetCommand,
-			Handler: b.StartBet,
+			Handler: StartBet(ctx, client),
 		},
 	}
 
@@ -37,7 +38,7 @@ func initCommands(b *Bot) map[string]*DGCommand {
 		out[k] = &DGCommand{
 			Def: v.Def,
 			Handler: func(s *discordgo.Session, event *discordgo.InteractionCreate) {
-				logger := log.With(b.Logger, "command", k, "interaction", event.ID, "user", event.Member.User.ID, "guild", event.GuildID)
+				logger := log.With(logger, "command", k, "interaction", event.ID, "user", event.Member.User.ID, "guild", event.GuildID)
 				now := time.Now()
 				respData, err := handlerFn(s, event)
 				durMS := time.Now().Sub(now).Milliseconds()
