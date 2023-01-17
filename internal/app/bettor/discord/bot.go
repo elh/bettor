@@ -18,16 +18,17 @@ type Bot struct {
 	Client bettorv1alphaconnect.BettorServiceClient
 	Logger log.Logger
 
-	Commands map[string]*CommandAndHandler
+	Commands map[string]*DGCommand
 
 	// keep track of all guilds we have joined so we can clean up commands on termination.
 	GuildIDs   []string
 	guildIDMtx sync.Mutex
 }
 
-// CommandAndHandler is a helper struct for an ApplicationCommand and its handler function.
-type CommandAndHandler struct {
-	Command *discordgo.ApplicationCommand
+// DGCommand is a helper struct for an discordgo ApplicationCommand and its handler function. This contains types ready
+// to be used with a discordgo.Session.
+type DGCommand struct {
+	Def     *discordgo.ApplicationCommand
 	Handler func(s *discordgo.Session, i *discordgo.InteractionCreate)
 }
 
@@ -45,23 +46,7 @@ func New(token string, bettorClient bettorv1alphaconnect.BettorServiceClient, lo
 		Logger:   logger,
 		Commands: nil, // manually set up w/ backwards reference to Bot...
 	}
-	// source of truth mapping of commands. ensure names are correct by defering to map key here.
-	b.Commands = map[string]*CommandAndHandler{
-		"start-bet": {
-			Command: startBetCommand,
-			Handler: b.StartBet,
-		},
-	}
-	for k, v := range b.Commands {
-		k := k
-		v.Command.Name = k
-		handleFn := v.Handler
-		v.Handler = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			logger.Log("msg", "received command", "command", k, "user", i.Member.User.ID, "guild", i.GuildID)
-			handleFn(s, i)
-			// TODO: log success and failure when our command interface is explicit
-		}
-	}
+	b.Commands = initCommands(b)
 
 	// set up handlers
 	d.AddHandler(b.guildCreate)
@@ -121,9 +106,9 @@ func (b *Bot) guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	}
 
 	for _, v := range b.Commands {
-		_, err := s.ApplicationCommandCreate(s.State.User.ID, event.Guild.ID, v.Command)
+		_, err := s.ApplicationCommandCreate(s.State.User.ID, event.Guild.ID, v.Def)
 		if err != nil {
-			b.Logger.Log("msg", "failed to create command", "guildID", event.Guild.ID, "command", v.Command.Name, "err", err)
+			b.Logger.Log("msg", "failed to create command", "guildID", event.Guild.ID, "command", v.Def.Name, "err", err)
 		}
 	}
 
