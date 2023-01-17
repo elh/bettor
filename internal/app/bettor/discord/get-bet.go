@@ -57,7 +57,7 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 					Value: market.GetId(),
 				})
 			}
-			return &discordgo.InteractionResponseData{Choices: choices}, nil
+			return &discordgo.InteractionResponseData{Choices: withDefaultChoices(choices)}, nil
 		default:
 			return &discordgo.InteractionResponseData{Content: "🔺 Something went wrong..."}, fmt.Errorf("unexpected event type %v", event.Type)
 		}
@@ -86,4 +86,13 @@ func formatMarket(market *api.Market) (fmtStr string, args []interface{}) {
 		msgformat += "\n"
 	}
 	return msgformat, margs
+}
+
+func withDefaultChoices(choices []*discordgo.ApplicationCommandOptionChoice) []*discordgo.ApplicationCommandOptionChoice {
+	if len(choices) == 0 {
+		return []*discordgo.ApplicationCommandOptionChoice{
+			{Name: "❌ None", Value: ""},
+		}
+	}
+	return choices
 }
