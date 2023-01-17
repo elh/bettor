@@ -99,7 +99,6 @@ func (b *Bot) StartBet(s *discordgo.Session, i *discordgo.InteractionCreate) (*d
 					Centipoints: defaultNewUserCentipoints,
 				}}})
 				if err != nil {
-					b.Logger.Log("msg", "failed to create user", "err", err)
 					return &discordgo.InteractionResponseData{Content: "🔺 Failed to create user"}, fmt.Errorf("failed to create user: %w", err)
 				}
 				bettorUserID = createUserResp.Msg.GetUser().GetId()

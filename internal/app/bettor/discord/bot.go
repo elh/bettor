@@ -99,18 +99,20 @@ func (b *Bot) guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	b.guildIDMtx.Lock()
 	defer b.guildIDMtx.Unlock()
 
-	b.Logger.Log("msg", "joining guild", "guildID", event.Guild.ID)
+	logger := log.With(b.Logger, "guildID", event.Guild.ID)
+
 	if event.Guild.Unavailable {
-		b.Logger.Log("msg", "guild is unavailable", "guildID", event.Guild.ID)
+		logger.Log("msg", "added to unavailable guild, skipping")
 		return
 	}
 
 	for _, v := range b.Commands {
 		_, err := s.ApplicationCommandCreate(s.State.User.ID, event.Guild.ID, v.Def)
 		if err != nil {
-			b.Logger.Log("msg", "failed to create command", "guildID", event.Guild.ID, "command", v.Def.Name, "err", err)
+			logger.Log("msg", "failed to create command", "command", v.Def.Name, "err", err)
 		}
 	}
+	logger.Log("msg", "joined guild")
 
 	b.GuildIDs = append(b.GuildIDs, event.Guild.ID)
 	// TODO: sendWelcomeMessage. use when we have a better way to only send on first join to guild.

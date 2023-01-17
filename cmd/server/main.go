@@ -45,6 +45,7 @@ func init() {
 
 func main() {
 	logger := log.NewJSONLogger(os.Stdout)
+	serverLogger := log.With(logger, "component", "server")
 
 	// Server with gob file-backed repo
 	r, err := gob.New(gobDBFile)
@@ -52,7 +53,7 @@ func main() {
 		logger.Log("msg", "error creating repo", "err", err)
 		panic(err)
 	}
-	s := server.New(r)
+	s := server.New(r, serverLogger)
 
 	// Tracing
 	tp, err := tracerProvider(os.Stdout)
@@ -84,20 +85,21 @@ func main() {
 		}
 		go func() {
 			if err := httpServer.ListenAndServe(); err != nil {
-				logger.Log("msg", "http server error", "err", err)
+				serverLogger.Log("msg", "http server error", "err", err)
 				cancelFn()
 				return
 			}
 		}()
 		<-ctx.Done()
 		if err := httpServer.Shutdown(ctx); err != nil {
-			logger.Log("msg", "error shutting down http server", "err", err)
+			serverLogger.Log("msg", "error shutting down http server", "err", err)
 		}
 	}()
 
 	// Discord bot
 	go func() {
 		defer wg.Done()
+		botLogger := log.With(logger, "component", "discord-bot")
 		netClient := &http.Client{
 			Timeout: time.Second * 5,
 			Transport: &http.Transport{
@@ -108,14 +110,14 @@ func main() {
 			},
 		}
 		client := bettorv1alphaconnect.NewBettorServiceClient(netClient, fmt.Sprintf("http://localhost:%d", *port))
-		bot, err := discord.New(*discordToken, client, log.With(logger, "component", "discord-bot"))
+		bot, err := discord.New(*discordToken, client, botLogger)
 		if err != nil {
-			logger.Log("msg", "error creating discord bot", "err", err)
+			botLogger.Log("msg", "error creating discord bot", "err", err)
 			cancelFn()
 			return
 		}
 		if err := bot.Run(ctx); err != nil {
-			logger.Log("msg", "discord bot run exited", "err", err)
+			botLogger.Log("msg", "discord bot run exited", "err", err)
 			cancelFn()
 			return
 		}
