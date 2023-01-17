@@ -56,7 +56,7 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 		case discordgo.InteractionApplicationCommand:
 			bettorUser, err := getUserOrCreateIfNotExist(ctx, client, discordUserID)
 			if err != nil {
-				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to handle command: %w", err)
+				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
 			}
 			bettorUserID := bettorUser.GetId()
 

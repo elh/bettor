@@ -44,6 +44,10 @@ func initCommands(ctx context.Context, client bettorClient, logger log.Logger) m
 			Def:     joinBetCommand,
 			Handler: JoinBet(ctx, client),
 		},
+		"bettor": {
+			Def:     getBettorCommand,
+			Handler: GetBettor(ctx, client),
+		},
 	}
 
 	out := map[string]*DGCommand{}
