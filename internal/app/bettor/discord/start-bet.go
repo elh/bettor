@@ -80,22 +80,21 @@ var (
 )
 
 // StartBet is the handler for the /start-bet command.
-func (b *Bot) StartBet(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.InteractionResponseData, error) {
-	options := i.ApplicationCommandData().Options
-	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
-	for _, opt := range options {
-		optionMap[opt.Name] = opt
+func (b *Bot) StartBet(s *discordgo.Session, event *discordgo.InteractionCreate) (*discordgo.InteractionResponseData, error) {
+	discordUserID, options, err := commandArgs(event)
+	if err != nil {
+		return &discordgo.InteractionResponseData{Content: "🔺 Failed to handle command"}, fmt.Errorf("failed to handle command: %w", err)
 	}
 
 	// make sure caller user exists. if not, create a new user.
 	var bettorUserID string
-	getUserResp, err := b.Client.GetUserByUsername(context.Background(), &connect.Request[api.GetUserByUsernameRequest]{Msg: &api.GetUserByUsernameRequest{Username: i.Member.User.ID}})
+	getUserResp, err := b.Client.GetUserByUsername(context.Background(), &connect.Request[api.GetUserByUsernameRequest]{Msg: &api.GetUserByUsernameRequest{Username: discordUserID}})
 	if err != nil {
 		var connectErr *connect.Error
 		if errors.As(err, &connectErr) {
 			if connectErr.Code() == connect.CodeNotFound {
 				createUserResp, err := b.Client.CreateUser(context.Background(), &connect.Request[api.CreateUserRequest]{Msg: &api.CreateUserRequest{User: &api.User{
-					Username:    i.Member.User.ID,
+					Username:    discordUserID,
 					Centipoints: defaultNewUserCentipoints,
 				}}})
 				if err != nil {
@@ -114,55 +113,39 @@ func (b *Bot) StartBet(s *discordgo.Session, i *discordgo.InteractionCreate) (*d
 
 	var outcomes []*api.Outcome
 	for _, k := range []string{"outcome1", "outcome2", "outcome3", "outcome4", "outcome5", "outcome6"} {
-		if option, ok := optionMap[k]; ok {
+		if option, ok := options[k]; ok {
 			outcomes = append(outcomes, &api.Outcome{
 				Title: option.StringValue(),
 			})
 		}
 	}
-	_, err = b.Client.CreateMarket(context.Background(), &connect.Request[api.CreateMarketRequest]{Msg: &api.CreateMarketRequest{Market: &api.Market{
-		Title:   optionMap["title"].StringValue(),
+	if _, err = b.Client.CreateMarket(context.Background(), &connect.Request[api.CreateMarketRequest]{Msg: &api.CreateMarketRequest{Market: &api.Market{
+		Title:   options["title"].StringValue(),
 		Creator: bettorUserID,
 		Type: &api.Market_Pool{
 			Pool: &api.Pool{
 				Outcomes: outcomes,
 			},
 		},
-	}}})
-	if err != nil {
+	}}}); err != nil {
 		return &discordgo.InteractionResponseData{Content: "🔺 Failed to start bet"}, fmt.Errorf("failed to create market: %w", err)
 	}
 
 	margs := make([]interface{}, 0, len(options))
 	msgformat := "Created! Type `/join-bet` to join the bet until it is locked.\n"
-
-	if option, ok := optionMap["title"]; ok {
-		margs = append(margs, option.StringValue())
-		msgformat += "> Bet: %s\n"
-	}
-	if option, ok := optionMap["outcome1"]; ok {
-		margs = append(margs, option.StringValue())
-		msgformat += "> Outcome 1: %s\n"
-	}
-	if option, ok := optionMap["outcome2"]; ok {
-		margs = append(margs, option.StringValue())
-		msgformat += "> Outcome 2: %s\n"
-	}
-	if option, ok := optionMap["outcome3"]; ok {
-		margs = append(margs, option.StringValue())
-		msgformat += "> Outcome 3: %s\n"
-	}
-	if option, ok := optionMap["outcome4"]; ok {
-		margs = append(margs, option.StringValue())
-		msgformat += "> Outcome 4: %s\n"
-	}
-	if option, ok := optionMap["outcome5"]; ok {
-		margs = append(margs, option.StringValue())
-		msgformat += "> Outcome 5: %s\n"
-	}
-	if option, ok := optionMap["outcome6"]; ok {
-		margs = append(margs, option.StringValue())
-		msgformat += "> Outcome 6: %s\n"
+	for k, v := range map[string]string{ // option key -> message format
+		"title":    "Bet",
+		"outcome1": "Outcome 1",
+		"outcome2": "Outcome 2",
+		"outcome3": "Outcome 3",
+		"outcome4": "Outcome 4",
+		"outcome5": "Outcome 5",
+		"outcome6": "Outcome 6",
+	} {
+		if option, ok := options[k]; ok {
+			margs = append(margs, v, option.StringValue())
+			msgformat += "> %s: %s\n"
+		}
 	}
 
 	return &discordgo.InteractionResponseData{Content: fmt.Sprintf(msgformat, margs...)}, nil

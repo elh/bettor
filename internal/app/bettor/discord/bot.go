@@ -29,7 +29,7 @@ type Bot struct {
 // to be used with a discordgo.Session.
 type DGCommand struct {
 	Def     *discordgo.ApplicationCommand
-	Handler func(s *discordgo.Session, i *discordgo.InteractionCreate)
+	Handler func(*discordgo.Session, *discordgo.InteractionCreate)
 }
 
 // New initializes a new Bot.
@@ -50,9 +50,9 @@ func New(token string, bettorClient bettorv1alphaconnect.BettorServiceClient, lo
 
 	// set up handlers
 	d.AddHandler(b.guildCreate)
-	d.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if h, ok := b.Commands[i.ApplicationCommandData().Name]; ok {
-			h.Handler(s, i)
+	d.AddHandler(func(s *discordgo.Session, event *discordgo.InteractionCreate) {
+		if h, ok := b.Commands[event.ApplicationCommandData().Name]; ok {
+			h.Handler(s, event)
 		}
 	})
 
@@ -77,16 +77,20 @@ func (b *Bot) cleanup() {
 	b.guildIDMtx.Lock()
 	defer b.guildIDMtx.Unlock()
 
+	if b.D == nil || b.D.State == nil || b.D.State.User == nil {
+		b.Logger.Log("msg", "failed to get bot user for cleanup")
+		return
+	}
 	b.Logger.Log("msg", "cleaning up commands...")
+	botDiscordUser := b.D.State.User.ID
 	for _, guildID := range b.GuildIDs {
-		cmds, err := b.D.ApplicationCommands(b.D.State.User.ID, guildID)
+		cmds, err := b.D.ApplicationCommands(botDiscordUser, guildID)
 		if err != nil {
 			b.Logger.Log("msg", "failed to get commands for cleanup", "guildID", guildID, "err", err)
 			continue
 		}
 		for _, v := range cmds {
-			err := b.D.ApplicationCommandDelete(b.D.State.User.ID, guildID, v.ID)
-			if err != nil {
+			if err := b.D.ApplicationCommandDelete(botDiscordUser, guildID, v.ID); err != nil {
 				b.Logger.Log("msg", "failed to delete command for cleanup", "guildID", guildID, "command", v.Name, "err", err)
 				continue
 			}
@@ -94,12 +98,14 @@ func (b *Bot) cleanup() {
 	}
 }
 
-// when a guild is joined, add command and track it to the list of guilds to clean up on exit.
+// when a guild is joined, register commands and track it to the list of guilds to clean up on exit.
 func (b *Bot) guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	b.guildIDMtx.Lock()
 	defer b.guildIDMtx.Unlock()
 
-	logger := log.With(b.Logger, "guildID", event.Guild.ID)
+	guildID := event.Guild.ID
+	botDiscordUser := s.State.User.ID
+	logger := log.With(b.Logger, "guildID", guildID)
 
 	if event.Guild.Unavailable {
 		logger.Log("msg", "added to unavailable guild, skipping")
@@ -107,14 +113,14 @@ func (b *Bot) guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	}
 
 	for _, v := range b.Commands {
-		_, err := s.ApplicationCommandCreate(s.State.User.ID, event.Guild.ID, v.Def)
+		_, err := s.ApplicationCommandCreate(botDiscordUser, guildID, v.Def)
 		if err != nil {
 			logger.Log("msg", "failed to create command", "command", v.Def.Name, "err", err)
 		}
 	}
 	logger.Log("msg", "joined guild")
 
-	b.GuildIDs = append(b.GuildIDs, event.Guild.ID)
+	b.GuildIDs = append(b.GuildIDs, guildID)
 	// TODO: sendWelcomeMessage. use when we have a better way to only send on first join to guild.
 }
 
