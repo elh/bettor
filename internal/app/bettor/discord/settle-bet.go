@@ -77,15 +77,15 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 
 			var choices []*discordgo.ApplicationCommandOptionChoice
 			switch {
-			case options["bet"].Focused:
+			case options["bet"] != nil && options["bet"].Focused:
 				for _, market := range resp.Msg.GetMarkets() {
 					choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 						Name:  market.GetTitle(),
 						Value: market.GetId(),
 					})
 				}
-			case options["winner"].Focused:
-				if options["bet"].StringValue() != "" {
+			case options["winner"] != nil && options["winner"].Focused:
+				if options["bet"] != nil && options["bet"].StringValue() != "" {
 					for _, market := range resp.Msg.GetMarkets() {
 						if market.GetId() != options["bet"].StringValue() {
 							continue
