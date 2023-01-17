@@ -106,7 +106,23 @@ func TestCreateMarket(t *testing.T) {
 			expectErr: true,
 		},
 		{
-			desc:            "basic case",
+			desc: "fails if duplicate outcome titles",
+			market: &api.Market{
+				Title:   "Will I PB?",
+				Creator: user.Id,
+				Type: &api.Market_Pool{
+					Pool: &api.Pool{
+						Outcomes: []*api.Outcome{
+							{Title: "Yes"},
+							{Title: "Yes"},
+						},
+					},
+				},
+			},
+			expectErr: true,
+		},
+		{
+			desc:            "fails if max number of open markets reached",
 			existingMarkets: maxOpenMarkets,
 			market: &api.Market{
 				Title:   "Will I PB?",
