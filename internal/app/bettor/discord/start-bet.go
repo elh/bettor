@@ -19,7 +19,7 @@ var (
 
 	startBetCommand = &discordgo.ApplicationCommand{
 		Name:        "start-bet",
-		Description: "Start a new pool bet. At least 2 outcome options are required",
+		Description: "Start a new bet. At least 2 outcome options are required",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
@@ -117,7 +117,7 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 		market := resp.Msg.GetMarket()
 
 		msgformat, margs := formatMarket(market)
-		msgformat = "🎲 Created! Type `/join-bet` to join the bet until it is locked.\n" + msgformat
+		msgformat = "🎲 🆕 Type `/join-bet` to join the bet until it is locked.\n" + msgformat
 		return &discordgo.InteractionResponseData{Content: fmt.Sprintf(msgformat, margs...)}, nil
 	}
 }

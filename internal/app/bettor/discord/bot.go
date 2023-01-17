@@ -138,7 +138,7 @@ func (b *Bot) sendWelcomeMessage(s *discordgo.Session, guild *discordgo.Guild) {
 		}
 	}
 	if firstChannelID != "" {
-		if _, err := s.ChannelMessageSend(firstChannelID, "🎲 Hi! I'm Bettor, your Discord bookmaker. Type `/start-bet` to get started with your first pool bet. All users start with 10K points."); err != nil {
+		if _, err := s.ChannelMessageSend(firstChannelID, "🎲 Hi! I'm Bettor, your Discord bookmaker. Type `/start-bet` to get started with your first bet. All users start with 10K points."); err != nil {
 			b.Logger.Log("msg", "failed to send welcome message", "guildID", guild.ID, "err", err)
 		}
 	}
