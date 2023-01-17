@@ -86,29 +86,11 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 		}
 
 		// make sure caller user exists. if not, create a new user.
-		var bettorUserID string
-		getUserResp, err := client.GetUserByUsername(ctx, &connect.Request[api.GetUserByUsernameRequest]{Msg: &api.GetUserByUsernameRequest{Username: discordUserID}})
+		bettorUser, err := getUserOrCreateIfNotExist(ctx, client, discordUserID)
 		if err != nil {
-			var connectErr *connect.Error
-			if errors.As(err, &connectErr) {
-				if connectErr.Code() == connect.CodeNotFound {
-					createUserResp, err := client.CreateUser(ctx, &connect.Request[api.CreateUserRequest]{Msg: &api.CreateUserRequest{User: &api.User{
-						Username:    discordUserID,
-						Centipoints: defaultNewUserCentipoints,
-					}}})
-					if err != nil {
-						return &discordgo.InteractionResponseData{Content: "🔺 Failed to create user"}, fmt.Errorf("failed to create user: %w", err)
-					}
-					bettorUserID = createUserResp.Msg.GetUser().GetId()
-				} else {
-					return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup user"}, fmt.Errorf("failed to get user: %w", err)
-				}
-			} else {
-				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup user"}, fmt.Errorf("failed to get user: %w", err)
-			}
-		} else {
-			bettorUserID = getUserResp.Msg.GetUser().GetId()
+			return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to handle command: %w", err)
 		}
+		bettorUserID := bettorUser.GetId()
 
 		var outcomes []*api.Outcome
 		for _, k := range []string{"outcome1", "outcome2", "outcome3", "outcome4", "outcome5", "outcome6"} {
@@ -150,4 +132,26 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 
 		return &discordgo.InteractionResponseData{Content: fmt.Sprintf(msgformat, margs...)}, nil
 	}
+}
+
+func getUserOrCreateIfNotExist(ctx context.Context, client bettorClient, discordUserID string) (bettorUser *api.User, err error) {
+	getUserResp, err := client.GetUserByUsername(ctx, &connect.Request[api.GetUserByUsernameRequest]{Msg: &api.GetUserByUsernameRequest{Username: discordUserID}})
+	if err != nil {
+		var connectErr *connect.Error
+		if errors.As(err, &connectErr) {
+			if connectErr.Code() == connect.CodeNotFound {
+				createUserResp, err := client.CreateUser(ctx, &connect.Request[api.CreateUserRequest]{Msg: &api.CreateUserRequest{User: &api.User{
+					Username:    discordUserID,
+					Centipoints: defaultNewUserCentipoints,
+				}}})
+				if err != nil {
+					return nil, fmt.Errorf("failed to create user: %w", err)
+				}
+				return createUserResp.Msg.GetUser(), nil
+			}
+			return nil, fmt.Errorf("failed to get user, not CodeNotFound: %w", err)
+		}
+		return nil, fmt.Errorf("failed to get user, not a *connect.Error: %w", err)
+	}
+	return getUserResp.Msg.GetUser(), nil
 }
