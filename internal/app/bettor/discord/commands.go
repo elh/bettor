@@ -28,6 +28,10 @@ func initCommands(ctx context.Context, client bettorClient, logger log.Logger) m
 			Def:     startBetCommand,
 			Handler: StartBet(ctx, client),
 		},
+		"get-bet": {
+			Def:     getBetCommand,
+			Handler: GetBet(ctx, client),
+		},
 	}
 
 	out := map[string]*DGCommand{}
@@ -53,8 +57,13 @@ func initCommands(ctx context.Context, client bettorClient, logger log.Logger) m
 					logger.Log("msg", "command handler success", "dur_ms", durMS)
 				}
 
+				// janky handling up here. could also just have commands return the whole *discordgo.InteractionResponse
+				respType := discordgo.InteractionResponseChannelMessageWithSource
+				if len(respData.Choices) > 0 {
+					respType = discordgo.InteractionApplicationCommandAutocompleteResult
+				}
 				if err := s.InteractionRespond(event.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Type: respType,
 					Data: respData,
 				}); err != nil {
 					logger.Log("msg", "failed to respond to interaction", "err", err)

@@ -23,8 +23,8 @@ var (
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "title",
-				Description: "Bet",
+				Name:        "bet",
+				Description: "The bet? Requires at least 2 outcome options",
 				Required:    true,
 				MinLength:   &one,
 				MaxLength:   1024,
@@ -92,44 +92,32 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 		}
 		bettorUserID := bettorUser.GetId()
 
+		outcomeKeys := []string{"outcome1", "outcome2", "outcome3", "outcome4", "outcome5", "outcome6"}
+
 		var outcomes []*api.Outcome
-		for _, k := range []string{"outcome1", "outcome2", "outcome3", "outcome4", "outcome5", "outcome6"} {
+		for _, k := range outcomeKeys {
 			if option, ok := options[k]; ok {
 				outcomes = append(outcomes, &api.Outcome{
 					Title: option.StringValue(),
 				})
 			}
 		}
-		if _, err = client.CreateMarket(ctx, &connect.Request[api.CreateMarketRequest]{Msg: &api.CreateMarketRequest{Market: &api.Market{
-			Title:   options["title"].StringValue(),
+		resp, err := client.CreateMarket(ctx, &connect.Request[api.CreateMarketRequest]{Msg: &api.CreateMarketRequest{Market: &api.Market{
+			Title:   options["bet"].StringValue(),
 			Creator: bettorUserID,
 			Type: &api.Market_Pool{
 				Pool: &api.Pool{
 					Outcomes: outcomes,
 				},
 			},
-		}}}); err != nil {
+		}}})
+		if err != nil {
 			return &discordgo.InteractionResponseData{Content: "🔺 Failed to start bet"}, fmt.Errorf("failed to create market: %w", err)
 		}
+		market := resp.Msg.GetMarket()
 
-		margs := make([]interface{}, 0, len(options))
-		msgformat := "Created! Type `/join-bet` to join the bet until it is locked.\n"
-		keyToMsgFormat := map[string]string{
-			"title":    "Bet",
-			"outcome1": "Outcome 1",
-			"outcome2": "Outcome 2",
-			"outcome3": "Outcome 3",
-			"outcome4": "Outcome 4",
-			"outcome5": "Outcome 5",
-			"outcome6": "Outcome 6",
-		}
-		for _, k := range []string{"title", "outcome1", "outcome2", "outcome3", "outcome4", "outcome5", "outcome6"} {
-			if option, ok := options[k]; ok {
-				margs = append(margs, keyToMsgFormat[k], option.StringValue())
-				msgformat += "> %s: %s\n"
-			}
-		}
-
+		msgformat, margs := formatMarket(market)
+		msgformat = "🎲 Created! Type `/join-bet` to join the bet until it is locked.\n" + msgformat
 		return &discordgo.InteractionResponseData{Content: fmt.Sprintf(msgformat, margs...)}, nil
 	}
 }
