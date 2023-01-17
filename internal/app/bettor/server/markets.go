@@ -14,6 +14,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// MaxNumberOfOpenMarkets is the maximum number of open markets allowed.
+const MaxNumberOfOpenMarkets = 25
+
 func init() {
 	gob.Register(&api.ListMarketsRequest{})
 	gob.Register(&api.ListBetsRequest{})
@@ -21,6 +24,8 @@ func init() {
 
 // CreateMarket creates a new betting market.
 func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.CreateMarketRequest]) (*connect.Response[api.CreateMarketResponse], error) {
+	s.marketMtx.RLock()
+	defer s.marketMtx.RUnlock()
 	if in.Msg == nil || in.Msg.GetMarket() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market is required"))
 	}
@@ -38,6 +43,17 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 			outcome.Id = uuid.NewString()
 			outcome.Centipoints = 0
 		}
+	}
+
+	openMarkets, _, err := s.Repo.ListMarkets(ctx, &repo.ListMarketsArgs{
+		Status: api.Market_STATUS_OPEN,
+		Limit:  MaxNumberOfOpenMarkets,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(openMarkets) >= MaxNumberOfOpenMarkets {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("too many open markets"))
 	}
 
 	if _, err := s.Repo.GetUser(ctx, market.GetCreator()); err != nil {

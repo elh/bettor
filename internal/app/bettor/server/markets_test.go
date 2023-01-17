@@ -18,15 +18,23 @@ import (
 )
 
 func TestCreateMarket(t *testing.T) {
+	var maxOpenMarkets []*api.Market
+	for i := 0; i < server.MaxNumberOfOpenMarkets; i++ {
+		maxOpenMarkets = append(maxOpenMarkets, &api.Market{
+			Id:     uuid.NewString(),
+			Status: api.Market_STATUS_OPEN,
+		})
+	}
 	user := &api.User{
 		Id:          uuid.NewString(),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
 	testCases := []struct {
-		desc      string
-		market    *api.Market
-		expectErr bool
+		desc            string
+		existingMarkets []*api.Market
+		market          *api.Market
+		expectErr       bool
 	}{
 		{
 			desc: "basic case",
@@ -97,11 +105,28 @@ func TestCreateMarket(t *testing.T) {
 			},
 			expectErr: true,
 		},
+		{
+			desc:            "basic case",
+			existingMarkets: maxOpenMarkets,
+			market: &api.Market{
+				Title:   "Will I PB?",
+				Creator: user.Id,
+				Type: &api.Market_Pool{
+					Pool: &api.Pool{
+						Outcomes: []*api.Outcome{
+							{Title: "Yes"},
+							{Title: "No"},
+						},
+					},
+				},
+			},
+			expectErr: true,
+		},
 	}
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Users: []*api.User{user}}, log.NewNopLogger())
+			s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: tC.existingMarkets}, log.NewNopLogger())
 			out, err := s.CreateMarket(context.Background(), connect.NewRequest(&api.CreateMarketRequest{Market: tC.market}))
 			if tC.expectErr {
 				require.NotNil(t, err)
