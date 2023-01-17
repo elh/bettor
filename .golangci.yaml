@@ -19,3 +19,7 @@ linters:
     - gocognit
     - godox
     - nestif
+issues:
+  exclude-rules:
+    - linters: [errcheck]
+      text: "Error return value of `(.*Log)` is not checked"

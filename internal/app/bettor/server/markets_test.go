@@ -10,6 +10,7 @@ import (
 	api "github.com/elh/bettor/api/bettor/v1alpha"
 	"github.com/elh/bettor/internal/app/bettor/repo/mem"
 	"github.com/elh/bettor/internal/app/bettor/server"
+	"github.com/go-kit/log"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -100,7 +101,7 @@ func TestCreateMarket(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Users: []*api.User{user}})
+			s := server.New(&mem.Repo{Users: []*api.User{user}}, log.NewNopLogger())
 			out, err := s.CreateMarket(context.Background(), connect.NewRequest(&api.CreateMarketRequest{Market: tC.market}))
 			if tC.expectErr {
 				require.NotNil(t, err)
@@ -142,7 +143,7 @@ func TestGetMarket(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Markets: []*api.Market{market}})
+			s := server.New(&mem.Repo{Markets: []*api.Market{market}}, log.NewNopLogger())
 			out, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{MarketId: tC.marketID}))
 			if tC.expectErr {
 				require.NotNil(t, err)
@@ -216,7 +217,7 @@ func TestListMarkets(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Markets: []*api.Market{market1, market2, market3}})
+			s := server.New(&mem.Repo{Markets: []*api.Market{market1, market2, market3}}, log.NewNopLogger())
 			var all []*api.Market
 			var calls int
 			var pageToken string
@@ -300,7 +301,7 @@ func TestLockMarket(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{market, lockedMarket}})
+			s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{market, lockedMarket}}, log.NewNopLogger())
 			out, err := s.LockMarket(context.Background(), connect.NewRequest(&api.LockMarketRequest{MarketId: tC.marketID}))
 			if tC.expectErr {
 				require.NotNil(t, err)
@@ -501,7 +502,7 @@ func TestSettleMarket(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Users: []*api.User{proto.Clone(user1).(*api.User), proto.Clone(user2).(*api.User), proto.Clone(user3).(*api.User)}, Markets: tC.markets, Bets: tC.bets})
+			s := server.New(&mem.Repo{Users: []*api.User{proto.Clone(user1).(*api.User), proto.Clone(user2).(*api.User), proto.Clone(user3).(*api.User)}, Markets: tC.markets, Bets: tC.bets}, log.NewNopLogger())
 			out, err := s.SettleMarket(context.Background(), connect.NewRequest(&api.SettleMarketRequest{MarketId: tC.marketID, Type: &api.SettleMarketRequest_WinnerId{WinnerId: tC.winnerID}}))
 			if tC.expectErr {
 				require.NotNil(t, err)
@@ -672,7 +673,7 @@ func TestCreateBet(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket, lockedPoolMarket, settledPoolMarket}})
+			s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket, lockedPoolMarket, settledPoolMarket}}, log.NewNopLogger())
 			out, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Bet: tC.bet}))
 			if tC.expectErr {
 				require.NotNil(t, err)
@@ -722,7 +723,7 @@ func TestGetBet(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Bets: []*api.Bet{bet}})
+			s := server.New(&mem.Repo{Bets: []*api.Bet{bet}}, log.NewNopLogger())
 			out, err := s.GetBet(context.Background(), connect.NewRequest(&api.GetBetRequest{BetId: tC.betID}))
 			if tC.expectErr {
 				require.NotNil(t, err)
@@ -817,7 +818,7 @@ func TestListBets(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Bets: []*api.Bet{bet1, bet2, bet3}})
+			s := server.New(&mem.Repo{Bets: []*api.Bet{bet1, bet2, bet3}}, log.NewNopLogger())
 			var all []*api.Bet
 			var calls int
 			var pageToken string
@@ -862,7 +863,7 @@ func TestCreateBetConcurrency(t *testing.T) {
 			},
 		},
 	}
-	s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket}})
+	s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket}}, log.NewNopLogger())
 	var wg sync.WaitGroup
 	wg.Add(100)
 	for i := 0; i < 100; i++ {
@@ -907,7 +908,7 @@ func TestCreateBetLockMarketConcurrency(t *testing.T) {
 			},
 		}
 
-		s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket}})
+		s := server.New(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket}}, log.NewNopLogger())
 		var wg sync.WaitGroup
 
 		wg.Add(2)
