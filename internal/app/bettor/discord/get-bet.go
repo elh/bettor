@@ -75,11 +75,15 @@ func formatMarket(market *api.Market) (fmtStr string, args []interface{}) {
 	for _, outcome := range market.GetPool().GetOutcomes() {
 		if outcome.GetCentipoints() > 0 && totalCentipoints != outcome.GetCentipoints() {
 			margs = append(margs, outcome.GetTitle(), float32(outcome.GetCentipoints())/100, float32(totalCentipoints)/float32(outcome.GetCentipoints()))
-			msgformat += "- **%s** (Points: **%v**, Odds: **1:%.3f**)\n"
+			msgformat += "- **%s** (Points: **%v**, Odds: **1:%.3f**)"
 		} else {
 			margs = append(margs, outcome.GetTitle(), float32(outcome.GetCentipoints())/100)
-			msgformat += "- **%s** (Points: **%v**, Odds: **-**)\n"
+			msgformat += "- **%s** (Points: **%v**, Odds: **-**)"
 		}
+		if market.GetPool().GetWinnerId() != "" && outcome.GetId() == market.GetPool().GetWinnerId() {
+			msgformat += " ✅ "
+		}
+		msgformat += "\n"
 	}
 	return msgformat, margs
 }
