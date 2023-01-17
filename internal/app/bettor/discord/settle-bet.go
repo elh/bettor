@@ -99,7 +99,7 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 					}
 				}
 			}
-			return &discordgo.InteractionResponseData{Choices: choices}, nil
+			return &discordgo.InteractionResponseData{Choices: withDefaultChoices(choices)}, nil
 		default:
 			return &discordgo.InteractionResponseData{Content: "🔺 Something went wrong..."}, fmt.Errorf("unexpected event type %v", event.Type)
 		}
