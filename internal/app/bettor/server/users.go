@@ -29,9 +29,12 @@ func (s *Server) CreateUser(ctx context.Context, in *connect.Request[api.CreateU
 	if in.Msg == nil || in.Msg.GetUser() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user is required"))
 	}
+	if in.Msg.GetBook() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("book is required"))
+	}
 	user := proto.Clone(in.Msg.GetUser()).(*api.User)
 
-	user.Name = entity.UserN(uuid.NewString())
+	user.Name = entity.UserN(in.Msg.GetBook(), uuid.NewString())
 	user.CreatedAt = timestamppb.Now()
 	user.UpdatedAt = timestamppb.Now()
 

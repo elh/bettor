@@ -28,7 +28,7 @@ var getBetCommand = &discordgo.ApplicationCommand{
 // GetBet is the handler for the /get-bet command.
 func GetBet(ctx context.Context, client bettorClient) Handler {
 	return func(s *discordgo.Session, event *discordgo.InteractionCreate) (*discordgo.InteractionResponseData, error) {
-		_, options, err := commandArgs(event)
+		_, _, options, err := commandArgs(event)
 		if err != nil {
 			return &discordgo.InteractionResponseData{Content: "🔺 Failed to handle command"}, fmt.Errorf("failed to handle command: %w", err)
 		}

@@ -27,7 +27,7 @@ func TestCreateMarket(t *testing.T) {
 		})
 	}
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("A", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
@@ -291,7 +291,7 @@ func TestListMarkets(t *testing.T) {
 
 func TestLockMarket(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("A", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
@@ -366,17 +366,17 @@ func TestLockMarket(t *testing.T) {
 func TestSettleMarket(t *testing.T) {
 	marketName := entity.MarketN(uuid.NewString())
 	user1 := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("A", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 1000,
 	}
 	user2 := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("A", uuid.NewString()),
 		Username:    "danny",
 		Centipoints: 1000,
 	}
 	user3 := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("A", uuid.NewString()),
 		Username:    "linus",
 		Centipoints: 1000,
 	}
@@ -642,7 +642,7 @@ func TestSettleMarket(t *testing.T) {
 
 func TestCreateBet(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("A", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 1000,
 	}
@@ -962,7 +962,7 @@ func TestListBets(t *testing.T) {
 
 func TestCreateBetConcurrency(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("A", uuid.NewString()),
 		Centipoints: 1000,
 		Username:    "rusty",
 	}
@@ -1007,7 +1007,7 @@ func TestCreateBetConcurrency(t *testing.T) {
 func TestCreateBetLockMarketConcurrency(t *testing.T) {
 	for i := 0; i < 50; i++ {
 		user := &api.User{
-			Name:        entity.UserN(uuid.NewString()),
+			Name:        entity.UserN("A", uuid.NewString()),
 			Centipoints: 1000,
 			Username:    "rusty",
 		}

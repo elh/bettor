@@ -47,14 +47,14 @@ var (
 // JoinBet is the handler for the /join-bet command.
 func JoinBet(ctx context.Context, client bettorClient) Handler {
 	return func(s *discordgo.Session, event *discordgo.InteractionCreate) (*discordgo.InteractionResponseData, error) {
-		discordUserID, options, err := commandArgs(event)
+		guildID, discordUserID, options, err := commandArgs(event)
 		if err != nil {
 			return &discordgo.InteractionResponseData{Content: "🔺 Failed to handle command"}, fmt.Errorf("failed to handle command: %w", err)
 		}
 
 		switch event.Type { //nolint:exhaustive
 		case discordgo.InteractionApplicationCommand:
-			bettorUser, err := getUserOrCreateIfNotExist(ctx, client, discordUserID)
+			bettorUser, err := getUserOrCreateIfNotExist(ctx, client, guildID, discordUserID)
 			if err != nil {
 				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
 			}

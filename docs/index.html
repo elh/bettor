@@ -418,7 +418,7 @@
                     
                       <li>string.max_len: 1024</li>
                     
-                      <li>string.pattern: ^bets/.&#43;$</li>
+                      <li>string.pattern: ^bets/[^/]&#43;$</li>
                     
                     </ul>
                   </td>
@@ -497,6 +497,13 @@
             <tbody>
               
                 <tr>
+                  <td>book</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>bet</td>
                   <td><a href="#bettor.v1alpha.Bet">Bet</a></td>
                   <td></td>
@@ -545,6 +552,13 @@
             <tbody>
               
                 <tr>
+                  <td>book</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>market</td>
                   <td><a href="#bettor.v1alpha.Market">Market</a></td>
                   <td></td>
@@ -591,6 +605,13 @@
               <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
             </thead>
             <tbody>
+              
+                <tr>
+                  <td>book</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
               
                 <tr>
                   <td>user</td>
@@ -1398,7 +1419,7 @@
                     
                       <li>string.max_len: 1024</li>
                     
-                      <li>string.pattern: ^markets/.&#43;$</li>
+                      <li>string.pattern: ^markets/[^/]&#43;$</li>
                     
                     </ul>
                   </td>
@@ -1526,7 +1547,7 @@
                     
                       <li>string.max_len: 1024</li>
                     
-                      <li>string.pattern: ^markets/.&#43;/outcomes/.&#43;$</li>
+                      <li>string.pattern: ^markets/[^/]&#43;/outcomes/[^/]&#43;$</li>
                     
                     </ul>
                   </td>
@@ -1762,7 +1783,7 @@
                     
                       <li>string.max_len: 1024</li>
                     
-                      <li>string.pattern: ^users/.&#43;$</li>
+                      <li>string.pattern: ^books/[^/]&#43;/users/[^/]&#43;$</li>
                     
                     </ul>
                   </td>

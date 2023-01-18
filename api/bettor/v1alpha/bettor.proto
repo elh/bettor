@@ -10,7 +10,7 @@ message User {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^users/.+$"
+    pattern: "^books/[^/]+/users/[^/]+$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
@@ -27,7 +27,7 @@ message Market {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^markets/.+$"
+    pattern: "^markets/[^/]+$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
@@ -65,7 +65,7 @@ message Outcome {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^markets/.+/outcomes/.+$"
+    pattern: "^markets/[^/]+/outcomes/[^/]+$"
   }];
   string title = 2 [(validate.rules).string = {
     min_len: 1,
@@ -79,7 +79,7 @@ message Bet {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^bets/.+$"
+    pattern: "^bets/[^/]+$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
@@ -97,7 +97,8 @@ message Bet {
 // API requests and responses.
 
 message CreateUserRequest {
-  User user = 1;
+  string book = 1;
+  User user = 2;
 }
 
 message CreateUserResponse {
@@ -132,7 +133,8 @@ message ListUsersResponse {
 }
 
 message CreateMarketRequest {
-  Market market = 1;
+  string book = 1;
+  Market market = 2;
 }
 
 message CreateMarketResponse {
@@ -179,6 +181,7 @@ message SettleMarketResponse {
 }
 
 message CreateBetRequest {
+  string book = 1;
   Bet bet = 2;
 }
 

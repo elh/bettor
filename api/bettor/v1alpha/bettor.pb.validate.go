@@ -70,7 +70,7 @@ func (m *User) validate(all bool) error {
 	if !_User_Name_Pattern.MatchString(m.GetName()) {
 		err := UserValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^users/.+$\"",
+			reason: "value does not match regex pattern \"^books/[^/]+/users/[^/]+$\"",
 		}
 		if !all {
 			return err
@@ -201,7 +201,7 @@ var _ interface {
 	ErrorName() string
 } = UserValidationError{}
 
-var _User_Name_Pattern = regexp.MustCompile("^users/.+$")
+var _User_Name_Pattern = regexp.MustCompile("^books/[^/]+/users/[^/]+$")
 
 var _User_Username_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
@@ -240,7 +240,7 @@ func (m *Market) validate(all bool) error {
 	if !_Market_Name_Pattern.MatchString(m.GetName()) {
 		err := MarketValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^markets/.+$\"",
+			reason: "value does not match regex pattern \"^markets/[^/]+$\"",
 		}
 		if !all {
 			return err
@@ -478,7 +478,7 @@ var _ interface {
 	ErrorName() string
 } = MarketValidationError{}
 
-var _Market_Name_Pattern = regexp.MustCompile("^markets/.+$")
+var _Market_Name_Pattern = regexp.MustCompile("^markets/[^/]+$")
 
 var _Market_Status_NotInLookup = map[Market_Status]struct{}{
 	0: {},
@@ -664,7 +664,7 @@ func (m *Outcome) validate(all bool) error {
 	if !_Outcome_Name_Pattern.MatchString(m.GetName()) {
 		err := OutcomeValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^markets/.+/outcomes/.+$\"",
+			reason: "value does not match regex pattern \"^markets/[^/]+/outcomes/[^/]+$\"",
 		}
 		if !all {
 			return err
@@ -762,7 +762,7 @@ var _ interface {
 	ErrorName() string
 } = OutcomeValidationError{}
 
-var _Outcome_Name_Pattern = regexp.MustCompile("^markets/.+/outcomes/.+$")
+var _Outcome_Name_Pattern = regexp.MustCompile("^markets/[^/]+/outcomes/[^/]+$")
 
 // Validate checks the field values on Bet with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
@@ -799,7 +799,7 @@ func (m *Bet) validate(all bool) error {
 	if !_Bet_Name_Pattern.MatchString(m.GetName()) {
 		err := BetValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^bets/.+$\"",
+			reason: "value does not match regex pattern \"^bets/[^/]+$\"",
 		}
 		if !all {
 			return err
@@ -999,7 +999,7 @@ var _ interface {
 	ErrorName() string
 } = BetValidationError{}
 
-var _Bet_Name_Pattern = regexp.MustCompile("^bets/.+$")
+var _Bet_Name_Pattern = regexp.MustCompile("^bets/[^/]+$")
 
 // Validate checks the field values on CreateUserRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -1022,6 +1022,8 @@ func (m *CreateUserRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for Book
 
 	if all {
 		switch v := interface{}(m.GetUser()).(type) {
@@ -2019,6 +2021,8 @@ func (m *CreateMarketRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for Book
 
 	if all {
 		switch v := interface{}(m.GetMarket()).(type) {
@@ -3295,6 +3299,8 @@ func (m *CreateBetRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for Book
 
 	if all {
 		switch v := interface{}(m.GetBet()).(type) {

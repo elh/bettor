@@ -19,33 +19,55 @@ import (
 func TestCreateUser(t *testing.T) {
 	testCases := []struct {
 		desc      string
+		book      string
 		user      *api.User
 		expectErr bool
 	}{
 		{
 			desc: "basic case",
+			book: "guild:A",
 			user: &api.User{
 				Username: "rusty",
 			},
 		},
 		{
+			desc: "fails if book is invalid (has a slash)",
+			book: "guild/A",
+			user: &api.User{
+				Username: "rusty",
+			},
+			expectErr: true,
+		},
+		{
 			desc:      "fails if username is empty",
+			book:      "guild:A",
 			user:      &api.User{},
 			expectErr: true,
 		},
 		{
 			desc:      "fails if username is too long",
+			book:      "guild:A",
 			user:      &api.User{Username: strings.Repeat("A", 256)},
 			expectErr: true,
 		},
 		{
 			desc:      "fails if username is not alphanumeric",
+			book:      "guild:A",
 			user:      &api.User{Username: "ᵣᵤₛₜᵧ"},
 			expectErr: true,
 		},
 		{
 			desc:      "fails if user is nil",
+			book:      "guild:A",
 			user:      nil,
+			expectErr: true,
+		},
+		{
+			desc: "fails is book is not set",
+			book: "",
+			user: &api.User{
+				Username: "rusty",
+			},
 			expectErr: true,
 		},
 	}
@@ -54,7 +76,7 @@ func TestCreateUser(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			s, err := server.New(server.WithRepo(&mem.Repo{}))
 			require.Nil(t, err)
-			out, err := s.CreateUser(context.Background(), connect.NewRequest(&api.CreateUserRequest{User: tC.user}))
+			out, err := s.CreateUser(context.Background(), connect.NewRequest(&api.CreateUserRequest{Book: tC.book, User: tC.user}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
@@ -68,7 +90,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("A", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
@@ -112,7 +134,7 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUserByUsername(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("A", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
@@ -158,17 +180,17 @@ func TestListUsers(t *testing.T) {
 	// tests pagination until all users are returned
 	// alphabetically ordered ids
 	user1 := &api.User{
-		Name:        entity.UserN("a"),
+		Name:        entity.UserN("Z", "a"),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
 	user2 := &api.User{
-		Name:        entity.UserN("b"),
+		Name:        entity.UserN("Z", "b"),
 		Username:    "danny",
 		Centipoints: 200,
 	}
 	user3 := &api.User{
-		Name:        entity.UserN("c"),
+		Name:        entity.UserN("Z", "c"),
 		Username:    "linus",
 		Centipoints: 300,
 	}

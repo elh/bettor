@@ -80,13 +80,13 @@ var (
 // StartBet is the handler for the /start-bet command.
 func StartBet(ctx context.Context, client bettorClient) Handler {
 	return func(s *discordgo.Session, event *discordgo.InteractionCreate) (*discordgo.InteractionResponseData, error) {
-		discordUserID, options, err := commandArgs(event)
+		guildID, discordUserID, options, err := commandArgs(event)
 		if err != nil {
 			return &discordgo.InteractionResponseData{Content: "🔺 Failed to handle command"}, fmt.Errorf("failed to handle command: %w", err)
 		}
 
 		// make sure caller user exists. if not, create a new user.
-		bettorUser, err := getUserOrCreateIfNotExist(ctx, client, discordUserID)
+		bettorUser, err := getUserOrCreateIfNotExist(ctx, client, guildID, discordUserID)
 		if err != nil {
 			return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
 		}
@@ -126,16 +126,19 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 	}
 }
 
-func getUserOrCreateIfNotExist(ctx context.Context, client bettorClient, discordUserID string) (bettorUser *api.User, err error) {
+func getUserOrCreateIfNotExist(ctx context.Context, client bettorClient, guildID, discordUserID string) (bettorUser *api.User, err error) {
 	getUserResp, err := client.GetUserByUsername(ctx, &connect.Request[api.GetUserByUsernameRequest]{Msg: &api.GetUserByUsernameRequest{Username: discordUserID}})
 	if err != nil {
 		var connectErr *connect.Error
 		if errors.As(err, &connectErr) {
 			if connectErr.Code() == connect.CodeNotFound {
-				createUserResp, err := client.CreateUser(ctx, &connect.Request[api.CreateUserRequest]{Msg: &api.CreateUserRequest{User: &api.User{
-					Username:    discordUserID,
-					Centipoints: defaultNewUserCentipoints,
-				}}})
+				createUserResp, err := client.CreateUser(ctx, &connect.Request[api.CreateUserRequest]{Msg: &api.CreateUserRequest{
+					Book: bookName(guildID),
+					User: &api.User{
+						Username:    discordUserID,
+						Centipoints: defaultNewUserCentipoints,
+					},
+				}})
 				if err != nil {
 					return nil, fmt.Errorf("failed to create user: %w", err)
 				}
@@ -146,6 +149,10 @@ func getUserOrCreateIfNotExist(ctx context.Context, client bettorClient, discord
 		return nil, fmt.Errorf("failed to get user, not a *connect.Error: %w", err)
 	}
 	return getUserResp.Msg.GetUser(), nil
+}
+
+func bookName(guildID string) string {
+	return fmt.Sprintf("discord:%s", guildID)
 }
 
 // returns a potentially nonexhaustive list of bettors in a market.
