@@ -41,7 +41,13 @@ func LockBet(ctx context.Context, client bettorClient) Handler {
 			}
 			market := resp.Msg.GetMarket()
 
-			msgformat, margs := formatMarket(market)
+			userResp, err := client.GetUser(ctx, &connect.Request[api.GetUserRequest]{Msg: &api.GetUserRequest{Name: market.GetCreator()}})
+			if err != nil {
+				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bet creator"}, fmt.Errorf("failed to GetUser for market creator: %w", err)
+			}
+			marketCreator := userResp.Msg.GetUser()
+
+			msgformat, margs := formatMarket(market, marketCreator)
 			msgformat = "🎲 🔒 No more bets!\n" + msgformat
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
