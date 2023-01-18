@@ -45,9 +45,9 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 		switch event.Type { //nolint:exhaustive
 		case discordgo.InteractionApplicationCommand:
 			resp, err := client.SettleMarket(ctx, &connect.Request[api.SettleMarketRequest]{Msg: &api.SettleMarketRequest{
-				MarketId: options["bet"].StringValue(),
-				Type: &api.SettleMarketRequest_WinnerId{
-					WinnerId: options["winner"].StringValue(),
+				Name: options["bet"].StringValue(),
+				Type: &api.SettleMarketRequest_Winner{
+					Winner: options["winner"].StringValue(),
 				},
 			}})
 			if err != nil {
@@ -56,7 +56,7 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 			market := resp.Msg.GetMarket()
 			var winnerTitle string
 			for _, outcome := range market.GetPool().GetOutcomes() {
-				if outcome.GetId() == options["winner"].StringValue() {
+				if outcome.GetName() == options["winner"].StringValue() {
 					winnerTitle = outcome.GetTitle()
 					break
 				}
@@ -81,19 +81,19 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 				for _, market := range resp.Msg.GetMarkets() {
 					choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 						Name:  market.GetTitle(),
-						Value: market.GetId(),
+						Value: market.GetName(),
 					})
 				}
 			case options["winner"] != nil && options["winner"].Focused:
 				if options["bet"] != nil && options["bet"].StringValue() != "" {
 					for _, market := range resp.Msg.GetMarkets() {
-						if market.GetId() != options["bet"].StringValue() {
+						if market.GetName() != options["bet"].StringValue() {
 							continue
 						}
 						for _, outcome := range market.GetPool().GetOutcomes() {
 							choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 								Name:  outcome.GetTitle(),
-								Value: outcome.GetId(),
+								Value: outcome.GetName(),
 							})
 						}
 					}

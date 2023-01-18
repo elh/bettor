@@ -39,8 +39,8 @@ type ListMarketsArgs struct {
 // ListBetsArgs are the arguments for listing bets.
 type ListBetsArgs struct {
 	GreaterThanID  string
-	UserID         string
-	MarketID       string
+	User           string
+	Market         string
 	ExcludeSettled bool
 	Limit          int
 }

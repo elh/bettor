@@ -58,29 +58,29 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 			if err != nil {
 				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
 			}
-			bettorUserID := bettorUser.GetId()
+			bettorUserN := bettorUser.GetName()
 
 			if _, err := client.CreateBet(ctx, &connect.Request[api.CreateBetRequest]{Msg: &api.CreateBetRequest{
 				Bet: &api.Bet{
-					UserId:      bettorUserID,
-					MarketId:    options["bet"].StringValue(),
+					User:        bettorUserN,
+					Market:      options["bet"].StringValue(),
 					Centipoints: uint64(options["points"].FloatValue() * 100),
-					Type: &api.Bet_OutcomeId{
-						OutcomeId: options["outcome"].StringValue(),
+					Type: &api.Bet_Outcome{
+						Outcome: options["outcome"].StringValue(),
 					},
 				},
 			}}); err != nil {
 				return &discordgo.InteractionResponseData{Content: "🔺 Failed to join bet"}, fmt.Errorf("failed to CreateBet: %w", err)
 			}
 
-			resp, err := client.GetMarket(ctx, &connect.Request[api.GetMarketRequest]{Msg: &api.GetMarketRequest{MarketId: options["bet"].StringValue()}})
+			resp, err := client.GetMarket(ctx, &connect.Request[api.GetMarketRequest]{Msg: &api.GetMarketRequest{Name: options["bet"].StringValue()}})
 			if err != nil {
 				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bet"}, fmt.Errorf("failed to GetMarket: %w", err)
 			}
 			market := resp.Msg.GetMarket()
 			var outcomeTitle string
 			for _, outcome := range market.GetPool().GetOutcomes() {
-				if outcome.GetId() == options["outcome"].StringValue() {
+				if outcome.GetName() == options["outcome"].StringValue() {
 					outcomeTitle = outcome.GetTitle()
 					break
 				}
@@ -105,19 +105,19 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 				for _, market := range resp.Msg.GetMarkets() {
 					choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 						Name:  market.GetTitle(),
-						Value: market.GetId(),
+						Value: market.GetName(),
 					})
 				}
 			case options["outcome"] != nil && options["outcome"].Focused:
 				if options["bet"] != nil && options["bet"].StringValue() != "" {
 					for _, market := range resp.Msg.GetMarkets() {
-						if market.GetId() != options["bet"].StringValue() {
+						if market.GetName() != options["bet"].StringValue() {
 							continue
 						}
 						for _, outcome := range market.GetPool().GetOutcomes() {
 							choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 								Name:  outcome.GetTitle(),
-								Value: outcome.GetId(),
+								Value: outcome.GetName(),
 							})
 						}
 					}

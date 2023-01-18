@@ -27,7 +27,7 @@ func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
 	r.userMtx.Lock()
 	defer r.userMtx.Unlock()
 	for _, u := range r.Users {
-		if u.Id == user.Id {
+		if u.GetName() == user.GetName() {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("user with id already exists"))
 		}
 		if u.Username == user.Username {
@@ -45,7 +45,7 @@ func (r *Repo) UpdateUser(ctx context.Context, user *api.User) error {
 	var found bool
 	var idx int
 	for i, u := range r.Users {
-		if u.Id == user.Id {
+		if u.GetName() == user.GetName() {
 			found = true
 			idx = i
 			break
@@ -63,7 +63,7 @@ func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
 	for _, u := range r.Users {
-		if u.Id == id {
+		if u.GetName() == id {
 			return u, nil
 		}
 	}
@@ -88,7 +88,7 @@ func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users [
 	defer r.userMtx.RUnlock()
 	var out []*api.User
 	for _, u := range r.Users {
-		if u.Id > args.GreaterThanID {
+		if u.GetName() > args.GreaterThanID {
 			out = append(out, u)
 		}
 		if len(out) >= args.Limit+1 {
@@ -106,7 +106,7 @@ func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 	r.marketMtx.Lock()
 	defer r.marketMtx.Unlock()
 	for _, u := range r.Users {
-		if u.Id == market.Id {
+		if u.GetName() == market.GetName() {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("market with id already exists"))
 		}
 	}
@@ -121,7 +121,7 @@ func (r *Repo) UpdateMarket(ctx context.Context, market *api.Market) error {
 	var found bool
 	var idx int
 	for i, m := range r.Markets {
-		if m.Id == market.Id {
+		if m.GetName() == market.GetName() {
 			found = true
 			idx = i
 			break
@@ -139,7 +139,7 @@ func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
 	r.marketMtx.RLock()
 	defer r.marketMtx.RUnlock()
 	for _, m := range r.Markets {
-		if m.Id == id {
+		if m.GetName() == id {
 			return m, nil
 		}
 	}
@@ -152,7 +152,7 @@ func (r *Repo) ListMarkets(ctx context.Context, args *repo.ListMarketsArgs) (mar
 	defer r.marketMtx.RUnlock()
 	var out []*api.Market //nolint:prealloc
 	for _, m := range r.Markets {
-		if m.Id <= args.GreaterThanID {
+		if m.GetName() <= args.GreaterThanID {
 			continue
 		}
 		if args.Status != api.Market_STATUS_UNSPECIFIED && m.Status != args.Status {
@@ -174,7 +174,7 @@ func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 	r.betMtx.Lock()
 	defer r.betMtx.Unlock()
 	for _, u := range r.Users {
-		if u.Id == bet.Id {
+		if u.GetName() == bet.GetName() {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("bet with id already exists"))
 		}
 	}
@@ -189,7 +189,7 @@ func (r *Repo) UpdateBet(ctx context.Context, bet *api.Bet) error {
 	var found bool
 	var idx int
 	for i, b := range r.Bets {
-		if b.Id == bet.Id {
+		if b.GetName() == bet.GetName() {
 			found = true
 			idx = i
 			break
@@ -207,7 +207,7 @@ func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
 	r.betMtx.RLock()
 	defer r.betMtx.RUnlock()
 	for _, b := range r.Bets {
-		if b.Id == id {
+		if b.GetName() == id {
 			return b, nil
 		}
 	}
@@ -220,13 +220,13 @@ func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) (bets []*a
 	defer r.betMtx.RUnlock()
 	var out []*api.Bet //nolint:prealloc
 	for _, b := range r.Bets {
-		if b.Id <= args.GreaterThanID {
+		if b.GetName() <= args.GreaterThanID {
 			continue
 		}
-		if args.UserID != "" && b.UserId != args.UserID {
+		if args.User != "" && b.User != args.User {
 			continue
 		}
-		if args.MarketID != "" && b.MarketId != args.MarketID {
+		if args.Market != "" && b.Market != args.Market {
 			continue
 		}
 		if args.ExcludeSettled && b.GetSettledAt() != nil {

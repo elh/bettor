@@ -33,7 +33,7 @@ func formatMarket(market *api.Market) (fmtStr string, args []interface{}) {
 			margs = append(margs, outcome.GetTitle(), float32(outcome.GetCentipoints())/100)
 			msgformat += "- **%s** (Points: **%v**, Odds: **-**)"
 		}
-		if market.GetPool().GetWinnerId() != "" && outcome.GetId() == market.GetPool().GetWinnerId() {
+		if market.GetPool().GetWinner() != "" && outcome.GetName() == market.GetPool().GetWinner() {
 			msgformat += " ✅ "
 		}
 		msgformat += "\n"

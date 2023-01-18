@@ -7,6 +7,7 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
+	"github.com/elh/bettor/internal/app/bettor/entity"
 	"github.com/elh/bettor/internal/app/bettor/repo"
 	"github.com/elh/bettor/internal/pkg/pagination"
 	"github.com/google/uuid"
@@ -30,7 +31,7 @@ func (s *Server) CreateUser(ctx context.Context, in *connect.Request[api.CreateU
 	}
 	user := proto.Clone(in.Msg.GetUser()).(*api.User)
 
-	user.Id = uuid.NewString()
+	user.Name = entity.UserN(uuid.NewString())
 	user.CreatedAt = timestamppb.Now()
 	user.UpdatedAt = timestamppb.Now()
 
@@ -53,7 +54,7 @@ func (s *Server) GetUser(ctx context.Context, in *connect.Request[api.GetUserReq
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	user, err := s.Repo.GetUser(ctx, in.Msg.GetUserId())
+	user, err := s.Repo.GetUser(ctx, in.Msg.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +111,7 @@ func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUser
 	var nextPageToken string
 	if hasMore {
 		nextPageToken, err = pagination.ToToken(pagination.Pagination{
-			Cursor:      users[len(users)-1].Id,
+			Cursor:      users[len(users)-1].GetName(),
 			ListRequest: in.Msg,
 		})
 		if err != nil {

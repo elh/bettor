@@ -35,7 +35,7 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 
 		switch event.Type { //nolint:exhaustive
 		case discordgo.InteractionApplicationCommand:
-			resp, err := client.GetMarket(ctx, &connect.Request[api.GetMarketRequest]{Msg: &api.GetMarketRequest{MarketId: options["bet"].StringValue()}})
+			resp, err := client.GetMarket(ctx, &connect.Request[api.GetMarketRequest]{Msg: &api.GetMarketRequest{Name: options["bet"].StringValue()}})
 			if err != nil {
 				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bet"}, fmt.Errorf("failed to GetMarket: %w", err)
 			}
@@ -53,7 +53,7 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 			for _, market := range resp.Msg.GetMarkets() {
 				choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 					Name:  market.GetTitle(),
-					Value: market.GetId(),
+					Value: market.GetName(),
 				})
 			}
 			return &discordgo.InteractionResponseData{Choices: withDefaultChoices(choices)}, nil

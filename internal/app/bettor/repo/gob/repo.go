@@ -20,7 +20,7 @@ var _ repo.Repo = (*Repo)(nil)
 func init() {
 	// interface types need to be registered
 	gob.Register(&api.Market_Pool{})
-	gob.Register(&api.Bet_OutcomeId{})
+	gob.Register(&api.Bet_Outcome{})
 }
 
 // Repo is an file-backed gob persistence repository.

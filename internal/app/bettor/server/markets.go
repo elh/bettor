@@ -7,6 +7,7 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
+	"github.com/elh/bettor/internal/app/bettor/entity"
 	"github.com/elh/bettor/internal/app/bettor/repo"
 	"github.com/elh/bettor/internal/pkg/pagination"
 	"github.com/google/uuid"
@@ -31,17 +32,18 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	}
 	market := proto.Clone(in.Msg.GetMarket()).(*api.Market)
 
-	market.Id = uuid.NewString()
+	marketID := uuid.NewString()
+	market.Name = entity.MarketN(marketID)
 	market.CreatedAt = timestamppb.Now()
 	market.UpdatedAt = timestamppb.Now()
 	market.SettledAt = nil
 	market.Status = api.Market_STATUS_OPEN
 
 	if market.GetPool() != nil {
-		market.GetPool().WinnerId = ""
+		market.GetPool().Winner = ""
 		outcomeTitles := map[string]bool{}
 		for _, outcome := range market.GetPool().GetOutcomes() {
-			outcome.Id = uuid.NewString()
+			outcome.Name = entity.OutcomeN(marketID, uuid.NewString())
 			outcome.Centipoints = 0
 			if outcomeTitles[outcome.GetTitle()] {
 				return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("duplicate outcome title"))
@@ -86,7 +88,7 @@ func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarke
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	market, err := s.Repo.GetMarket(ctx, in.Msg.GetMarketId())
+	market, err := s.Repo.GetMarket(ctx, in.Msg.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +133,7 @@ func (s *Server) ListMarkets(ctx context.Context, in *connect.Request[api.ListMa
 	var nextPageToken string
 	if hasMore {
 		nextPageToken, err = pagination.ToToken(pagination.Pagination{
-			Cursor:      markets[len(markets)-1].Id,
+			Cursor:      markets[len(markets)-1].GetName(),
 			ListRequest: in.Msg,
 		})
 		if err != nil {
@@ -152,7 +154,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	market, err := s.Repo.GetMarket(ctx, in.Msg.GetMarketId())
+	market, err := s.Repo.GetMarket(ctx, in.Msg.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +166,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 	market.SettledAt = timestamppb.Now()
 
 	// NOTE: only Pool is supported right now
-	if in.Msg.GetWinnerId() == "" {
+	if in.Msg.GetWinner() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("winner is required"))
 	}
 
@@ -173,7 +175,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 	}
 	var found bool
 	for _, outcome := range market.GetPool().GetOutcomes() {
-		if outcome.GetId() == in.Msg.GetWinnerId() {
+		if outcome.GetName() == in.Msg.GetWinner() {
 			found = true
 			break
 		}
@@ -181,13 +183,13 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 	if !found {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("winner is not in pool"))
 	}
-	market.GetPool().WinnerId = in.Msg.GetWinnerId()
+	market.GetPool().Winner = in.Msg.GetWinner()
 
 	// compute return ratio
 	var totalCentipointsBet, winnerCentipointsBet uint64
 	for _, outcome := range market.GetPool().GetOutcomes() {
 		totalCentipointsBet += outcome.GetCentipoints()
-		if outcome.GetId() == in.Msg.GetWinnerId() {
+		if outcome.GetName() == in.Msg.GetWinner() {
 			winnerCentipointsBet = outcome.GetCentipoints()
 		}
 	}
@@ -197,7 +199,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 		var bets []*api.Bet
 		var greaterThanID string
 		for {
-			bs, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{GreaterThanID: greaterThanID, MarketID: market.GetId(), Limit: 100})
+			bs, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{GreaterThanID: greaterThanID, Market: market.GetName(), Limit: 100})
 			if err != nil {
 				return nil, err
 			}
@@ -205,11 +207,11 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 			if !hasMore {
 				break
 			}
-			greaterThanID = bs[len(bs)-1].GetId()
+			greaterThanID = bs[len(bs)-1].GetName()
 		}
 		var hasWinner bool
 		for _, bet := range bets {
-			if bet.GetOutcomeId() == market.GetPool().GetWinnerId() {
+			if bet.GetOutcome() == market.GetPool().GetWinner() {
 				hasWinner = true
 				break
 			}
@@ -219,7 +221,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 			bet.UpdatedAt = timestamppb.Now()
 			bet.SettledAt = timestamppb.Now()
 			if hasWinner {
-				if bet.GetOutcomeId() == market.GetPool().GetWinnerId() {
+				if bet.GetOutcome() == market.GetPool().GetWinner() {
 					bet.SettledCentipoints = uint64(float64(bet.GetCentipoints()) * winnerRatio)
 				}
 			} else {
@@ -228,7 +230,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 		}
 
 		for _, bet := range bets {
-			user, err := s.Repo.GetUser(ctx, bet.GetUserId())
+			user, err := s.Repo.GetUser(ctx, bet.GetUser())
 			if err != nil {
 				return nil, err
 			}
@@ -260,7 +262,7 @@ func (s *Server) LockMarket(ctx context.Context, in *connect.Request[api.LockMar
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	market, err := s.Repo.GetMarket(ctx, in.Msg.GetMarketId())
+	market, err := s.Repo.GetMarket(ctx, in.Msg.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -286,13 +288,13 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	}
 	bet := proto.Clone(in.Msg.GetBet()).(*api.Bet)
 
-	bet.Id = uuid.NewString()
+	bet.Name = entity.BetN(uuid.NewString())
 	bet.CreatedAt = timestamppb.Now()
 	bet.UpdatedAt = timestamppb.Now()
 	bet.SettledAt = nil
 	bet.SettledCentipoints = 0
 
-	user, err := s.Repo.GetUser(ctx, bet.GetUserId())
+	user, err := s.Repo.GetUser(ctx, bet.GetUser())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -300,7 +302,7 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user does not have enough balance"))
 	}
 
-	market, err := s.Repo.GetMarket(ctx, bet.GetMarketId())
+	market, err := s.Repo.GetMarket(ctx, bet.GetMarket())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -310,13 +312,13 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	if bet.Type == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("bet type is required"))
 	}
-	if bet.GetOutcomeId() != "" {
+	if bet.GetOutcome() != "" {
 		if market.GetPool() == nil {
 			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market does not have a pool"))
 		}
 		found := false
 		for _, outcome := range market.GetPool().GetOutcomes() {
-			if outcome.GetId() == bet.GetOutcomeId() {
+			if outcome.GetName() == bet.GetOutcome() {
 				found = true
 				break
 			}
@@ -338,9 +340,9 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	if err := s.Repo.UpdateUser(ctx, user); err != nil {
 		return nil, err
 	}
-	if bet.GetOutcomeId() != "" && market.GetPool() != nil {
+	if bet.GetOutcome() != "" && market.GetPool() != nil {
 		for _, outcome := range market.GetPool().GetOutcomes() {
-			if outcome.GetId() == bet.GetOutcomeId() {
+			if outcome.GetName() == bet.GetOutcome() {
 				outcome.Centipoints += bet.GetCentipoints()
 				break
 			}
@@ -361,7 +363,7 @@ func (s *Server) GetBet(ctx context.Context, in *connect.Request[api.GetBetReque
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	bet, err := s.Repo.GetBet(ctx, in.Msg.GetBetId())
+	bet, err := s.Repo.GetBet(ctx, in.Msg.GetBet())
 	if err != nil {
 		return nil, err
 	}
@@ -396,8 +398,8 @@ func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsR
 
 	bets, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{
 		GreaterThanID:  cursor,
-		UserID:         in.Msg.GetUserId(),
-		MarketID:       in.Msg.GetMarketId(),
+		User:           in.Msg.GetUser(),
+		Market:         in.Msg.GetMarket(),
 		ExcludeSettled: in.Msg.GetExcludeSettled(),
 		Limit:          pageSize,
 	})
@@ -408,7 +410,7 @@ func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsR
 	var nextPageToken string
 	if hasMore {
 		nextPageToken, err = pagination.ToToken(pagination.Pagination{
-			Cursor:      bets[len(bets)-1].Id,
+			Cursor:      bets[len(bets)-1].GetName(),
 			ListRequest: in.Msg,
 		})
 		if err != nil {
