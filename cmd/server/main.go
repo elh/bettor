@@ -53,7 +53,11 @@ func main() {
 		logger.Log("msg", "error creating repo", "err", err)
 		panic(err)
 	}
-	s := server.New(r, serverLogger)
+	s, err := server.New(server.WithRepo(r), server.WithLogger(serverLogger))
+	if err != nil {
+		logger.Log("msg", "error creating server", "err", err)
+		panic(err)
+	}
 
 	// Tracing
 	tp, err := tracerProvider(os.Stdout)
@@ -110,7 +114,7 @@ func main() {
 			},
 		}
 		client := bettorv1alphaconnect.NewBettorServiceClient(netClient, fmt.Sprintf("http://localhost:%d", *port))
-		bot, err := discord.New(ctx, *discordToken, client, botLogger)
+		bot, err := discord.New(ctx, discord.WithToken(*discordToken), discord.WithBettorClient(client), discord.WithLogger(botLogger))
 		if err != nil {
 			botLogger.Log("msg", "error creating discord bot", "err", err)
 			cancelFn()

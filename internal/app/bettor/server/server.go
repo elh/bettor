@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/elh/bettor/api/bettor/v1alpha/bettorv1alphaconnect"
@@ -19,9 +20,41 @@ type Server struct {
 }
 
 // New initializes a new Server.
-func New(repo repo.Repo, logger log.Logger) *Server {
-	return &Server{
-		Repo:   repo,
-		Logger: logger,
+func New(args ...Arg) (*Server, error) {
+	serverArgs := &serverArgs{
+		logger: log.NewNopLogger(),
 	}
+	for _, arg := range args {
+		arg(serverArgs)
+	}
+	if serverArgs.repo == nil || serverArgs.logger == nil {
+		return nil, fmt.Errorf("missing required arguments")
+	}
+
+	return &Server{
+		Repo:   serverArgs.repo,
+		Logger: serverArgs.logger,
+	}, nil
+}
+
+type serverArgs struct {
+	repo   repo.Repo
+	logger log.Logger
+}
+
+// Arg is an argument for constructing a Server.
+type Arg func(o *serverArgs)
+
+// WithRepo provides a repo to the Server.
+func WithRepo(repo repo.Repo) Arg {
+	return Arg(func(a *serverArgs) {
+		a.repo = repo
+	})
+}
+
+// WithLogger provides a logger to the Server.
+func WithLogger(logger log.Logger) Arg {
+	return Arg(func(a *serverArgs) {
+		a.logger = logger
+	})
 }

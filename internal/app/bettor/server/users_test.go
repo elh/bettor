@@ -9,7 +9,6 @@ import (
 	api "github.com/elh/bettor/api/bettor/v1alpha"
 	"github.com/elh/bettor/internal/app/bettor/repo/mem"
 	"github.com/elh/bettor/internal/app/bettor/server"
-	"github.com/go-kit/log"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,7 +51,8 @@ func TestCreateUser(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{}, log.NewNopLogger())
+			s, err := server.New(server.WithRepo(&mem.Repo{}))
+			require.Nil(t, err)
 			out, err := s.CreateUser(context.Background(), connect.NewRequest(&api.CreateUserRequest{User: tC.user}))
 			if tC.expectErr {
 				require.NotNil(t, err)
@@ -96,7 +96,8 @@ func TestGetUser(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Users: []*api.User{user}}, log.NewNopLogger())
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}}))
+			require.Nil(t, err)
 			out, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{UserId: tC.userID}))
 			if tC.expectErr {
 				require.NotNil(t, err)
@@ -139,7 +140,8 @@ func TestGetUserByUsername(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Users: []*api.User{user}}, log.NewNopLogger())
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}}))
+			require.Nil(t, err)
 			out, err := s.GetUserByUsername(context.Background(), connect.NewRequest(&api.GetUserByUsernameRequest{Username: tC.username}))
 			if tC.expectErr {
 				require.NotNil(t, err)
@@ -210,7 +212,8 @@ func TestListUsers(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s := server.New(&mem.Repo{Users: []*api.User{user1, user2, user3}}, log.NewNopLogger())
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user1, user2, user3}}))
+			require.Nil(t, err)
 			var all []*api.User
 			var calls int
 			var pageToken string

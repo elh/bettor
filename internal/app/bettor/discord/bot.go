@@ -36,8 +36,18 @@ type DGCommand struct {
 }
 
 // New initializes a new Bot.
-func New(ctx context.Context, token string, bettorClient bettorv1alphaconnect.BettorServiceClient, logger log.Logger) (*Bot, error) {
-	d, err := discordgo.New("Bot " + token)
+func New(ctx context.Context, args ...Arg) (*Bot, error) {
+	discordArgs := &discordArgs{
+		logger: log.NewNopLogger(),
+	}
+	for _, arg := range args {
+		arg(discordArgs)
+	}
+	if discordArgs.token == "" || discordArgs.bettorClient == nil || discordArgs.logger == nil {
+		return nil, fmt.Errorf("missing required arguments")
+	}
+
+	d, err := discordgo.New("Bot " + discordArgs.token)
 	if err != nil {
 		return nil, fmt.Errorf("error creating Discord session: %w", err)
 	}
@@ -46,9 +56,9 @@ func New(ctx context.Context, token string, bettorClient bettorv1alphaconnect.Be
 	b := &Bot{
 		Ctx:      ctx,
 		D:        d,
-		Client:   bettorClient,
-		Logger:   logger,
-		Commands: initCommands(ctx, bettorClient, logger),
+		Client:   discordArgs.bettorClient,
+		Logger:   discordArgs.logger,
+		Commands: initCommands(ctx, discordArgs.bettorClient, discordArgs.logger),
 	}
 
 	// set up handlers
@@ -60,6 +70,36 @@ func New(ctx context.Context, token string, bettorClient bettorv1alphaconnect.Be
 	})
 
 	return b, nil
+}
+
+type discordArgs struct {
+	token        string
+	bettorClient bettorv1alphaconnect.BettorServiceClient
+	logger       log.Logger
+}
+
+// Arg is an argument for constructing a Discord bot.
+type Arg func(o *discordArgs)
+
+// WithToken provides a Discord token to the Discord bot.
+func WithToken(token string) Arg {
+	return Arg(func(a *discordArgs) {
+		a.token = token
+	})
+}
+
+// WithBettorClient provides a Bettor client to the Discord bot.
+func WithBettorClient(c bettorv1alphaconnect.BettorServiceClient) Arg {
+	return Arg(func(a *discordArgs) {
+		a.bettorClient = c
+	})
+}
+
+// WithLogger provides a logger to the Discord bot.
+func WithLogger(logger log.Logger) Arg {
+	return Arg(func(a *discordArgs) {
+		a.logger = logger
+	})
 }
 
 // Run starts the bot. This blocks until the bot is terminated.
