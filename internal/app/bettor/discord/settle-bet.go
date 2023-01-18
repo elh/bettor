@@ -74,7 +74,7 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 			}
 
 			msgformat, margs := formatMarket(market, marketCreator, bets, bettors)
-			msgformat = "🎲 ✅ Bet settled with winner **%s**\n" + msgformat
+			msgformat = "🎲 ✅ Bet settled with winner **%s**!\n\n" + msgformat
 			margs = append([]interface{}{winnerTitle}, margs...)
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:

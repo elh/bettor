@@ -98,7 +98,7 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 			}
 
 			msgformat, margs := formatMarket(market, marketCreator, bets, bettors)
-			msgformat = "🎲 🪙 <@!%s> bet **%v** points on **%s**\n" + msgformat
+			msgformat = "🎲 🪙 <@!%s> bet **%v** points on **%s**.\n\n" + msgformat
 			margs = append([]interface{}{discordUserID, options["points"].FloatValue(), outcomeTitle}, margs...)
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
