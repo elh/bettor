@@ -7,6 +7,7 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
+	"github.com/elh/bettor/internal/app/bettor/entity"
 	"github.com/elh/bettor/internal/app/bettor/repo/mem"
 	"github.com/elh/bettor/internal/app/bettor/server"
 	"github.com/google/uuid"
@@ -67,29 +68,29 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	user := &api.User{
-		Id:          uuid.NewString(),
+		Name:        entity.UserN(uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
 	testCases := []struct {
 		desc      string
-		userID    string
+		user      string
 		expected  *api.User
 		expectErr bool
 	}{
 		{
 			desc:     "basic case",
-			userID:   user.Id,
+			user:     user.GetName(),
 			expected: user,
 		},
 		{
 			desc:      "fails if user does not exist",
-			userID:    "does-not-exist",
+			user:      "does-not-exist",
 			expectErr: true,
 		},
 		{
 			desc:      "fails if id is empty",
-			userID:    "",
+			user:      "",
 			expectErr: true,
 		},
 	}
@@ -98,7 +99,7 @@ func TestGetUser(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}}))
 			require.Nil(t, err)
-			out, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{UserId: tC.userID}))
+			out, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{Name: tC.user}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
@@ -111,7 +112,7 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUserByUsername(t *testing.T) {
 	user := &api.User{
-		Id:          uuid.NewString(),
+		Name:        entity.UserN(uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
@@ -157,17 +158,17 @@ func TestListUsers(t *testing.T) {
 	// tests pagination until all users are returned
 	// alphabetically ordered ids
 	user1 := &api.User{
-		Id:          "a",
+		Name:        entity.UserN("a"),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
 	user2 := &api.User{
-		Id:          "b",
+		Name:        entity.UserN("b"),
 		Username:    "danny",
 		Centipoints: 200,
 	}
 	user3 := &api.User{
-		Id:          "c",
+		Name:        entity.UserN("c"),
 		Username:    "linus",
 		Centipoints: 300,
 	}

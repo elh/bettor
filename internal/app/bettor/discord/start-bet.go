@@ -90,7 +90,6 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 		if err != nil {
 			return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
 		}
-		bettorUserID := bettorUser.GetId()
 
 		outcomeKeys := []string{"outcome1", "outcome2", "outcome3", "outcome4", "outcome5", "outcome6"}
 
@@ -104,7 +103,7 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 		}
 		resp, err := client.CreateMarket(ctx, &connect.Request[api.CreateMarketRequest]{Msg: &api.CreateMarketRequest{Market: &api.Market{
 			Title:   options["bet"].StringValue(),
-			Creator: bettorUserID,
+			Creator: bettorUser.GetName(),
 			Type: &api.Market_Pool{
 				Pool: &api.Pool{
 					Outcomes: outcomes,

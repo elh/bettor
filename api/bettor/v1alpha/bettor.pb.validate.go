@@ -59,11 +59,21 @@ func (m *User) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = UserValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 1024 {
+		err := UserValidationError{
+			field:  "Name",
+			reason: "value length must be between 1 and 1024 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_User_Name_Pattern.MatchString(m.GetName()) {
+		err := UserValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^users/.+$\"",
 		}
 		if !all {
 			return err
@@ -119,14 +129,6 @@ func (m *User) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return UserMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *User) _validateUuid(uuid string) error {
-	if matched := _bettor_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -201,6 +203,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UserValidationError{}
+
+var _User_Name_Pattern = regexp.MustCompile("^users/.+$")
 
 var _User_Username_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
@@ -839,9 +843,9 @@ func (m *Bet) validate(all bool) error {
 		}
 	}
 
-	if utf8.RuneCountInString(m.GetUserId()) < 1 {
+	if utf8.RuneCountInString(m.GetUser()) < 1 {
 		err := BetValidationError{
-			field:  "UserId",
+			field:  "User",
 			reason: "value length must be at least 1 runes",
 		}
 		if !all {
@@ -1272,9 +1276,9 @@ func (m *GetUserRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetUserId()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		err := GetUserRequestValidationError{
-			field:  "UserId",
+			field:  "Name",
 			reason: "value length must be at least 1 runes",
 		}
 		if !all {
@@ -3796,7 +3800,7 @@ func (m *ListBetsRequest) validate(all bool) error {
 
 	// no validation rules for PageToken
 
-	// no validation rules for UserId
+	// no validation rules for User
 
 	// no validation rules for MarketId
 

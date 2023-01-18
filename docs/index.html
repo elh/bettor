@@ -359,7 +359,7 @@
                 </tr>
               
                 <tr>
-                  <td>user_id</td>
+                  <td>user</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -443,7 +443,7 @@
                 </tr>
               
                 <tr>
-                  <td>user_id</td>
+                  <td>user</td>
                   <td>
                     <ul>
                     
@@ -862,7 +862,7 @@
             <tbody>
               
                 <tr>
-                  <td>user_id</td>
+                  <td>name</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -885,7 +885,7 @@
               <tbody>
               
                 <tr>
-                  <td>user_id</td>
+                  <td>name</td>
                   <td>
                     <ul>
                     
@@ -951,7 +951,7 @@
                 </tr>
               
                 <tr>
-                  <td>user_id</td>
+                  <td>user</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -1684,7 +1684,7 @@
             <tbody>
               
                 <tr>
-                  <td>id</td>
+                  <td>name</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -1735,11 +1735,15 @@
               <tbody>
               
                 <tr>
-                  <td>id</td>
+                  <td>name</td>
                   <td>
                     <ul>
                     
-                      <li>string.uuid: true</li>
+                      <li>string.min_len: 1</li>
+                    
+                      <li>string.max_len: 1024</li>
+                    
+                      <li>string.pattern: ^users/.&#43;$</li>
                     
                     </ul>
                   </td>

@@ -58,11 +58,11 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 			if err != nil {
 				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
 			}
-			bettorUserID := bettorUser.GetId()
+			bettorUserN := bettorUser.GetName()
 
 			if _, err := client.CreateBet(ctx, &connect.Request[api.CreateBetRequest]{Msg: &api.CreateBetRequest{
 				Bet: &api.Bet{
-					UserId:      bettorUserID,
+					User:        bettorUserN,
 					MarketId:    options["bet"].StringValue(),
 					Centipoints: uint64(options["points"].FloatValue() * 100),
 					Type: &api.Bet_OutcomeId{

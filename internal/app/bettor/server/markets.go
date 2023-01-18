@@ -228,7 +228,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 		}
 
 		for _, bet := range bets {
-			user, err := s.Repo.GetUser(ctx, bet.GetUserId())
+			user, err := s.Repo.GetUser(ctx, bet.GetUser())
 			if err != nil {
 				return nil, err
 			}
@@ -292,7 +292,7 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	bet.SettledAt = nil
 	bet.SettledCentipoints = 0
 
-	user, err := s.Repo.GetUser(ctx, bet.GetUserId())
+	user, err := s.Repo.GetUser(ctx, bet.GetUser())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -396,7 +396,7 @@ func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsR
 
 	bets, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{
 		GreaterThanID:  cursor,
-		UserID:         in.Msg.GetUserId(),
+		User:           in.Msg.GetUser(),
 		MarketID:       in.Msg.GetMarketId(),
 		ExcludeSettled: in.Msg.GetExcludeSettled(),
 		Limit:          pageSize,

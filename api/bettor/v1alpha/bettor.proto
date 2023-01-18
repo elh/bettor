@@ -7,7 +7,11 @@ import "validate/validate.proto";
 
 // User information.
 message User {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 1024,
+    pattern: "^users/.+$"
+  }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
   string username = 4 [(validate.rules).string = {
@@ -68,7 +72,7 @@ message Bet {
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp settled_at = 4;
-  string user_id = 5 [(validate.rules).string.min_len = 1];
+  string user = 5 [(validate.rules).string.min_len = 1];
   string market_id = 6 [(validate.rules).string.min_len = 1];
   uint64 centipoints = 7 [(validate.rules).uint64.gt = 0];
   uint64 settled_centipoints = 8;
@@ -89,7 +93,7 @@ message CreateUserResponse {
 }
 
 message GetUserRequest {
-  string user_id = 1 [(validate.rules).string.min_len = 1];
+  string name = 1 [(validate.rules).string.min_len = 1];
 }
 
 message GetUserResponse {
@@ -180,7 +184,7 @@ message GetBetResponse {
 message ListBetsRequest {
   int32 page_size = 1 [(validate.rules).int32.lte = 50];
   string page_token = 2;
-  string user_id = 3;
+  string user = 3;
   string market_id = 4;
   bool exclude_settled = 5;
 }

@@ -27,7 +27,7 @@ func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
 	r.userMtx.Lock()
 	defer r.userMtx.Unlock()
 	for _, u := range r.Users {
-		if u.Id == user.Id {
+		if u.GetName() == user.GetName() {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("user with id already exists"))
 		}
 		if u.Username == user.Username {
@@ -45,7 +45,7 @@ func (r *Repo) UpdateUser(ctx context.Context, user *api.User) error {
 	var found bool
 	var idx int
 	for i, u := range r.Users {
-		if u.Id == user.Id {
+		if u.GetName() == user.GetName() {
 			found = true
 			idx = i
 			break
@@ -63,7 +63,7 @@ func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
 	for _, u := range r.Users {
-		if u.Id == id {
+		if u.GetName() == id {
 			return u, nil
 		}
 	}
@@ -88,7 +88,7 @@ func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users [
 	defer r.userMtx.RUnlock()
 	var out []*api.User
 	for _, u := range r.Users {
-		if u.Id > args.GreaterThanID {
+		if u.GetName() > args.GreaterThanID {
 			out = append(out, u)
 		}
 		if len(out) >= args.Limit+1 {
@@ -106,7 +106,7 @@ func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 	r.marketMtx.Lock()
 	defer r.marketMtx.Unlock()
 	for _, u := range r.Users {
-		if u.Id == market.Id {
+		if u.GetName() == market.Id {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("market with id already exists"))
 		}
 	}
@@ -174,7 +174,7 @@ func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 	r.betMtx.Lock()
 	defer r.betMtx.Unlock()
 	for _, u := range r.Users {
-		if u.Id == bet.Id {
+		if u.GetName() == bet.Id {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("bet with id already exists"))
 		}
 	}
@@ -223,7 +223,7 @@ func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) (bets []*a
 		if b.Id <= args.GreaterThanID {
 			continue
 		}
-		if args.UserID != "" && b.UserId != args.UserID {
+		if args.User != "" && b.User != args.User {
 			continue
 		}
 		if args.MarketID != "" && b.MarketId != args.MarketID {
