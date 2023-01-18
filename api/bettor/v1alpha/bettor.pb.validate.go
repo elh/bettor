@@ -3800,6 +3800,8 @@ func (m *ListBetsRequest) validate(all bool) error {
 
 	// no validation rules for MarketId
 
+	// no validation rules for ExcludeSettled
+
 	if len(errors) > 0 {
 		return ListBetsRequestMultiError(errors)
 	}

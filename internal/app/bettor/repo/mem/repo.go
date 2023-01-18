@@ -229,6 +229,9 @@ func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) (bets []*a
 		if args.MarketID != "" && b.MarketId != args.MarketID {
 			continue
 		}
+		if args.ExcludeSettled && b.GetSettledAt() != nil {
+			continue
+		}
 		out = append(out, b)
 		if len(out) >= args.Limit+1 {
 			break
