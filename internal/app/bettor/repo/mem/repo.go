@@ -86,11 +86,15 @@ func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.Use
 func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users []*api.User, hasMore bool, err error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
-	var out []*api.User
+	var out []*api.User //nolint:prealloc
 	for _, u := range r.Users {
-		if u.GetName() > args.GreaterThanID {
-			out = append(out, u)
+		if u.GetName() <= args.GreaterThanID {
+			continue
 		}
+		if len(args.Users) > 0 && !containsStr(args.Users, u.GetName()) {
+			continue
+		}
+		out = append(out, u)
 		if len(out) >= args.Limit+1 {
 			break
 		}
@@ -241,4 +245,13 @@ func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) (bets []*a
 		return out[:args.Limit], true, nil
 	}
 	return out, false, nil
+}
+
+func containsStr(xs []string, y string) bool {
+	for _, x := range xs {
+		if x == y {
+			return true
+		}
+	}
+	return false
 }

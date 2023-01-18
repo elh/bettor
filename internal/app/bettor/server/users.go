@@ -103,7 +103,7 @@ func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUser
 		}
 	}
 
-	users, hasMore, err := s.Repo.ListUsers(ctx, &repo.ListUsersArgs{GreaterThanID: cursor, Limit: pageSize})
+	users, hasMore, err := s.Repo.ListUsers(ctx, &repo.ListUsersArgs{GreaterThanID: cursor, Users: in.Msg.GetUsers(), Limit: pageSize})
 	if err != nil {
 		return nil, err
 	}

@@ -40,7 +40,7 @@ func GetBettor(ctx context.Context, client bettorClient) Handler {
 		}
 
 		msgformat, margs := formatUser(bettorUser, unsettledCentipoints)
-		msgformat = "🎲 👤\n" + msgformat
+		msgformat = "🎲 👤\n\n" + msgformat
 		return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 	}
 }

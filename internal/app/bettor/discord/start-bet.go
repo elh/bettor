@@ -115,8 +115,13 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 		}
 		market := resp.Msg.GetMarket()
 
-		msgformat, margs := formatMarket(market, bettorUser)
-		msgformat = "🎲 🆕 Type `/join-bet` to join the bet until it is locked.\n" + msgformat
+		bets, bettors, err := getMarketBets(ctx, client, market.GetName())
+		if err != nil {
+			return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bettors"}, fmt.Errorf("failed to getMarketBets: %w", err)
+		}
+
+		msgformat, margs := formatMarket(market, bettorUser, bets, bettors)
+		msgformat = "🎲 🆕 New bet started. `/join-bet` to join the bet until it is locked with `/lock-bet`.\n\n" + msgformat
 		return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 	}
 }
@@ -141,4 +146,29 @@ func getUserOrCreateIfNotExist(ctx context.Context, client bettorClient, discord
 		return nil, fmt.Errorf("failed to get user, not a *connect.Error: %w", err)
 	}
 	return getUserResp.Msg.GetUser(), nil
+}
+
+// returns a potentially nonexhaustive list of bettors in a market.
+func getMarketBets(ctx context.Context, client bettorClient, marketName string) ([]*api.Bet, []*api.User, error) {
+	betsResp, err := client.ListBets(ctx, &connect.Request[api.ListBetsRequest]{Msg: &api.ListBetsRequest{
+		PageSize: 50,
+		Market:   marketName,
+	}})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to list bets: %w", err)
+	}
+	bets := betsResp.Msg.GetBets()
+
+	var userIDs []string //nolint:prealloc
+	for _, bet := range bets {
+		userIDs = append(userIDs, bet.GetUser())
+	}
+	userResp, err := client.ListUsers(ctx, &connect.Request[api.ListUsersRequest]{Msg: &api.ListUsersRequest{
+		PageSize: 50,
+		Users:    userIDs,
+	}})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to list users: %w", err)
+	}
+	return bets, userResp.Msg.GetUsers(), nil
 }

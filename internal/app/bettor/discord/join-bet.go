@@ -92,8 +92,13 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 			}
 			marketCreator := userResp.Msg.GetUser()
 
-			msgformat, margs := formatMarket(market, marketCreator)
-			msgformat = "🎲 🪙 <@!%s> bet **%v** points on **%s**\n" + msgformat
+			bets, bettors, err := getMarketBets(ctx, client, market.GetName())
+			if err != nil {
+				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bettors"}, fmt.Errorf("failed to getMarketBets: %w", err)
+			}
+
+			msgformat, margs := formatMarket(market, marketCreator, bets, bettors)
+			msgformat = "🎲 🪙 <@!%s> bet **%v** points on **%s**.\n\n" + msgformat
 			margs = append([]interface{}{discordUserID, options["points"].FloatValue(), outcomeTitle}, margs...)
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
