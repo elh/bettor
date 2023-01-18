@@ -387,7 +387,7 @@
                 </tr>
               
                 <tr>
-                  <td>outcome_id</td>
+                  <td>outcome</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -1470,7 +1470,7 @@
             <tbody>
               
                 <tr>
-                  <td>id</td>
+                  <td>name</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -1507,11 +1507,15 @@
               <tbody>
               
                 <tr>
-                  <td>id</td>
+                  <td>name</td>
                   <td>
                     <ul>
                     
-                      <li>string.uuid: true</li>
+                      <li>string.min_len: 1</li>
+                    
+                      <li>string.max_len: 1024</li>
+                    
+                      <li>string.pattern: ^markets/.&#43;/outcomes/.&#43;$</li>
                     
                     </ul>
                   </td>
@@ -1555,7 +1559,7 @@
                 </tr>
               
                 <tr>
-                  <td>winner_id</td>
+                  <td>winner</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -1613,7 +1617,7 @@
                 </tr>
               
                 <tr>
-                  <td>winner_id</td>
+                  <td>winner</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -1857,14 +1861,14 @@
                 <td>GetUser</td>
                 <td><a href="#bettor.v1alpha.GetUserRequest">GetUserRequest</a></td>
                 <td><a href="#bettor.v1alpha.GetUserResponse">GetUserResponse</a></td>
-                <td><p>GetUser returns a user by ID.</p></td>
+                <td><p>GetUser returns a user by name.</p></td>
               </tr>
             
               <tr>
                 <td>GetUserByUsername</td>
                 <td><a href="#bettor.v1alpha.GetUserByUsernameRequest">GetUserByUsernameRequest</a></td>
                 <td><a href="#bettor.v1alpha.GetUserByUsernameResponse">GetUserByUsernameResponse</a></td>
-                <td><p>GetUserByUsername returns a user by ID.</p></td>
+                <td><p>GetUserByUsername returns a user by name.</p></td>
               </tr>
             
               <tr>
@@ -1885,7 +1889,7 @@
                 <td>GetMarket</td>
                 <td><a href="#bettor.v1alpha.GetMarketRequest">GetMarketRequest</a></td>
                 <td><a href="#bettor.v1alpha.GetMarketResponse">GetMarketResponse</a></td>
-                <td><p>GetMarket gets a betting market by ID.</p></td>
+                <td><p>GetMarket gets a betting market by name.</p></td>
               </tr>
             
               <tr>

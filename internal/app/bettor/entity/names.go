@@ -3,13 +3,15 @@ package entity
 import "regexp"
 
 const (
-	userCollection   = "users"
-	marketCollection = "markets"
+	userCollection    = "users"
+	marketCollection  = "markets"
+	outcomeCollection = "outcomes"
 )
 
 var (
-	userRegex   = regexp.MustCompile(`users\/(.*)`)
-	marketRegex = regexp.MustCompile(`markets\/(.*)`)
+	userRegex    = regexp.MustCompile(`users\/(.*)`)
+	marketRegex  = regexp.MustCompile(`markets\/(.*)`)
+	outcomeRegex = regexp.MustCompile(`markets\/(.*)\/outcomes\/(.*)`)
 )
 
 // UserN returns a resource name from user ids.
@@ -38,4 +40,18 @@ func MarketIDs(name string) (marketID string) {
 		return ""
 	}
 	return parts[1]
+}
+
+// OutcomeN returns a resource name from outcome ids.
+func OutcomeN(marketID, outcomeID string) string {
+	return marketCollection + "/" + marketID + "/" + outcomeCollection + "/" + outcomeID
+}
+
+// OutcomeIDs returns ids from outcome resource name.
+func OutcomeIDs(name string) (marketID, outcomeID string) {
+	parts := outcomeRegex.FindStringSubmatch(name)
+	if len(parts) != 3 {
+		return "", ""
+	}
+	return parts[1], parts[2]
 }

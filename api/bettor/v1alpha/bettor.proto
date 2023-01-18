@@ -57,12 +57,16 @@ message Market {
 // Pool or parimutuel betting market.
 message Pool {
   repeated Outcome outcomes = 1 [(validate.rules).repeated.min_items = 2];
-  string winner_id = 2;
+  string winner = 2;
 }
 
 // An outcome in a pool betting market.
 message Outcome {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 1024,
+    pattern: "^markets/.+/outcomes/.+$"
+  }];
   string title = 2 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
@@ -82,7 +86,7 @@ message Bet {
   uint64 settled_centipoints = 8;
   oneof type {
     option (validate.required) = true;
-    string outcome_id = 9;
+    string outcome = 9;
   }
 }
 
@@ -161,7 +165,7 @@ message SettleMarketRequest {
   string name = 1 [(validate.rules).string.min_len = 1];
   oneof type {
     option (validate.required) = true;
-    string winner_id = 2;
+    string winner = 2;
   }
 }
 
@@ -202,15 +206,15 @@ message ListBetsResponse {
 service BettorService {
   // CreateUser creates a new user.
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
-  // GetUser returns a user by ID.
+  // GetUser returns a user by name.
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
-  // GetUserByUsername returns a user by ID.
+  // GetUserByUsername returns a user by name.
   rpc GetUserByUsername(GetUserByUsernameRequest) returns (GetUserByUsernameResponse) {}
   // ListUsers lists users by filters.
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
   // CreateMarket creates a new betting market.
   rpc CreateMarket(CreateMarketRequest) returns (CreateMarketResponse) {}
-  // GetMarket gets a betting market by ID.
+  // GetMarket gets a betting market by name.
   rpc GetMarket(GetMarketRequest) returns (GetMarketResponse) {}
   // ListMarkets lists markets by filters.
   rpc ListMarkets(ListMarketsRequest) returns (ListMarketsResponse) {}

@@ -32,17 +32,18 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	}
 	market := proto.Clone(in.Msg.GetMarket()).(*api.Market)
 
-	market.Name = entity.MarketN(uuid.NewString())
+	marketID := uuid.NewString()
+	market.Name = entity.MarketN(marketID)
 	market.CreatedAt = timestamppb.Now()
 	market.UpdatedAt = timestamppb.Now()
 	market.SettledAt = nil
 	market.Status = api.Market_STATUS_OPEN
 
 	if market.GetPool() != nil {
-		market.GetPool().WinnerId = ""
+		market.GetPool().Winner = ""
 		outcomeTitles := map[string]bool{}
 		for _, outcome := range market.GetPool().GetOutcomes() {
-			outcome.Id = uuid.NewString()
+			outcome.Name = entity.OutcomeN(marketID, uuid.NewString())
 			outcome.Centipoints = 0
 			if outcomeTitles[outcome.GetTitle()] {
 				return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("duplicate outcome title"))
@@ -165,7 +166,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 	market.SettledAt = timestamppb.Now()
 
 	// NOTE: only Pool is supported right now
-	if in.Msg.GetWinnerId() == "" {
+	if in.Msg.GetWinner() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("winner is required"))
 	}
 
@@ -174,7 +175,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 	}
 	var found bool
 	for _, outcome := range market.GetPool().GetOutcomes() {
-		if outcome.GetId() == in.Msg.GetWinnerId() {
+		if outcome.GetName() == in.Msg.GetWinner() {
 			found = true
 			break
 		}
@@ -182,13 +183,13 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 	if !found {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("winner is not in pool"))
 	}
-	market.GetPool().WinnerId = in.Msg.GetWinnerId()
+	market.GetPool().Winner = in.Msg.GetWinner()
 
 	// compute return ratio
 	var totalCentipointsBet, winnerCentipointsBet uint64
 	for _, outcome := range market.GetPool().GetOutcomes() {
 		totalCentipointsBet += outcome.GetCentipoints()
-		if outcome.GetId() == in.Msg.GetWinnerId() {
+		if outcome.GetName() == in.Msg.GetWinner() {
 			winnerCentipointsBet = outcome.GetCentipoints()
 		}
 	}
@@ -210,7 +211,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 		}
 		var hasWinner bool
 		for _, bet := range bets {
-			if bet.GetOutcomeId() == market.GetPool().GetWinnerId() {
+			if bet.GetOutcome() == market.GetPool().GetWinner() {
 				hasWinner = true
 				break
 			}
@@ -220,7 +221,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 			bet.UpdatedAt = timestamppb.Now()
 			bet.SettledAt = timestamppb.Now()
 			if hasWinner {
-				if bet.GetOutcomeId() == market.GetPool().GetWinnerId() {
+				if bet.GetOutcome() == market.GetPool().GetWinner() {
 					bet.SettledCentipoints = uint64(float64(bet.GetCentipoints()) * winnerRatio)
 				}
 			} else {
@@ -311,13 +312,13 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	if bet.Type == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("bet type is required"))
 	}
-	if bet.GetOutcomeId() != "" {
+	if bet.GetOutcome() != "" {
 		if market.GetPool() == nil {
 			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market does not have a pool"))
 		}
 		found := false
 		for _, outcome := range market.GetPool().GetOutcomes() {
-			if outcome.GetId() == bet.GetOutcomeId() {
+			if outcome.GetName() == bet.GetOutcome() {
 				found = true
 				break
 			}
@@ -339,9 +340,9 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	if err := s.Repo.UpdateUser(ctx, user); err != nil {
 		return nil, err
 	}
-	if bet.GetOutcomeId() != "" && market.GetPool() != nil {
+	if bet.GetOutcome() != "" && market.GetPool() != nil {
 		for _, outcome := range market.GetPool().GetOutcomes() {
-			if outcome.GetId() == bet.GetOutcomeId() {
+			if outcome.GetName() == bet.GetOutcome() {
 				outcome.Centipoints += bet.GetCentipoints()
 				break
 			}

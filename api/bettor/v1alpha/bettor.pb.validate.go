@@ -553,7 +553,7 @@ func (m *Pool) validate(all bool) error {
 
 	}
 
-	// no validation rules for WinnerId
+	// no validation rules for Winner
 
 	if len(errors) > 0 {
 		return PoolMultiError(errors)
@@ -653,11 +653,21 @@ func (m *Outcome) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = OutcomeValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 1024 {
+		err := OutcomeValidationError{
+			field:  "Name",
+			reason: "value length must be between 1 and 1024 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_Outcome_Name_Pattern.MatchString(m.GetName()) {
+		err := OutcomeValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^markets/.+/outcomes/.+$\"",
 		}
 		if !all {
 			return err
@@ -680,14 +690,6 @@ func (m *Outcome) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return OutcomeMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *Outcome) _validateUuid(uuid string) error {
-	if matched := _bettor_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -762,6 +764,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = OutcomeValidationError{}
+
+var _Outcome_Name_Pattern = regexp.MustCompile("^markets/.+/outcomes/.+$")
 
 // Validate checks the field values on Bet with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
@@ -884,7 +888,7 @@ func (m *Bet) validate(all bool) error {
 
 	oneofTypePresent := false
 	switch v := m.Type.(type) {
-	case *Bet_OutcomeId:
+	case *Bet_Outcome:
 		if v == nil {
 			err := BetValidationError{
 				field:  "Type",
@@ -896,7 +900,7 @@ func (m *Bet) validate(all bool) error {
 			errors = append(errors, err)
 		}
 		oneofTypePresent = true
-		// no validation rules for OutcomeId
+		// no validation rules for Outcome
 	default:
 		_ = v // ensures v is used
 	}
@@ -3031,7 +3035,7 @@ func (m *SettleMarketRequest) validate(all bool) error {
 
 	oneofTypePresent := false
 	switch v := m.Type.(type) {
-	case *SettleMarketRequest_WinnerId:
+	case *SettleMarketRequest_Winner:
 		if v == nil {
 			err := SettleMarketRequestValidationError{
 				field:  "Type",
@@ -3043,7 +3047,7 @@ func (m *SettleMarketRequest) validate(all bool) error {
 			errors = append(errors, err)
 		}
 		oneofTypePresent = true
-		// no validation rules for WinnerId
+		// no validation rules for Winner
 	default:
 		_ = v // ensures v is used
 	}

@@ -29,15 +29,15 @@ const (
 type BettorServiceClient interface {
 	// CreateUser creates a new user.
 	CreateUser(context.Context, *connect_go.Request[v1alpha.CreateUserRequest]) (*connect_go.Response[v1alpha.CreateUserResponse], error)
-	// GetUser returns a user by ID.
+	// GetUser returns a user by name.
 	GetUser(context.Context, *connect_go.Request[v1alpha.GetUserRequest]) (*connect_go.Response[v1alpha.GetUserResponse], error)
-	// GetUserByUsername returns a user by ID.
+	// GetUserByUsername returns a user by name.
 	GetUserByUsername(context.Context, *connect_go.Request[v1alpha.GetUserByUsernameRequest]) (*connect_go.Response[v1alpha.GetUserByUsernameResponse], error)
 	// ListUsers lists users by filters.
 	ListUsers(context.Context, *connect_go.Request[v1alpha.ListUsersRequest]) (*connect_go.Response[v1alpha.ListUsersResponse], error)
 	// CreateMarket creates a new betting market.
 	CreateMarket(context.Context, *connect_go.Request[v1alpha.CreateMarketRequest]) (*connect_go.Response[v1alpha.CreateMarketResponse], error)
-	// GetMarket gets a betting market by ID.
+	// GetMarket gets a betting market by name.
 	GetMarket(context.Context, *connect_go.Request[v1alpha.GetMarketRequest]) (*connect_go.Response[v1alpha.GetMarketResponse], error)
 	// ListMarkets lists markets by filters.
 	ListMarkets(context.Context, *connect_go.Request[v1alpha.ListMarketsRequest]) (*connect_go.Response[v1alpha.ListMarketsResponse], error)
@@ -206,15 +206,15 @@ func (c *bettorServiceClient) ListBets(ctx context.Context, req *connect_go.Requ
 type BettorServiceHandler interface {
 	// CreateUser creates a new user.
 	CreateUser(context.Context, *connect_go.Request[v1alpha.CreateUserRequest]) (*connect_go.Response[v1alpha.CreateUserResponse], error)
-	// GetUser returns a user by ID.
+	// GetUser returns a user by name.
 	GetUser(context.Context, *connect_go.Request[v1alpha.GetUserRequest]) (*connect_go.Response[v1alpha.GetUserResponse], error)
-	// GetUserByUsername returns a user by ID.
+	// GetUserByUsername returns a user by name.
 	GetUserByUsername(context.Context, *connect_go.Request[v1alpha.GetUserByUsernameRequest]) (*connect_go.Response[v1alpha.GetUserByUsernameResponse], error)
 	// ListUsers lists users by filters.
 	ListUsers(context.Context, *connect_go.Request[v1alpha.ListUsersRequest]) (*connect_go.Response[v1alpha.ListUsersResponse], error)
 	// CreateMarket creates a new betting market.
 	CreateMarket(context.Context, *connect_go.Request[v1alpha.CreateMarketRequest]) (*connect_go.Response[v1alpha.CreateMarketResponse], error)
-	// GetMarket gets a betting market by ID.
+	// GetMarket gets a betting market by name.
 	GetMarket(context.Context, *connect_go.Request[v1alpha.GetMarketRequest]) (*connect_go.Response[v1alpha.GetMarketResponse], error)
 	// ListMarkets lists markets by filters.
 	ListMarkets(context.Context, *connect_go.Request[v1alpha.ListMarketsRequest]) (*connect_go.Response[v1alpha.ListMarketsResponse], error)

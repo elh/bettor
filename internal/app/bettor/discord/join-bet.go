@@ -65,8 +65,8 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 					User:        bettorUserN,
 					Market:      options["bet"].StringValue(),
 					Centipoints: uint64(options["points"].FloatValue() * 100),
-					Type: &api.Bet_OutcomeId{
-						OutcomeId: options["outcome"].StringValue(),
+					Type: &api.Bet_Outcome{
+						Outcome: options["outcome"].StringValue(),
 					},
 				},
 			}}); err != nil {
@@ -80,7 +80,7 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 			market := resp.Msg.GetMarket()
 			var outcomeTitle string
 			for _, outcome := range market.GetPool().GetOutcomes() {
-				if outcome.GetId() == options["outcome"].StringValue() {
+				if outcome.GetName() == options["outcome"].StringValue() {
 					outcomeTitle = outcome.GetTitle()
 					break
 				}
@@ -117,7 +117,7 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 						for _, outcome := range market.GetPool().GetOutcomes() {
 							choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 								Name:  outcome.GetTitle(),
-								Value: outcome.GetId(),
+								Value: outcome.GetName(),
 							})
 						}
 					}

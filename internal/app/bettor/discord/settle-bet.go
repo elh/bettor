@@ -46,8 +46,8 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 		case discordgo.InteractionApplicationCommand:
 			resp, err := client.SettleMarket(ctx, &connect.Request[api.SettleMarketRequest]{Msg: &api.SettleMarketRequest{
 				Name: options["bet"].StringValue(),
-				Type: &api.SettleMarketRequest_WinnerId{
-					WinnerId: options["winner"].StringValue(),
+				Type: &api.SettleMarketRequest_Winner{
+					Winner: options["winner"].StringValue(),
 				},
 			}})
 			if err != nil {
@@ -56,7 +56,7 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 			market := resp.Msg.GetMarket()
 			var winnerTitle string
 			for _, outcome := range market.GetPool().GetOutcomes() {
-				if outcome.GetId() == options["winner"].StringValue() {
+				if outcome.GetName() == options["winner"].StringValue() {
 					winnerTitle = outcome.GetTitle()
 					break
 				}
@@ -93,7 +93,7 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 						for _, outcome := range market.GetPool().GetOutcomes() {
 							choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 								Name:  outcome.GetTitle(),
-								Value: outcome.GetId(),
+								Value: outcome.GetName(),
 							})
 						}
 					}
