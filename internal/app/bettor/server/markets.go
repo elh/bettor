@@ -207,7 +207,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 			if !hasMore {
 				break
 			}
-			greaterThanID = bs[len(bs)-1].GetId()
+			greaterThanID = bs[len(bs)-1].GetName()
 		}
 		var hasWinner bool
 		for _, bet := range bets {
@@ -288,7 +288,7 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	}
 	bet := proto.Clone(in.Msg.GetBet()).(*api.Bet)
 
-	bet.Id = uuid.NewString()
+	bet.Name = entity.BetN(uuid.NewString())
 	bet.CreatedAt = timestamppb.Now()
 	bet.UpdatedAt = timestamppb.Now()
 	bet.SettledAt = nil
@@ -363,7 +363,7 @@ func (s *Server) GetBet(ctx context.Context, in *connect.Request[api.GetBetReque
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	bet, err := s.Repo.GetBet(ctx, in.Msg.GetBetId())
+	bet, err := s.Repo.GetBet(ctx, in.Msg.GetBet())
 	if err != nil {
 		return nil, err
 	}
@@ -410,7 +410,7 @@ func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsR
 	var nextPageToken string
 	if hasMore {
 		nextPageToken, err = pagination.ToToken(pagination.Pagination{
-			Cursor:      bets[len(bets)-1].Id,
+			Cursor:      bets[len(bets)-1].GetName(),
 			ListRequest: in.Msg,
 		})
 		if err != nil {

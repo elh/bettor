@@ -174,7 +174,7 @@ func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 	r.betMtx.Lock()
 	defer r.betMtx.Unlock()
 	for _, u := range r.Users {
-		if u.GetName() == bet.Id {
+		if u.GetName() == bet.GetName() {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("bet with id already exists"))
 		}
 	}
@@ -189,7 +189,7 @@ func (r *Repo) UpdateBet(ctx context.Context, bet *api.Bet) error {
 	var found bool
 	var idx int
 	for i, b := range r.Bets {
-		if b.Id == bet.Id {
+		if b.GetName() == bet.GetName() {
 			found = true
 			idx = i
 			break
@@ -207,7 +207,7 @@ func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
 	r.betMtx.RLock()
 	defer r.betMtx.RUnlock()
 	for _, b := range r.Bets {
-		if b.Id == id {
+		if b.GetName() == id {
 			return b, nil
 		}
 	}
@@ -220,7 +220,7 @@ func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) (bets []*a
 	defer r.betMtx.RUnlock()
 	var out []*api.Bet //nolint:prealloc
 	for _, b := range r.Bets {
-		if b.Id <= args.GreaterThanID {
+		if b.GetName() <= args.GreaterThanID {
 			continue
 		}
 		if args.User != "" && b.User != args.User {

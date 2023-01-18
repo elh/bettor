@@ -35,9 +35,6 @@ var (
 	_ = sort.Sort
 )
 
-// define the regex for a UUID once up-front
-var _bettor_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on User with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
 // encountered is returned, or nil if there are no violations.
@@ -788,11 +785,21 @@ func (m *Bet) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = BetValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 1024 {
+		err := BetValidationError{
+			field:  "Name",
+			reason: "value length must be between 1 and 1024 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_Bet_Name_Pattern.MatchString(m.GetName()) {
+		err := BetValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^bets/.+$\"",
 		}
 		if !all {
 			return err
@@ -922,14 +929,6 @@ func (m *Bet) validate(all bool) error {
 	return nil
 }
 
-func (m *Bet) _validateUuid(uuid string) error {
-	if matched := _bettor_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
-	}
-
-	return nil
-}
-
 // BetMultiError is an error wrapping multiple validation errors returned by
 // Bet.ValidateAll() if the designated constraints aren't met.
 type BetMultiError []error
@@ -999,6 +998,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = BetValidationError{}
+
+var _Bet_Name_Pattern = regexp.MustCompile("^bets/.+$")
 
 // Validate checks the field values on CreateUserRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -3555,9 +3556,9 @@ func (m *GetBetRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetBetId()) < 1 {
+	if utf8.RuneCountInString(m.GetBet()) < 1 {
 		err := GetBetRequestValidationError{
-			field:  "BetId",
+			field:  "Bet",
 			reason: "value length must be at least 1 runes",
 		}
 		if !all {
