@@ -229,11 +229,21 @@ func (m *Market) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = MarketValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 1024 {
+		err := MarketValidationError{
+			field:  "Name",
+			reason: "value length must be between 1 and 1024 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_Market_Name_Pattern.MatchString(m.GetName()) {
+		err := MarketValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^markets/.+$\"",
 		}
 		if !all {
 			return err
@@ -401,14 +411,6 @@ func (m *Market) validate(all bool) error {
 	return nil
 }
 
-func (m *Market) _validateUuid(uuid string) error {
-	if matched := _bettor_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
-	}
-
-	return nil
-}
-
 // MarketMultiError is an error wrapping multiple validation errors returned by
 // Market.ValidateAll() if the designated constraints aren't met.
 type MarketMultiError []error
@@ -478,6 +480,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MarketValidationError{}
+
+var _Market_Name_Pattern = regexp.MustCompile("^markets/.+$")
 
 var _Market_Status_NotInLookup = map[Market_Status]struct{}{
 	0: {},
@@ -854,9 +858,9 @@ func (m *Bet) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetMarketId()) < 1 {
+	if utf8.RuneCountInString(m.GetMarket()) < 1 {
 		err := BetValidationError{
-			field:  "MarketId",
+			field:  "Market",
 			reason: "value length must be at least 1 runes",
 		}
 		if !all {
@@ -2273,9 +2277,9 @@ func (m *GetMarketRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetMarketId()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		err := GetMarketRequestValidationError{
-			field:  "MarketId",
+			field:  "Name",
 			reason: "value length must be at least 1 runes",
 		}
 		if !all {
@@ -2770,9 +2774,9 @@ func (m *LockMarketRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetMarketId()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		err := LockMarketRequestValidationError{
-			field:  "MarketId",
+			field:  "Name",
 			reason: "value length must be at least 1 runes",
 		}
 		if !all {
@@ -3014,9 +3018,9 @@ func (m *SettleMarketRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetMarketId()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		err := SettleMarketRequestValidationError{
-			field:  "MarketId",
+			field:  "Name",
 			reason: "value length must be at least 1 runes",
 		}
 		if !all {
@@ -3802,7 +3806,7 @@ func (m *ListBetsRequest) validate(all bool) error {
 
 	// no validation rules for User
 
-	// no validation rules for MarketId
+	// no validation rules for Market
 
 	// no validation rules for ExcludeSettled
 

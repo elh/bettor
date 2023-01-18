@@ -35,7 +35,7 @@ func LockBet(ctx context.Context, client bettorClient) Handler {
 
 		switch event.Type { //nolint:exhaustive
 		case discordgo.InteractionApplicationCommand:
-			resp, err := client.LockMarket(ctx, &connect.Request[api.LockMarketRequest]{Msg: &api.LockMarketRequest{MarketId: options["bet"].StringValue()}})
+			resp, err := client.LockMarket(ctx, &connect.Request[api.LockMarketRequest]{Msg: &api.LockMarketRequest{Name: options["bet"].StringValue()}})
 			if err != nil {
 				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lock bet"}, fmt.Errorf("failed to LockMarket: %w", err)
 			}
@@ -56,7 +56,7 @@ func LockBet(ctx context.Context, client bettorClient) Handler {
 			for _, market := range resp.Msg.GetMarkets() {
 				choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 					Name:  market.GetTitle(),
-					Value: market.GetId(),
+					Value: market.GetName(),
 				})
 			}
 			return &discordgo.InteractionResponseData{Choices: withDefaultChoices(choices)}, nil

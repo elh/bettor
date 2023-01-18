@@ -7,6 +7,7 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
+	"github.com/elh/bettor/internal/app/bettor/entity"
 	"github.com/elh/bettor/internal/app/bettor/repo"
 	"github.com/elh/bettor/internal/pkg/pagination"
 	"github.com/google/uuid"
@@ -31,7 +32,7 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	}
 	market := proto.Clone(in.Msg.GetMarket()).(*api.Market)
 
-	market.Id = uuid.NewString()
+	market.Name = entity.MarketN(uuid.NewString())
 	market.CreatedAt = timestamppb.Now()
 	market.UpdatedAt = timestamppb.Now()
 	market.SettledAt = nil
@@ -86,7 +87,7 @@ func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarke
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	market, err := s.Repo.GetMarket(ctx, in.Msg.GetMarketId())
+	market, err := s.Repo.GetMarket(ctx, in.Msg.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +132,7 @@ func (s *Server) ListMarkets(ctx context.Context, in *connect.Request[api.ListMa
 	var nextPageToken string
 	if hasMore {
 		nextPageToken, err = pagination.ToToken(pagination.Pagination{
-			Cursor:      markets[len(markets)-1].Id,
+			Cursor:      markets[len(markets)-1].GetName(),
 			ListRequest: in.Msg,
 		})
 		if err != nil {
@@ -152,7 +153,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	market, err := s.Repo.GetMarket(ctx, in.Msg.GetMarketId())
+	market, err := s.Repo.GetMarket(ctx, in.Msg.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +198,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 		var bets []*api.Bet
 		var greaterThanID string
 		for {
-			bs, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{GreaterThanID: greaterThanID, MarketID: market.GetId(), Limit: 100})
+			bs, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{GreaterThanID: greaterThanID, Market: market.GetName(), Limit: 100})
 			if err != nil {
 				return nil, err
 			}
@@ -260,7 +261,7 @@ func (s *Server) LockMarket(ctx context.Context, in *connect.Request[api.LockMar
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	market, err := s.Repo.GetMarket(ctx, in.Msg.GetMarketId())
+	market, err := s.Repo.GetMarket(ctx, in.Msg.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +301,7 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user does not have enough balance"))
 	}
 
-	market, err := s.Repo.GetMarket(ctx, bet.GetMarketId())
+	market, err := s.Repo.GetMarket(ctx, bet.GetMarket())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -397,7 +398,7 @@ func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsR
 	bets, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{
 		GreaterThanID:  cursor,
 		User:           in.Msg.GetUser(),
-		MarketID:       in.Msg.GetMarketId(),
+		Market:         in.Msg.GetMarket(),
 		ExcludeSettled: in.Msg.GetExcludeSettled(),
 		Limit:          pageSize,
 	})

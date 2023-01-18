@@ -40,7 +40,7 @@ type ListMarketsArgs struct {
 type ListBetsArgs struct {
 	GreaterThanID  string
 	User           string
-	MarketID       string
+	Market         string
 	ExcludeSettled bool
 	Limit          int
 }
