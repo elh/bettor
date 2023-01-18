@@ -68,7 +68,12 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 			}
 			marketCreator := userResp.Msg.GetUser()
 
-			msgformat, margs := formatMarket(market, marketCreator)
+			bets, bettors, err := getMarketBets(ctx, client, market.GetName())
+			if err != nil {
+				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bettors"}, fmt.Errorf("failed to getMarketBets: %w", err)
+			}
+
+			msgformat, margs := formatMarket(market, marketCreator, bets, bettors)
 			msgformat = "🎲 ✅ Bet settled with winner **%s**\n" + msgformat
 			margs = append([]interface{}{winnerTitle}, margs...)
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil

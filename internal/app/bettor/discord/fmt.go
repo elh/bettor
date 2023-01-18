@@ -18,7 +18,7 @@ func formatUser(user *api.User, unsettledCentipoints uint64) (fmtStr string, arg
 }
 
 // formatMarket formats a market for display in Discord.
-func formatMarket(market *api.Market, creator *api.User) (fmtStr string, args []interface{}) {
+func formatMarket(market *api.Market, creator *api.User, bets []*api.Bet, bettors []*api.User) (fmtStr string, args []interface{}) {
 	var totalCentipoints uint64
 	for _, outcome := range market.GetPool().GetOutcomes() {
 		totalCentipoints += outcome.GetCentipoints()
@@ -29,6 +29,24 @@ func formatMarket(market *api.Market, creator *api.User) (fmtStr string, args []
 		if outcome.GetCentipoints() > 0 && totalCentipoints != outcome.GetCentipoints() {
 			margs = append(margs, outcome.GetTitle(), (float32(outcome.GetCentipoints()) / 100), float32(totalCentipoints)/float32(outcome.GetCentipoints()))
 			msgformat += "- **%s** (Points: **%v**, Odds: **1:%.3f**)"
+
+			outcomeBettors := map[string]bool{} // user ids
+			for _, bet := range bets {
+				if bet.GetOutcome() != outcome.GetName() {
+					continue
+				}
+				for _, bettor := range bettors {
+					if bettor.GetName() != bet.GetUser() {
+						continue
+					}
+					if outcomeBettors[bettor.GetName()] {
+						continue
+					}
+					outcomeBettors[bettor.GetName()] = true
+					margs = append(margs, bettor.GetUsername())
+					msgformat += " <@!%s>"
+				}
+			}
 		} else {
 			margs = append(margs, outcome.GetTitle(), float32(outcome.GetCentipoints())/100)
 			msgformat += "- **%s** (Points: **%v**, Odds: **-**)"

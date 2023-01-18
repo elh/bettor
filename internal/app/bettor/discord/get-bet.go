@@ -47,7 +47,12 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 			}
 			marketCreator := userResp.Msg.GetUser()
 
-			msgformat, margs := formatMarket(market, marketCreator)
+			bets, bettors, err := getMarketBets(ctx, client, market.GetName())
+			if err != nil {
+				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bettors"}, fmt.Errorf("failed to getMarketBets: %w", err)
+			}
+
+			msgformat, margs := formatMarket(market, marketCreator, bets, bettors)
 			msgformat = "🎲\n" + msgformat
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
