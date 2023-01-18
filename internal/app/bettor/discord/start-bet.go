@@ -115,7 +115,7 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 		}
 		market := resp.Msg.GetMarket()
 
-		msgformat, margs := formatMarket(market)
+		msgformat, margs := formatMarket(market, bettorUser)
 		msgformat = "🎲 🆕 Type `/join-bet` to join the bet until it is locked.\n" + msgformat
 		return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 	}
