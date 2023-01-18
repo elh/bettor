@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/bufbuild/connect-go"
 	"github.com/bwmarrin/discordgo"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
 )
@@ -26,15 +27,20 @@ func GetBettor(ctx context.Context, client bettorClient) Handler {
 			return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
 		}
 
-		msgformat, margs := formatUser(bettorUser)
-		msgformat = "🎲 👤\n" + msgformat
-		return &discordgo.InteractionResponseData{Content: fmt.Sprintf(msgformat, margs...)}, nil
-	}
-}
+		resp, err := client.ListBets(ctx, &connect.Request[api.ListBetsRequest]{Msg: &api.ListBetsRequest{
+			UserId:         bettorUser.Id,
+			ExcludeSettled: true,
+		}})
+		if err != nil {
+			return &discordgo.InteractionResponseData{Content: "🔺 Failed to list bets"}, fmt.Errorf("failed to list bets: %w", err)
+		}
+		var unsettledCentipoints uint64
+		for _, b := range resp.Msg.GetBets() {
+			unsettledCentipoints += b.GetCentipoints()
+		}
 
-// formatUser formats a user for display in Discord.
-func formatUser(user *api.User) (fmtStr string, args []interface{}) {
-	margs := []interface{}{float32(user.GetCentipoints()) / 100}
-	msgformat := "Points: **%v**\n"
-	return msgformat, margs
+		msgformat, margs := formatUser(bettorUser, unsettledCentipoints)
+		msgformat = "🎲 👤\n" + msgformat
+		return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
+	}
 }

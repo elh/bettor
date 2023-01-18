@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestCreateMarket(t *testing.T) {
@@ -847,9 +848,10 @@ func TestListBets(t *testing.T) {
 		MarketId: "two",
 	}
 	bet3 := &api.Bet{
-		Id:       "c",
-		UserId:   "linus",
-		MarketId: "three",
+		Id:        "c",
+		UserId:    "linus",
+		MarketId:  "three",
+		SettledAt: timestamppb.Now(),
 	}
 	testCases := []struct {
 		desc          string
@@ -898,6 +900,12 @@ func TestListBets(t *testing.T) {
 			desc:          "list by market",
 			req:           &api.ListBetsRequest{MarketId: "two"},
 			expected:      []*api.Bet{bet2},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "list excluding settled",
+			req:           &api.ListBetsRequest{ExcludeSettled: true},
+			expected:      []*api.Bet{bet1, bet2},
 			expectedCalls: 1,
 		},
 		{

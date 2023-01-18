@@ -182,6 +182,7 @@ message ListBetsRequest {
   string page_token = 2;
   string user_id = 3;
   string market_id = 4;
+  bool exclude_settled = 5;
 }
 
 message ListBetsResponse {

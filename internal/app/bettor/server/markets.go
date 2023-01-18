@@ -395,10 +395,11 @@ func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsR
 	}
 
 	bets, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{
-		GreaterThanID: cursor,
-		UserID:        in.Msg.GetUserId(),
-		MarketID:      in.Msg.GetMarketId(),
-		Limit:         pageSize,
+		GreaterThanID:  cursor,
+		UserID:         in.Msg.GetUserId(),
+		MarketID:       in.Msg.GetMarketId(),
+		ExcludeSettled: in.Msg.GetExcludeSettled(),
+		Limit:          pageSize,
 	})
 	if err != nil {
 		return nil, err
