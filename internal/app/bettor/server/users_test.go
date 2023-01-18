@@ -209,6 +209,12 @@ func TestListUsers(t *testing.T) {
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 1,
 		},
+		{
+			desc:          "list by user resource names",
+			req:           &api.ListUsersRequest{Users: []string{user1.Name, user2.Name}},
+			expected:      []*api.User{user1, user2},
+			expectedCalls: 1,
+		},
 	}
 	for _, tC := range testCases {
 		tC := tC
