@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/bufbuild/connect-go"
 	"github.com/bwmarrin/discordgo"
+	api "github.com/elh/bettor/api/bettor/v1alpha"
 )
 
 var getBettorCommand = &discordgo.ApplicationCommand{
@@ -25,7 +27,19 @@ func GetBettor(ctx context.Context, client bettorClient) Handler {
 			return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
 		}
 
-		msgformat, margs := formatUser(bettorUser)
+		resp, err := client.ListBets(ctx, &connect.Request[api.ListBetsRequest]{Msg: &api.ListBetsRequest{
+			UserId:         bettorUser.Id,
+			ExcludeSettled: true,
+		}})
+		if err != nil {
+			return &discordgo.InteractionResponseData{Content: "🔺 Failed to list bets"}, fmt.Errorf("failed to list bets: %w", err)
+		}
+		var unsettledCentipoints uint64
+		for _, b := range resp.Msg.GetBets() {
+			unsettledCentipoints += b.GetCentipoints()
+		}
+
+		msgformat, margs := formatUser(bettorUser, unsettledCentipoints)
 		msgformat = "🎲 👤\n" + msgformat
 		return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 	}

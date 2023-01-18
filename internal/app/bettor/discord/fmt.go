@@ -11,9 +11,9 @@ import (
 var localized = message.NewPrinter(language.English)
 
 // formatUser formats a user for display in Discord.
-func formatUser(user *api.User) (fmtStr string, args []interface{}) {
-	margs := []interface{}{float32(user.GetCentipoints()) / 100}
-	msgformat := "Points: **%v**\n"
+func formatUser(user *api.User, unsettledCentipoints uint64) (fmtStr string, args []interface{}) {
+	margs := []interface{}{float32(user.GetCentipoints()) / 100, float32(unsettledCentipoints) / 100}
+	msgformat := "Points: **%v** (Unsettled points: **%v**)\n"
 	return msgformat, margs
 }
 
@@ -40,8 +40,3 @@ func formatMarket(market *api.Market) (fmtStr string, args []interface{}) {
 	}
 	return msgformat, margs
 }
-
-// func humanized(number interface{}) string {
-// 	p := message.NewPrinter(language.English)
-// 	return p.Sprintf("%v", number)
-// }
