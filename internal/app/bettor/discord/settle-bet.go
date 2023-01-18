@@ -11,7 +11,7 @@ import (
 
 var settleBetCommand = &discordgo.ApplicationCommand{
 	Name:        "settle-bet",
-	Description: "Settle a bet and pay out winners",
+	Description: "Settle a bet and pay out winners. Only the bet creator can settle the bet",
 	Options: []*discordgo.ApplicationCommandOption{
 		{
 			Type:         discordgo.ApplicationCommandOptionString,
@@ -78,6 +78,15 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 			margs = append([]interface{}{winnerTitle}, margs...)
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
+			discordUserID, _, err := commandArgs(event)
+			if err != nil {
+				return &discordgo.InteractionResponseData{Content: "🔺 Failed to handle command"}, fmt.Errorf("failed to handle command: %w", err)
+			}
+			bettorUser, err := getUserOrCreateIfNotExist(ctx, client, discordUserID)
+			if err != nil {
+				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
+			}
+
 			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{
 				Status:   api.Market_STATUS_BETS_LOCKED,
 				PageSize: 25,
@@ -90,6 +99,9 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 			switch {
 			case options["bet"] != nil && options["bet"].Focused:
 				for _, market := range resp.Msg.GetMarkets() {
+					if market.GetCreator() != bettorUser.GetName() {
+						continue
+					}
 					choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 						Name:  market.GetTitle(),
 						Value: market.GetName(),
@@ -98,6 +110,9 @@ func SettleBet(ctx context.Context, client bettorClient) Handler {
 			case options["winner"] != nil && options["winner"].Focused:
 				if options["bet"] != nil && options["bet"].StringValue() != "" {
 					for _, market := range resp.Msg.GetMarkets() {
+						if market.GetCreator() != bettorUser.GetName() {
+							continue
+						}
 						if market.GetName() != options["bet"].StringValue() {
 							continue
 						}
