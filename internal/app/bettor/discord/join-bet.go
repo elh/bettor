@@ -89,7 +89,7 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 			msgformat, margs := formatMarket(market)
 			msgformat = "🎲 🪙 Bet **%v** points on **%s**\n" + msgformat
 			margs = append([]interface{}{options["points"].FloatValue(), outcomeTitle}, margs...)
-			return &discordgo.InteractionResponseData{Content: fmt.Sprintf(msgformat, margs...)}, nil
+			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
 			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{
 				Status:   api.Market_STATUS_OPEN,

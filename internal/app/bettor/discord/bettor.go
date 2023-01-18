@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
-	api "github.com/elh/bettor/api/bettor/v1alpha"
 )
 
 var getBettorCommand = &discordgo.ApplicationCommand{
@@ -28,13 +27,6 @@ func GetBettor(ctx context.Context, client bettorClient) Handler {
 
 		msgformat, margs := formatUser(bettorUser)
 		msgformat = "🎲 👤\n" + msgformat
-		return &discordgo.InteractionResponseData{Content: fmt.Sprintf(msgformat, margs...)}, nil
+		return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 	}
-}
-
-// formatUser formats a user for display in Discord.
-func formatUser(user *api.User) (fmtStr string, args []interface{}) {
-	margs := []interface{}{float32(user.GetCentipoints()) / 100}
-	msgformat := "Points: **%v**\n"
-	return msgformat, margs
 }

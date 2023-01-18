@@ -43,7 +43,7 @@ func LockBet(ctx context.Context, client bettorClient) Handler {
 
 			msgformat, margs := formatMarket(market)
 			msgformat = "🎲 🔒 No more bets!\n" + msgformat
-			return &discordgo.InteractionResponseData{Content: fmt.Sprintf(msgformat, margs...)}, nil
+			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
 			var choices []*discordgo.ApplicationCommandOptionChoice
 			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{

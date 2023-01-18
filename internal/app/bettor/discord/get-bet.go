@@ -3,7 +3,6 @@ package discord
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/bufbuild/connect-go"
 	"github.com/bwmarrin/discordgo"
@@ -44,7 +43,7 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 
 			msgformat, margs := formatMarket(market)
 			msgformat = "🎲\n" + msgformat
-			return &discordgo.InteractionResponseData{Content: fmt.Sprintf(msgformat, margs...)}, nil
+			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
 			var choices []*discordgo.ApplicationCommandOptionChoice
 			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{PageSize: 25}})
@@ -62,30 +61,6 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 			return &discordgo.InteractionResponseData{Content: "🔺 Something went wrong..."}, fmt.Errorf("unexpected event type %v", event.Type)
 		}
 	}
-}
-
-// formatMarket formats a market for display in Discord.
-func formatMarket(market *api.Market) (fmtStr string, args []interface{}) {
-	var totalCentipoints uint64
-	for _, outcome := range market.GetPool().GetOutcomes() {
-		totalCentipoints += outcome.GetCentipoints()
-	}
-	margs := []interface{}{market.GetTitle(), strings.TrimPrefix(market.GetStatus().String(), "STATUS_")}
-	msgformat := "Bet: **%s**\nStatus: **%s**\n"
-	for _, outcome := range market.GetPool().GetOutcomes() {
-		if outcome.GetCentipoints() > 0 && totalCentipoints != outcome.GetCentipoints() {
-			margs = append(margs, outcome.GetTitle(), float32(outcome.GetCentipoints())/100, float32(totalCentipoints)/float32(outcome.GetCentipoints()))
-			msgformat += "- **%s** (Points: **%v**, Odds: **1:%.3f**)"
-		} else {
-			margs = append(margs, outcome.GetTitle(), float32(outcome.GetCentipoints())/100)
-			msgformat += "- **%s** (Points: **%v**, Odds: **-**)"
-		}
-		if market.GetPool().GetWinnerId() != "" && outcome.GetId() == market.GetPool().GetWinnerId() {
-			msgformat += " ✅ "
-		}
-		msgformat += "\n"
-	}
-	return msgformat, margs
 }
 
 func withDefaultChoices(choices []*discordgo.ApplicationCommandOptionChoice) []*discordgo.ApplicationCommandOptionChoice {
