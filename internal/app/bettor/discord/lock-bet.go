@@ -11,7 +11,7 @@ import (
 
 var lockBetCommand = &discordgo.ApplicationCommand{
 	Name:        "lock-bet",
-	Description: "Lock a bet preventing further bets",
+	Description: "Lock a bet preventing further bets. Only the bet creator can lock the bet",
 	Options: []*discordgo.ApplicationCommandOption{
 		{
 			Type:         discordgo.ApplicationCommandOptionString,
@@ -56,6 +56,15 @@ func LockBet(ctx context.Context, client bettorClient) Handler {
 			msgformat = "🎲 🔒 No more bets! `/settle-bet` when there is a winner.\n\n" + msgformat
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
+			discordUserID, _, err := commandArgs(event)
+			if err != nil {
+				return &discordgo.InteractionResponseData{Content: "🔺 Failed to handle command"}, fmt.Errorf("failed to handle command: %w", err)
+			}
+			bettorUser, err := getUserOrCreateIfNotExist(ctx, client, discordUserID)
+			if err != nil {
+				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
+			}
+
 			var choices []*discordgo.ApplicationCommandOptionChoice
 			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{
 				Status:   api.Market_STATUS_OPEN,
@@ -65,6 +74,9 @@ func LockBet(ctx context.Context, client bettorClient) Handler {
 				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bets"}, fmt.Errorf("failed to ListMarkets: %w", err)
 			}
 			for _, market := range resp.Msg.GetMarkets() {
+				if market.GetCreator() != bettorUser.GetName() {
+					continue
+				}
 				choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 					Name:  market.GetTitle(),
 					Value: market.GetName(),
