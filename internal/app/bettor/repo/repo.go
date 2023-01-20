@@ -25,6 +25,7 @@ type Repo interface {
 
 // ListUsersArgs are the arguments for listing users.
 type ListUsersArgs struct {
+	Book          string
 	GreaterThanID string
 	Users         []string
 	Limit         int

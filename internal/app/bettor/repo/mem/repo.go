@@ -93,6 +93,10 @@ func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users [
 	defer r.userMtx.RUnlock()
 	var out []*api.User //nolint:prealloc
 	for _, u := range r.Users {
+		uBookID, _ := entity.UserIDs(u.GetName())
+		if uBookID != args.Book {
+			continue
+		}
 		if u.GetName() <= args.GreaterThanID {
 			continue
 		}

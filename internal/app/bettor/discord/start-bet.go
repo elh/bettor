@@ -8,6 +8,7 @@ import (
 	"github.com/bufbuild/connect-go"
 	"github.com/bwmarrin/discordgo"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
+	"github.com/elh/bettor/internal/app/bettor/entity"
 )
 
 const (
@@ -163,6 +164,7 @@ func bookName(guildID string) string {
 
 // returns a potentially nonexhaustive list of bettors in a market.
 func getMarketBets(ctx context.Context, client bettorClient, marketName string) ([]*api.Bet, []*api.User, error) {
+	bookID, _ := entity.MarketIDs(marketName)
 	betsResp, err := client.ListBets(ctx, &connect.Request[api.ListBetsRequest]{Msg: &api.ListBetsRequest{
 		PageSize: 50,
 		Market:   marketName,
@@ -177,6 +179,7 @@ func getMarketBets(ctx context.Context, client bettorClient, marketName string) 
 		userIDs = append(userIDs, bet.GetUser())
 	}
 	userResp, err := client.ListUsers(ctx, &connect.Request[api.ListUsersRequest]{Msg: &api.ListUsersRequest{
+		Book:     bookName(bookID),
 		PageSize: 50,
 		Users:    userIDs,
 	}})

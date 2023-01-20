@@ -85,6 +85,10 @@ func (s *Server) GetUserByUsername(ctx context.Context, in *connect.Request[api.
 
 // ListUsers lists users by filters.
 func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUsersRequest]) (*connect.Response[api.ListUsersResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
 	pageSize := defaultPageSize
 	if in.Msg.GetPageSize() > 0 && in.Msg.GetPageSize() <= maxPageSize {
 		pageSize = int(in.Msg.GetPageSize())
@@ -106,7 +110,7 @@ func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUser
 		}
 	}
 
-	users, hasMore, err := s.Repo.ListUsers(ctx, &repo.ListUsersArgs{GreaterThanID: cursor, Users: in.Msg.GetUsers(), Limit: pageSize})
+	users, hasMore, err := s.Repo.ListUsers(ctx, &repo.ListUsersArgs{Book: in.Msg.GetBook(), GreaterThanID: cursor, Users: in.Msg.GetUsers(), Limit: pageSize})
 	if err != nil {
 		return nil, err
 	}

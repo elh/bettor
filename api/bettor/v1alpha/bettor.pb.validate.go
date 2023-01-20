@@ -1795,6 +1795,17 @@ func (m *ListUsersRequest) validate(all bool) error {
 
 	// no validation rules for PageToken
 
+	if utf8.RuneCountInString(m.GetBook()) < 1 {
+		err := ListUsersRequestValidationError{
+			field:  "Book",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return ListUsersRequestMultiError(errors)
 	}

@@ -125,7 +125,8 @@ message GetUserByUsernameResponse {
 message ListUsersRequest {
   int32 page_size = 1 [(validate.rules).int32.lte = 50];
   string page_token = 2;
-  repeated string users = 3;
+  string book = 3 [(validate.rules).string.min_len = 1];
+  repeated string users = 4;
 }
 
 message ListUsersResponse {

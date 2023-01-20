@@ -22,12 +22,12 @@ func TestCreateMarket(t *testing.T) {
 	var maxOpenMarkets []*api.Market
 	for i := 0; i < server.MaxNumberOfOpenMarkets; i++ {
 		maxOpenMarkets = append(maxOpenMarkets, &api.Market{
-			Name:   entity.MarketN("guild:1", uuid.NewString()),
+			Name:   entity.MarketN("guild:A", uuid.NewString()),
 			Status: api.Market_STATUS_OPEN,
 		})
 	}
 	user := &api.User{
-		Name:        entity.UserN("A", uuid.NewString()),
+		Name:        entity.UserN("guild:A", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
@@ -315,7 +315,7 @@ func TestListMarkets(t *testing.T) {
 
 func TestLockMarket(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN("A", uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
@@ -390,17 +390,17 @@ func TestLockMarket(t *testing.T) {
 func TestSettleMarket(t *testing.T) {
 	marketName := entity.MarketN("guild:1", uuid.NewString())
 	user1 := &api.User{
-		Name:        entity.UserN("A", uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 1000,
 	}
 	user2 := &api.User{
-		Name:        entity.UserN("A", uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "danny",
 		Centipoints: 1000,
 	}
 	user3 := &api.User{
-		Name:        entity.UserN("A", uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "linus",
 		Centipoints: 1000,
 	}
@@ -666,7 +666,7 @@ func TestSettleMarket(t *testing.T) {
 
 func TestCreateBet(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN("A", uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 1000,
 	}
@@ -1005,7 +1005,7 @@ func TestListBets(t *testing.T) {
 
 func TestCreateBetConcurrency(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN("A", uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Centipoints: 1000,
 		Username:    "rusty",
 	}
@@ -1053,7 +1053,7 @@ func TestCreateBetConcurrency(t *testing.T) {
 func TestCreateBetLockMarketConcurrency(t *testing.T) {
 	for i := 0; i < 50; i++ {
 		user := &api.User{
-			Name:        entity.UserN("A", uuid.NewString()),
+			Name:        entity.UserN("guild:1", uuid.NewString()),
 			Centipoints: 1000,
 			Username:    "rusty",
 		}

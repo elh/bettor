@@ -205,18 +205,19 @@ func TestGetUserByUsername(t *testing.T) {
 func TestListUsers(t *testing.T) {
 	// tests pagination until all users are returned
 	// alphabetically ordered ids
+	book := "Z"
 	user1 := &api.User{
-		Name:        entity.UserN("Z", "a"),
+		Name:        entity.UserN(book, "a"),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
 	user2 := &api.User{
-		Name:        entity.UserN("Z", "b"),
+		Name:        entity.UserN(book, "b"),
 		Username:    "danny",
 		Centipoints: 200,
 	}
 	user3 := &api.User{
-		Name:        entity.UserN("Z", "c"),
+		Name:        entity.UserN(book, "c"),
 		Username:    "linus",
 		Centipoints: 300,
 	}
@@ -229,37 +230,43 @@ func TestListUsers(t *testing.T) {
 	}{
 		{
 			desc:          "basic case",
-			req:           &api.ListUsersRequest{},
+			req:           &api.ListUsersRequest{Book: book},
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 1,
 		},
 		{
+			desc:          "searches within book",
+			req:           &api.ListUsersRequest{Book: "other"},
+			expected:      nil,
+			expectedCalls: 1,
+		},
+		{
 			desc:          "page size 1",
-			req:           &api.ListUsersRequest{PageSize: 1},
+			req:           &api.ListUsersRequest{Book: book, PageSize: 1},
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 3,
 		},
 		{
 			desc:          "page size 2",
-			req:           &api.ListUsersRequest{PageSize: 2},
+			req:           &api.ListUsersRequest{Book: book, PageSize: 2},
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 2,
 		},
 		{
 			desc:          "page size 3",
-			req:           &api.ListUsersRequest{PageSize: 3},
+			req:           &api.ListUsersRequest{Book: book, PageSize: 3},
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "page size 4",
-			req:           &api.ListUsersRequest{PageSize: 4},
+			req:           &api.ListUsersRequest{Book: book, PageSize: 4},
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by user resource names",
-			req:           &api.ListUsersRequest{Users: []string{user1.Name, user2.Name}},
+			req:           &api.ListUsersRequest{Book: book, Users: []string{user1.Name, user2.Name}},
 			expected:      []*api.User{user1, user2},
 			expectedCalls: 1,
 		},
