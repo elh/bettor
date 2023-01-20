@@ -10,7 +10,7 @@ message User {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^books/[^/]+/users/[^/]+$"
+    pattern: "^books/[^/]{1,36}/users/[^/]{36}$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
@@ -27,7 +27,7 @@ message Market {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^books/[^/]+/markets/[^/]+$"
+    pattern: "^books/[^/]{1,36}/markets/[^/]{36}$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
@@ -65,7 +65,7 @@ message Outcome {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^books/[^/]+/markets/[^/]+/outcomes/[^/]+$"
+    pattern: "^books/[^/]{1,36}/markets/[^/]{36}/outcomes/[^/]$"
   }];
   string title = 2 [(validate.rules).string = {
     min_len: 1,
@@ -79,7 +79,7 @@ message Bet {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^books/[^/]+/bets/[^/]+$"
+    pattern: "^books/[^/]{1,36}/bets/[^/]{36}$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];

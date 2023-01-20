@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
+	"fmt"
 
 	"github.com/bufbuild/connect-go"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
@@ -42,8 +43,8 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	if market.GetPool() != nil {
 		market.GetPool().Winner = ""
 		outcomeTitles := map[string]bool{}
-		for _, outcome := range market.GetPool().GetOutcomes() {
-			outcome.Name = entity.OutcomeN(in.Msg.GetBook(), marketID, uuid.NewString())
+		for i, outcome := range market.GetPool().GetOutcomes() {
+			outcome.Name = entity.OutcomeN(in.Msg.GetBook(), marketID, fmt.Sprintf("%d", i))
 			outcome.Centipoints = 0
 			if outcomeTitles[outcome.GetTitle()] {
 				return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("duplicate outcome title"))
