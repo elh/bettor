@@ -11,11 +11,26 @@ const (
 )
 
 var (
+	bookRegex    = regexp.MustCompile(`books\/([^/]*)`)
 	userRegex    = regexp.MustCompile(`books\/([^/]*)\/users\/([^/]*)`)
 	marketRegex  = regexp.MustCompile(`books\/([^/]*)\/markets\/([^/]*)`)
 	outcomeRegex = regexp.MustCompile(`books\/([^/]*)\/markets\/([^/]*)\/outcomes\/([^/]*)`)
 	betRegex     = regexp.MustCompile(`books\/([^/]*)\/bets\/([^/]*)`)
 )
+
+// BookN returns a resource name from book ids.
+func BookN(bookID string) string {
+	return bookCollection + "/" + bookID
+}
+
+// BooksIDs returns ids from book resource name.
+func BooksIDs(name string) (bookID string) {
+	parts := bookRegex.FindStringSubmatch(name)
+	if len(parts) != 2 {
+		return ""
+	}
+	return parts[1]
+}
 
 // UserN returns a resource name from user ids.
 func UserN(bookID, userID string) string {

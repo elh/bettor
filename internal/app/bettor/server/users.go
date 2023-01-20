@@ -34,7 +34,8 @@ func (s *Server) CreateUser(ctx context.Context, in *connect.Request[api.CreateU
 	}
 	user := proto.Clone(in.Msg.GetUser()).(*api.User)
 
-	user.Name = entity.UserN(in.Msg.GetBook(), uuid.NewString())
+	bookID := entity.BooksIDs(in.Msg.GetBook())
+	user.Name = entity.UserN(bookID, uuid.NewString())
 	user.CreatedAt = timestamppb.Now()
 	user.UpdatedAt = timestamppb.Now()
 
@@ -110,7 +111,7 @@ func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUser
 		}
 	}
 
-	users, hasMore, err := s.Repo.ListUsers(ctx, &repo.ListUsersArgs{Book: in.Msg.GetBook(), GreaterThanID: cursor, Users: in.Msg.GetUsers(), Limit: pageSize})
+	users, hasMore, err := s.Repo.ListUsers(ctx, &repo.ListUsersArgs{Book: in.Msg.GetBook(), GreaterThanName: cursor, Users: in.Msg.GetUsers(), Limit: pageSize})
 	if err != nil {
 		return nil, err
 	}

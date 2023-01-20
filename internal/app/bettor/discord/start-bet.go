@@ -159,7 +159,7 @@ func getUserOrCreateIfNotExist(ctx context.Context, client bettorClient, guildID
 }
 
 func bookName(guildID string) string {
-	return fmt.Sprintf("discord:%s", guildID)
+	return fmt.Sprintf("books/discord:%s", guildID)
 }
 
 // returns a potentially nonexhaustive list of bettors in a market.
