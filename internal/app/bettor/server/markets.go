@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
+	"fmt"
 
 	"github.com/bufbuild/connect-go"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
@@ -33,17 +34,23 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	market := proto.Clone(in.Msg.GetMarket()).(*api.Market)
 
 	marketID := uuid.NewString()
-	market.Name = entity.MarketN(marketID)
+	bookID := entity.BooksIDs(in.Msg.GetBook())
+	market.Name = entity.MarketN(bookID, marketID)
 	market.CreatedAt = timestamppb.Now()
 	market.UpdatedAt = timestamppb.Now()
 	market.SettledAt = nil
 	market.Status = api.Market_STATUS_OPEN
 
+	creatorBookID, _ := entity.UserIDs(market.GetCreator())
+	if bookID != creatorBookID {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("creator must be a member of the book"))
+	}
+
 	if market.GetPool() != nil {
 		market.GetPool().Winner = ""
 		outcomeTitles := map[string]bool{}
-		for _, outcome := range market.GetPool().GetOutcomes() {
-			outcome.Name = entity.OutcomeN(marketID, uuid.NewString())
+		for i, outcome := range market.GetPool().GetOutcomes() {
+			outcome.Name = entity.OutcomeN(bookID, marketID, fmt.Sprintf("%d", i))
 			outcome.Centipoints = 0
 			if outcomeTitles[outcome.GetTitle()] {
 				return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("duplicate outcome title"))
@@ -53,6 +60,7 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	}
 
 	openMarkets, _, err := s.Repo.ListMarkets(ctx, &repo.ListMarketsArgs{
+		Book:   in.Msg.GetBook(),
 		Status: api.Market_STATUS_OPEN,
 		Limit:  MaxNumberOfOpenMarkets,
 	})
@@ -100,6 +108,10 @@ func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarke
 
 // ListMarkets lists markets by filters.
 func (s *Server) ListMarkets(ctx context.Context, in *connect.Request[api.ListMarketsRequest]) (*connect.Response[api.ListMarketsResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
 	pageSize := defaultPageSize
 	if in.Msg.GetPageSize() > 0 && in.Msg.GetPageSize() <= maxPageSize {
 		pageSize = int(in.Msg.GetPageSize())
@@ -122,9 +134,10 @@ func (s *Server) ListMarkets(ctx context.Context, in *connect.Request[api.ListMa
 	}
 
 	markets, hasMore, err := s.Repo.ListMarkets(ctx, &repo.ListMarketsArgs{
-		GreaterThanID: cursor,
-		Status:        in.Msg.GetStatus(),
-		Limit:         pageSize,
+		Book:            in.Msg.GetBook(),
+		GreaterThanName: cursor,
+		Status:          in.Msg.GetStatus(),
+		Limit:           pageSize,
 	})
 	if err != nil {
 		return nil, err
@@ -196,10 +209,11 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 	if totalCentipointsBet > 0 {
 		winnerRatio := float64(totalCentipointsBet) / float64(winnerCentipointsBet)
 
+		bookID, _ := entity.MarketIDs(in.Msg.GetName())
 		var bets []*api.Bet
-		var greaterThanID string
+		var greaterThanName string
 		for {
-			bs, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{GreaterThanID: greaterThanID, Market: market.GetName(), Limit: 100})
+			bs, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{Book: entity.BookN(bookID), GreaterThanName: greaterThanName, Market: market.GetName(), Limit: 100})
 			if err != nil {
 				return nil, err
 			}
@@ -207,7 +221,7 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 			if !hasMore {
 				break
 			}
-			greaterThanID = bs[len(bs)-1].GetName()
+			greaterThanName = bs[len(bs)-1].GetName()
 		}
 		var hasWinner bool
 		for _, bet := range bets {
@@ -288,11 +302,21 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	}
 	bet := proto.Clone(in.Msg.GetBet()).(*api.Bet)
 
-	bet.Name = entity.BetN(uuid.NewString())
+	bookID := entity.BooksIDs(in.Msg.GetBook())
+	bet.Name = entity.BetN(bookID, uuid.NewString())
 	bet.CreatedAt = timestamppb.Now()
 	bet.UpdatedAt = timestamppb.Now()
 	bet.SettledAt = nil
 	bet.SettledCentipoints = 0
+
+	userBookID, _ := entity.UserIDs(bet.GetUser())
+	if bookID != userBookID {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("bettor must be a member of the book"))
+	}
+	marketBookID, _ := entity.MarketIDs(bet.GetMarket())
+	if bookID != marketBookID {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("bet book does not match market book"))
+	}
 
 	user, err := s.Repo.GetUser(ctx, bet.GetUser())
 	if err != nil {
@@ -375,6 +399,10 @@ func (s *Server) GetBet(ctx context.Context, in *connect.Request[api.GetBetReque
 
 // ListBets lists bets by filters.
 func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsRequest]) (*connect.Response[api.ListBetsResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
 	pageSize := defaultPageSize
 	if in.Msg.GetPageSize() > 0 && in.Msg.GetPageSize() <= maxPageSize {
 		pageSize = int(in.Msg.GetPageSize())
@@ -397,11 +425,12 @@ func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsR
 	}
 
 	bets, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{
-		GreaterThanID:  cursor,
-		User:           in.Msg.GetUser(),
-		Market:         in.Msg.GetMarket(),
-		ExcludeSettled: in.Msg.GetExcludeSettled(),
-		Limit:          pageSize,
+		Book:            in.Msg.GetBook(),
+		GreaterThanName: cursor,
+		User:            in.Msg.GetUser(),
+		Market:          in.Msg.GetMarket(),
+		ExcludeSettled:  in.Msg.GetExcludeSettled(),
+		Limit:           pageSize,
 	})
 	if err != nil {
 		return nil, err

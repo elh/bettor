@@ -7,6 +7,7 @@ import (
 
 	"github.com/bufbuild/connect-go" // too lazy to isolate errors. repo pkgs will return connect errors
 	api "github.com/elh/bettor/api/bettor/v1alpha"
+	"github.com/elh/bettor/internal/app/bettor/entity"
 	"github.com/elh/bettor/internal/app/bettor/repo"
 )
 
@@ -26,12 +27,15 @@ type Repo struct {
 func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
 	r.userMtx.Lock()
 	defer r.userMtx.Unlock()
+
+	bookID, _ := entity.UserIDs(user.GetName())
 	for _, u := range r.Users {
 		if u.GetName() == user.GetName() {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("user with id already exists"))
 		}
-		if u.Username == user.Username {
-			return connect.NewError(connect.CodeInvalidArgument, errors.New("user with username already exists"))
+		uBookID, _ := entity.UserIDs(u.GetName())
+		if bookID == uBookID && u.Username == user.Username {
+			return connect.NewError(connect.CodeInvalidArgument, errors.New("user with username already exists in book"))
 		}
 	}
 	r.Users = append(r.Users, user)
@@ -59,11 +63,11 @@ func (r *Repo) UpdateUser(ctx context.Context, user *api.User) error {
 }
 
 // GetUser gets a user by ID.
-func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
+func (r *Repo) GetUser(ctx context.Context, name string) (*api.User, error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
 	for _, u := range r.Users {
-		if u.GetName() == id {
+		if u.GetName() == name {
 			return u, nil
 		}
 	}
@@ -71,11 +75,13 @@ func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 }
 
 // GetUserByUsername gets a user by username.
-func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.User, error) {
+func (r *Repo) GetUserByUsername(ctx context.Context, book, username string) (*api.User, error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
+	bookID := entity.BooksIDs(book)
 	for _, u := range r.Users {
-		if u.Username == username {
+		uBookID, _ := entity.UserIDs(u.GetName())
+		if uBookID == bookID && u.Username == username {
 			return u, nil
 		}
 	}
@@ -86,9 +92,14 @@ func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.Use
 func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users []*api.User, hasMore bool, err error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
+	bookID := entity.BooksIDs(args.Book)
 	var out []*api.User //nolint:prealloc
 	for _, u := range r.Users {
-		if u.GetName() <= args.GreaterThanID {
+		uBookID, _ := entity.UserIDs(u.GetName())
+		if uBookID != bookID {
+			continue
+		}
+		if u.GetName() <= args.GreaterThanName {
 			continue
 		}
 		if len(args.Users) > 0 && !containsStr(args.Users, u.GetName()) {
@@ -139,11 +150,11 @@ func (r *Repo) UpdateMarket(ctx context.Context, market *api.Market) error {
 }
 
 // GetMarket gets a market by ID.
-func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
+func (r *Repo) GetMarket(ctx context.Context, name string) (*api.Market, error) {
 	r.marketMtx.RLock()
 	defer r.marketMtx.RUnlock()
 	for _, m := range r.Markets {
-		if m.GetName() == id {
+		if m.GetName() == name {
 			return m, nil
 		}
 	}
@@ -154,9 +165,14 @@ func (r *Repo) GetMarket(ctx context.Context, id string) (*api.Market, error) {
 func (r *Repo) ListMarkets(ctx context.Context, args *repo.ListMarketsArgs) (markets []*api.Market, hasMore bool, err error) {
 	r.marketMtx.RLock()
 	defer r.marketMtx.RUnlock()
+	bookID := entity.BooksIDs(args.Book)
 	var out []*api.Market //nolint:prealloc
 	for _, m := range r.Markets {
-		if m.GetName() <= args.GreaterThanID {
+		mBookID, _ := entity.MarketIDs(m.GetName())
+		if mBookID != bookID {
+			continue
+		}
+		if m.GetName() <= args.GreaterThanName {
 			continue
 		}
 		if args.Status != api.Market_STATUS_UNSPECIFIED && m.Status != args.Status {
@@ -207,11 +223,11 @@ func (r *Repo) UpdateBet(ctx context.Context, bet *api.Bet) error {
 }
 
 // GetBet gets a bet by ID.
-func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
+func (r *Repo) GetBet(ctx context.Context, name string) (*api.Bet, error) {
 	r.betMtx.RLock()
 	defer r.betMtx.RUnlock()
 	for _, b := range r.Bets {
-		if b.GetName() == id {
+		if b.GetName() == name {
 			return b, nil
 		}
 	}
@@ -222,9 +238,14 @@ func (r *Repo) GetBet(ctx context.Context, id string) (*api.Bet, error) {
 func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) (bets []*api.Bet, hasMore bool, err error) {
 	r.betMtx.RLock()
 	defer r.betMtx.RUnlock()
+	bookID := entity.BooksIDs(args.Book)
 	var out []*api.Bet //nolint:prealloc
 	for _, b := range r.Bets {
-		if b.GetName() <= args.GreaterThanID {
+		bBookID, _ := entity.BetIDs(b.GetName())
+		if bBookID != bookID {
+			continue
+		}
+		if b.GetName() <= args.GreaterThanName {
 			continue
 		}
 		if args.User != "" && b.User != args.User {

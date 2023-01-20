@@ -22,23 +22,30 @@ func TestCreateMarket(t *testing.T) {
 	var maxOpenMarkets []*api.Market
 	for i := 0; i < server.MaxNumberOfOpenMarkets; i++ {
 		maxOpenMarkets = append(maxOpenMarkets, &api.Market{
-			Name:   entity.MarketN(uuid.NewString()),
+			Name:   entity.MarketN("guild:A", uuid.NewString()),
 			Status: api.Market_STATUS_OPEN,
 		})
 	}
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("guild:A", uuid.NewString()),
+		Username:    "rusty",
+		Centipoints: 100,
+	}
+	userB := &api.User{
+		Name:        entity.UserN("guild:B", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
 	testCases := []struct {
 		desc            string
 		existingMarkets []*api.Market
+		book            string
 		market          *api.Market
 		expectErr       bool
 	}{
 		{
 			desc: "basic case",
+			book: entity.BookN("guild:A"),
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: user.GetName(),
@@ -53,7 +60,41 @@ func TestCreateMarket(t *testing.T) {
 			},
 		},
 		{
+			desc: "fails if book not set",
+			market: &api.Market{
+				Title:   "Will I PB?",
+				Creator: user.GetName(),
+				Type: &api.Market_Pool{
+					Pool: &api.Pool{
+						Outcomes: []*api.Outcome{
+							{Title: "Yes"},
+							{Title: "No"},
+						},
+					},
+				},
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if creator not in the same book as market",
+			book: entity.BookN("guild:A"),
+			market: &api.Market{
+				Title:   "Will I PB?",
+				Creator: userB.GetName(),
+				Type: &api.Market_Pool{
+					Pool: &api.Pool{
+						Outcomes: []*api.Outcome{
+							{Title: "Yes"},
+							{Title: "No"},
+						},
+					},
+				},
+			},
+			expectErr: true,
+		},
+		{
 			desc: "fails if title not set",
+			book: entity.BookN("guild:A"),
 			market: &api.Market{
 				Creator: user.GetName(),
 				Type: &api.Market_Pool{
@@ -69,6 +110,7 @@ func TestCreateMarket(t *testing.T) {
 		},
 		{
 			desc: "fails if creator is not an existing user",
+			book: entity.BookN("guild:A"),
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: "other",
@@ -85,6 +127,7 @@ func TestCreateMarket(t *testing.T) {
 		},
 		{
 			desc: "fails if type not implemented",
+			book: entity.BookN("guild:A"),
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: user.GetName(),
@@ -93,6 +136,7 @@ func TestCreateMarket(t *testing.T) {
 		},
 		{
 			desc: "fails if pool has less than 2 outcomes",
+			book: entity.BookN("guild:A"),
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: user.GetName(),
@@ -108,6 +152,7 @@ func TestCreateMarket(t *testing.T) {
 		},
 		{
 			desc: "fails if duplicate outcome titles",
+			book: entity.BookN("guild:A"),
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: user.GetName(),
@@ -124,6 +169,7 @@ func TestCreateMarket(t *testing.T) {
 		},
 		{
 			desc:            "fails if max number of open markets reached",
+			book:            entity.BookN("guild:A"),
 			existingMarkets: maxOpenMarkets,
 			market: &api.Market{
 				Title:   "Will I PB?",
@@ -139,13 +185,30 @@ func TestCreateMarket(t *testing.T) {
 			},
 			expectErr: true,
 		},
+		{
+			desc:            "only enforces max number of open markets in the same book",
+			book:            entity.BookN("guild:B"),
+			existingMarkets: maxOpenMarkets,
+			market: &api.Market{
+				Title:   "Will I PB?",
+				Creator: userB.GetName(),
+				Type: &api.Market_Pool{
+					Pool: &api.Pool{
+						Outcomes: []*api.Outcome{
+							{Title: "Yes"},
+							{Title: "No"},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}, Markets: tC.existingMarkets}))
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user, userB}, Markets: tC.existingMarkets}))
 			require.Nil(t, err)
-			out, err := s.CreateMarket(context.Background(), connect.NewRequest(&api.CreateMarketRequest{Market: tC.market}))
+			out, err := s.CreateMarket(context.Background(), connect.NewRequest(&api.CreateMarketRequest{Book: tC.book, Market: tC.market}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
@@ -159,7 +222,7 @@ func TestCreateMarket(t *testing.T) {
 
 func TestGetMarket(t *testing.T) {
 	market := &api.Market{
-		Name: entity.MarketN(uuid.NewString()),
+		Name: entity.MarketN("guild:1", uuid.NewString()),
 	}
 	testCases := []struct {
 		desc      string
@@ -203,15 +266,15 @@ func TestListMarkets(t *testing.T) {
 	// tests pagination until all markets are returned
 	// alphabetically ordered ids
 	market1 := &api.Market{
-		Name:   entity.MarketN("a"),
+		Name:   entity.MarketN("guild:1", "a"),
 		Status: api.Market_STATUS_OPEN,
 	}
 	market2 := &api.Market{
-		Name:   entity.MarketN("b"),
+		Name:   entity.MarketN("guild:1", "b"),
 		Status: api.Market_STATUS_OPEN,
 	}
 	market3 := &api.Market{
-		Name:   entity.MarketN("c"),
+		Name:   entity.MarketN("guild:1", "c"),
 		Status: api.Market_STATUS_BETS_LOCKED,
 	}
 	testCases := []struct {
@@ -223,37 +286,43 @@ func TestListMarkets(t *testing.T) {
 	}{
 		{
 			desc:          "basic case",
-			req:           &api.ListMarketsRequest{},
+			req:           &api.ListMarketsRequest{Book: entity.BookN("guild:1")},
 			expected:      []*api.Market{market1, market2, market3},
 			expectedCalls: 1,
 		},
 		{
+			desc:          "searches within book",
+			req:           &api.ListMarketsRequest{Book: entity.BookN("other")},
+			expected:      nil,
+			expectedCalls: 1,
+		},
+		{
 			desc:          "page size 1",
-			req:           &api.ListMarketsRequest{PageSize: 1},
+			req:           &api.ListMarketsRequest{Book: entity.BookN("guild:1"), PageSize: 1},
 			expected:      []*api.Market{market1, market2, market3},
 			expectedCalls: 3,
 		},
 		{
 			desc:          "page size 2",
-			req:           &api.ListMarketsRequest{PageSize: 2},
+			req:           &api.ListMarketsRequest{Book: entity.BookN("guild:1"), PageSize: 2},
 			expected:      []*api.Market{market1, market2, market3},
 			expectedCalls: 2,
 		},
 		{
 			desc:          "page size 3",
-			req:           &api.ListMarketsRequest{PageSize: 3},
+			req:           &api.ListMarketsRequest{Book: entity.BookN("guild:1"), PageSize: 3},
 			expected:      []*api.Market{market1, market2, market3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "page size 4",
-			req:           &api.ListMarketsRequest{PageSize: 4},
+			req:           &api.ListMarketsRequest{Book: entity.BookN("guild:1"), PageSize: 4},
 			expected:      []*api.Market{market1, market2, market3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by status",
-			req:           &api.ListMarketsRequest{Status: api.Market_STATUS_OPEN},
+			req:           &api.ListMarketsRequest{Book: entity.BookN("guild:1"), Status: api.Market_STATUS_OPEN},
 			expected:      []*api.Market{market1, market2},
 			expectedCalls: 1,
 		},
@@ -291,12 +360,12 @@ func TestListMarkets(t *testing.T) {
 
 func TestLockMarket(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
 	market := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user.GetName(),
 		Status:  api.Market_STATUS_OPEN,
@@ -310,7 +379,7 @@ func TestLockMarket(t *testing.T) {
 		},
 	}
 	lockedMarket := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user.GetName(),
 		Status:  api.Market_STATUS_BETS_LOCKED,
@@ -364,24 +433,24 @@ func TestLockMarket(t *testing.T) {
 }
 
 func TestSettleMarket(t *testing.T) {
-	marketName := entity.MarketN(uuid.NewString())
+	marketName := entity.MarketN("guild:1", uuid.NewString())
 	user1 := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 1000,
 	}
 	user2 := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "danny",
 		Centipoints: 1000,
 	}
 	user3 := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "linus",
 		Centipoints: 1000,
 	}
 	settledMarket := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user1.GetName(),
 		Status:  api.Market_STATUS_SETTLED,
@@ -438,8 +507,8 @@ func TestSettleMarket(t *testing.T) {
 			market: marketName,
 			winner: "other",
 			bets: []*api.Bet{
-				{Name: "a", User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
-				{Name: "b", User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
 			},
 			expectErr: true,
 		},
@@ -463,12 +532,12 @@ func TestSettleMarket(t *testing.T) {
 			market: marketName,
 			winner: "outcome-1",
 			bets: []*api.Bet{
-				{Name: "a", User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
-				{Name: "b", User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
 			},
 			expectedBetSettledCentipoints: map[string]uint64{
-				"a": 200,
-				"b": 0,
+				entity.BetN("guild:1", "a"): 200,
+				entity.BetN("guild:1", "b"): 0,
 			},
 			expectedUserCentipoints: map[string]uint64{
 				user1.GetName(): 1200,
@@ -495,14 +564,14 @@ func TestSettleMarket(t *testing.T) {
 			market: marketName,
 			winner: "outcome-1",
 			bets: []*api.Bet{
-				{Name: "a", User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
-				{Name: "b", User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
-				{Name: "c", User: user3.GetName(), Market: marketName, Centipoints: 50, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "c"), User: user3.GetName(), Market: marketName, Centipoints: 50, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
 			},
 			expectedBetSettledCentipoints: map[string]uint64{
-				"a": 250,
-				"b": 0,
-				"c": 0,
+				entity.BetN("guild:1", "a"): 250,
+				entity.BetN("guild:1", "b"): 0,
+				entity.BetN("guild:1", "c"): 0,
 			},
 			expectedUserCentipoints: map[string]uint64{
 				user1.GetName(): 1250,
@@ -530,14 +599,14 @@ func TestSettleMarket(t *testing.T) {
 			market: marketName,
 			winner: "outcome-1",
 			bets: []*api.Bet{
-				{Name: "a", User: user1.GetName(), Market: marketName, Centipoints: 25, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
-				{Name: "b", User: user2.GetName(), Market: marketName, Centipoints: 75, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
-				{Name: "c", User: user3.GetName(), Market: marketName, Centipoints: 200, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 25, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 75, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "c"), User: user3.GetName(), Market: marketName, Centipoints: 200, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
 			},
 			expectedBetSettledCentipoints: map[string]uint64{
-				"a": 75,
-				"b": 225,
-				"c": 0,
+				entity.BetN("guild:1", "a"): 75,
+				entity.BetN("guild:1", "b"): 225,
+				entity.BetN("guild:1", "c"): 0,
 			},
 			expectedUserCentipoints: map[string]uint64{
 				user1.GetName(): 1075,
@@ -590,12 +659,12 @@ func TestSettleMarket(t *testing.T) {
 			market: marketName,
 			winner: "outcome-1",
 			bets: []*api.Bet{
-				{Name: "a", User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
-				{Name: "b", User: user2.GetName(), Market: marketName, Centipoints: 50, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 50, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
 			},
 			expectedBetSettledCentipoints: map[string]uint64{
-				"a": 100,
-				"b": 50,
+				entity.BetN("guild:1", "a"): 100,
+				entity.BetN("guild:1", "b"): 50,
 			},
 			expectedUserCentipoints: map[string]uint64{
 				user1.GetName(): 1100,
@@ -642,12 +711,17 @@ func TestSettleMarket(t *testing.T) {
 
 func TestCreateBet(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
+		Username:    "rusty",
+		Centipoints: 1000,
+	}
+	user2 := &api.User{
+		Name:        entity.UserN("guild:2", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 1000,
 	}
 	poolMarket := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user.GetName(),
 		Status:  api.Market_STATUS_OPEN,
@@ -661,7 +735,7 @@ func TestCreateBet(t *testing.T) {
 		},
 	}
 	lockedPoolMarket := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user.GetName(),
 		Status:  api.Market_STATUS_BETS_LOCKED,
@@ -675,7 +749,7 @@ func TestCreateBet(t *testing.T) {
 		},
 	}
 	settledPoolMarket := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user.GetName(),
 		Status:  api.Market_STATUS_SETTLED,
@@ -690,6 +764,7 @@ func TestCreateBet(t *testing.T) {
 	}
 	testCases := []struct {
 		desc                  string
+		book                  string
 		bet                   *api.Bet
 		expectUserCentipoints uint64
 		expectErr             bool
@@ -697,6 +772,7 @@ func TestCreateBet(t *testing.T) {
 		// pool bets
 		{
 			desc: "basic case - pool bet",
+			book: entity.BookN("guild:1"),
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      poolMarket.GetName(),
@@ -706,7 +782,41 @@ func TestCreateBet(t *testing.T) {
 			expectUserCentipoints: 900,
 		},
 		{
+			desc: "fails if user is not in the same book as bet",
+			book: entity.BookN("guild:1"),
+			bet: &api.Bet{
+				User:        user2.GetName(),
+				Market:      poolMarket.GetName(),
+				Centipoints: 100,
+				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if market is not in the same book as bet",
+			book: entity.BookN("guild:other"),
+			bet: &api.Bet{
+				User:        user.GetName(),
+				Market:      poolMarket.GetName(),
+				Centipoints: 100,
+				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
+			},
+			expectUserCentipoints: 900,
+			expectErr:             true,
+		},
+		{
+			desc: "fails if book not set",
+			bet: &api.Bet{
+				User:        user.GetName(),
+				Market:      poolMarket.GetName(),
+				Centipoints: 100,
+				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
+			},
+			expectErr: true,
+		},
+		{
 			desc: "fails if user does not exist",
+			book: entity.BookN("guild:1"),
 			bet: &api.Bet{
 				User:        "other",
 				Market:      poolMarket.GetName(),
@@ -717,6 +827,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if market does not exist",
+			book: entity.BookN("guild:1"),
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      "other",
@@ -727,6 +838,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if type not provided",
+			book: entity.BookN("guild:1"),
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      poolMarket.GetName(),
@@ -736,6 +848,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if outcome does not exist",
+			book: entity.BookN("guild:1"),
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      poolMarket.GetName(),
@@ -746,6 +859,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if creating a bet on a locked market",
+			book: entity.BookN("guild:1"),
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      lockedPoolMarket.GetName(),
@@ -756,6 +870,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if creating a bet on a settled market",
+			book: entity.BookN("guild:1"),
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      settledPoolMarket.GetName(),
@@ -766,6 +881,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if betting more points than user has",
+			book: entity.BookN("guild:1"),
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      poolMarket.GetName(),
@@ -778,9 +894,9 @@ func TestCreateBet(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket, lockedPoolMarket, settledPoolMarket}}))
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user, user2}, Markets: []*api.Market{poolMarket, lockedPoolMarket, settledPoolMarket}}))
 			require.Nil(t, err)
-			out, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Bet: tC.bet}))
+			out, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Book: tC.book, Bet: tC.bet}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
@@ -802,7 +918,7 @@ func TestCreateBet(t *testing.T) {
 
 func TestGetBet(t *testing.T) {
 	bet := &api.Bet{
-		Name: uuid.NewString(),
+		Name: entity.BetN("guild:1", uuid.NewString()),
 	}
 	testCases := []struct {
 		desc      string
@@ -846,17 +962,17 @@ func TestListBets(t *testing.T) {
 	// tests pagination until all bets are returned
 	// alphabetically ordered ids
 	bet1 := &api.Bet{
-		Name:   "a",
+		Name:   entity.BetN("guild:1", "a"),
 		User:   "rusty",
 		Market: "one",
 	}
 	bet2 := &api.Bet{
-		Name:   "b",
+		Name:   entity.BetN("guild:1", "b"),
 		User:   "danny",
 		Market: "two",
 	}
 	bet3 := &api.Bet{
-		Name:      "c",
+		Name:      entity.BetN("guild:1", "c"),
 		User:      "linus",
 		Market:    "three",
 		SettledAt: timestamppb.Now(),
@@ -870,61 +986,67 @@ func TestListBets(t *testing.T) {
 	}{
 		{
 			desc:          "basic case",
-			req:           &api.ListBetsRequest{},
+			req:           &api.ListBetsRequest{Book: entity.BookN("guild:1")},
 			expected:      []*api.Bet{bet1, bet2, bet3},
 			expectedCalls: 1,
 		},
 		{
+			desc:          "list within book",
+			req:           &api.ListBetsRequest{Book: "other"},
+			expected:      nil,
+			expectedCalls: 1,
+		},
+		{
 			desc:          "page size 1",
-			req:           &api.ListBetsRequest{PageSize: 1},
+			req:           &api.ListBetsRequest{Book: entity.BookN("guild:1"), PageSize: 1},
 			expected:      []*api.Bet{bet1, bet2, bet3},
 			expectedCalls: 3,
 		},
 		{
 			desc:          "page size 2",
-			req:           &api.ListBetsRequest{PageSize: 2},
+			req:           &api.ListBetsRequest{Book: entity.BookN("guild:1"), PageSize: 2},
 			expected:      []*api.Bet{bet1, bet2, bet3},
 			expectedCalls: 2,
 		},
 		{
 			desc:          "page size 3",
-			req:           &api.ListBetsRequest{PageSize: 3},
+			req:           &api.ListBetsRequest{Book: entity.BookN("guild:1"), PageSize: 3},
 			expected:      []*api.Bet{bet1, bet2, bet3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "page size 4",
-			req:           &api.ListBetsRequest{PageSize: 4},
+			req:           &api.ListBetsRequest{Book: entity.BookN("guild:1"), PageSize: 4},
 			expected:      []*api.Bet{bet1, bet2, bet3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by user",
-			req:           &api.ListBetsRequest{User: "rusty"},
+			req:           &api.ListBetsRequest{Book: entity.BookN("guild:1"), User: "rusty"},
 			expected:      []*api.Bet{bet1},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by market",
-			req:           &api.ListBetsRequest{Market: "two"},
+			req:           &api.ListBetsRequest{Book: entity.BookN("guild:1"), Market: "two"},
 			expected:      []*api.Bet{bet2},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list excluding settled",
-			req:           &api.ListBetsRequest{ExcludeSettled: true},
+			req:           &api.ListBetsRequest{Book: entity.BookN("guild:1"), ExcludeSettled: true},
 			expected:      []*api.Bet{bet1, bet2},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by user and market - match",
-			req:           &api.ListBetsRequest{User: "linus", Market: "three"},
+			req:           &api.ListBetsRequest{Book: entity.BookN("guild:1"), User: "linus", Market: "three"},
 			expected:      []*api.Bet{bet3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by user and market - no match",
-			req:           &api.ListBetsRequest{User: "linus", Market: "two"},
+			req:           &api.ListBetsRequest{Book: entity.BookN("guild:1"), User: "linus", Market: "two"},
 			expected:      nil,
 			expectedCalls: 1,
 		},
@@ -962,12 +1084,12 @@ func TestListBets(t *testing.T) {
 
 func TestCreateBetConcurrency(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Centipoints: 1000,
 		Username:    "rusty",
 	}
 	poolMarket := &api.Market{
-		Name:   entity.MarketN(uuid.NewString()),
+		Name:   entity.MarketN("guild:1", uuid.NewString()),
 		Status: api.Market_STATUS_OPEN,
 		Type: &api.Market_Pool{
 			Pool: &api.Pool{
@@ -985,12 +1107,15 @@ func TestCreateBetConcurrency(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		go func() {
 			defer wg.Done()
-			_, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Bet: &api.Bet{
-				User:        user.GetName(),
-				Market:      poolMarket.GetName(),
-				Centipoints: 10,
-				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
-			}}))
+			_, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{
+				Book: entity.BookN("guild:1"),
+				Bet: &api.Bet{
+					User:        user.GetName(),
+					Market:      poolMarket.GetName(),
+					Centipoints: 10,
+					Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
+				},
+			}))
 			require.Nil(t, err)
 		}()
 	}
@@ -1007,12 +1132,12 @@ func TestCreateBetConcurrency(t *testing.T) {
 func TestCreateBetLockMarketConcurrency(t *testing.T) {
 	for i := 0; i < 50; i++ {
 		user := &api.User{
-			Name:        entity.UserN(uuid.NewString()),
+			Name:        entity.UserN("guild:1", uuid.NewString()),
 			Centipoints: 1000,
 			Username:    "rusty",
 		}
 		poolMarket := &api.Market{
-			Name:   entity.MarketN(uuid.NewString()),
+			Name:   entity.MarketN("guild:1", uuid.NewString()),
 			Status: api.Market_STATUS_OPEN,
 			Type: &api.Market_Pool{
 				Pool: &api.Pool{
@@ -1031,12 +1156,15 @@ func TestCreateBetLockMarketConcurrency(t *testing.T) {
 		wg.Add(2)
 		go func() {
 			defer wg.Done()
-			_, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Bet: &api.Bet{
-				User:        user.GetName(),
-				Market:      poolMarket.GetName(),
-				Centipoints: 10,
-				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
-			}}))
+			_, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{
+				Book: entity.BookN("guild:1"),
+				Bet: &api.Bet{
+					User:        user.GetName(),
+					Market:      poolMarket.GetName(),
+					Centipoints: 10,
+					Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
+				},
+			}))
 			if err != nil {
 				var connectErr *connect.Error
 				if errors.As(err, &connectErr) {

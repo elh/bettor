@@ -418,7 +418,7 @@
                     
                       <li>string.max_len: 1024</li>
                     
-                      <li>string.pattern: ^bets/.&#43;$</li>
+                      <li>string.pattern: ^books/[^/]{1,36}/bets/[^/]{36}$</li>
                     
                     </ul>
                   </td>
@@ -497,6 +497,13 @@
             <tbody>
               
                 <tr>
+                  <td>book</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>bet</td>
                   <td><a href="#bettor.v1alpha.Bet">Bet</a></td>
                   <td></td>
@@ -545,6 +552,13 @@
             <tbody>
               
                 <tr>
+                  <td>book</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>market</td>
                   <td><a href="#bettor.v1alpha.Market">Market</a></td>
                   <td></td>
@@ -591,6 +605,13 @@
               <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
             </thead>
             <tbody>
+              
+                <tr>
+                  <td>book</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
               
                 <tr>
                   <td>user</td>
@@ -791,6 +812,13 @@
             <tbody>
               
                 <tr>
+                  <td>book</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>username</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
@@ -812,6 +840,17 @@
                 </tr>
               </thead>
               <tbody>
+              
+                <tr>
+                  <td>book</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
               
                 <tr>
                   <td>username</td>
@@ -955,6 +994,13 @@
                 </tr>
               
                 <tr>
+                  <td>book</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>user</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
@@ -997,6 +1043,17 @@
                     <ul>
                     
                       <li>int32.lte: 50</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td>book</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
                     
                     </ul>
                   </td>
@@ -1065,6 +1122,13 @@
                 </tr>
               
                 <tr>
+                  <td>book</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>status</td>
                   <td><a href="#bettor.v1alpha.Market.Status">Market.Status</a></td>
                   <td></td>
@@ -1093,6 +1157,17 @@
                     <ul>
                     
                       <li>int32.lte: 50</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td>book</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
                     
                     </ul>
                   </td>
@@ -1161,6 +1236,13 @@
                 </tr>
               
                 <tr>
+                  <td>book</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>users</td>
                   <td><a href="#string">string</a></td>
                   <td>repeated</td>
@@ -1189,6 +1271,17 @@
                     <ul>
                     
                       <li>int32.lte: 50</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td>book</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
                     
                     </ul>
                   </td>
@@ -1398,7 +1491,7 @@
                     
                       <li>string.max_len: 1024</li>
                     
-                      <li>string.pattern: ^markets/.&#43;$</li>
+                      <li>string.pattern: ^books/[^/]{1,36}/markets/[^/]{36}$</li>
                     
                     </ul>
                   </td>
@@ -1526,7 +1619,7 @@
                     
                       <li>string.max_len: 1024</li>
                     
-                      <li>string.pattern: ^markets/.&#43;/outcomes/.&#43;$</li>
+                      <li>string.pattern: ^books/[^/]{1,36}/markets/[^/]{36}/outcomes/[^/]$</li>
                     
                     </ul>
                   </td>
@@ -1762,7 +1855,7 @@
                     
                       <li>string.max_len: 1024</li>
                     
-                      <li>string.pattern: ^users/.&#43;$</li>
+                      <li>string.pattern: ^books/[^/]{1,36}/users/[^/]{36}$</li>
                     
                     </ul>
                   </td>

@@ -10,7 +10,7 @@ message User {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^users/.+$"
+    pattern: "^books/[^/]{1,36}/users/[^/]{36}$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
@@ -27,7 +27,7 @@ message Market {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^markets/.+$"
+    pattern: "^books/[^/]{1,36}/markets/[^/]{36}$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
@@ -65,7 +65,7 @@ message Outcome {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^markets/.+/outcomes/.+$"
+    pattern: "^books/[^/]{1,36}/markets/[^/]{36}/outcomes/[^/]$"
   }];
   string title = 2 [(validate.rules).string = {
     min_len: 1,
@@ -79,7 +79,7 @@ message Bet {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^bets/.+$"
+    pattern: "^books/[^/]{1,36}/bets/[^/]{36}$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
@@ -97,7 +97,8 @@ message Bet {
 // API requests and responses.
 
 message CreateUserRequest {
-  User user = 1;
+  string book = 1;
+  User user = 2;
 }
 
 message CreateUserResponse {
@@ -113,7 +114,8 @@ message GetUserResponse {
 }
 
 message GetUserByUsernameRequest {
-  string username = 1 [(validate.rules).string.min_len = 1];
+  string book = 1 [(validate.rules).string.min_len = 1];
+  string username = 2 [(validate.rules).string.min_len = 1];
 }
 
 message GetUserByUsernameResponse {
@@ -123,7 +125,8 @@ message GetUserByUsernameResponse {
 message ListUsersRequest {
   int32 page_size = 1 [(validate.rules).int32.lte = 50];
   string page_token = 2;
-  repeated string users = 3;
+  string book = 3 [(validate.rules).string.min_len = 1];
+  repeated string users = 4;
 }
 
 message ListUsersResponse {
@@ -132,7 +135,8 @@ message ListUsersResponse {
 }
 
 message CreateMarketRequest {
-  Market market = 1;
+  string book = 1;
+  Market market = 2;
 }
 
 message CreateMarketResponse {
@@ -150,7 +154,8 @@ message GetMarketResponse {
 message ListMarketsRequest {
   int32 page_size = 1 [(validate.rules).int32.lte = 50];
   string page_token = 2;
-  Market.Status status = 3;
+  string book = 3 [(validate.rules).string.min_len = 1];
+  Market.Status status = 4;
 }
 
 message ListMarketsResponse {
@@ -179,6 +184,7 @@ message SettleMarketResponse {
 }
 
 message CreateBetRequest {
+  string book = 1;
   Bet bet = 2;
 }
 
@@ -197,9 +203,10 @@ message GetBetResponse {
 message ListBetsRequest {
   int32 page_size = 1 [(validate.rules).int32.lte = 50];
   string page_token = 2;
-  string user = 3;
-  string market = 4;
-  bool exclude_settled = 5;
+  string book = 3 [(validate.rules).string.min_len = 1];
+  string user = 4;
+  string market = 5;
+  bool exclude_settled = 6;
 }
 
 message ListBetsResponse {

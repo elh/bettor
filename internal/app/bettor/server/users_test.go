@@ -17,44 +17,88 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
+	users := []*api.User{
+		{
+			Name:     "books/guild:other/users/asdf",
+			Username: "rusty",
+		},
+	}
 	testCases := []struct {
 		desc      string
+		book      string
 		user      *api.User
 		expectErr bool
 	}{
 		{
 			desc: "basic case",
+			book: entity.BookN("guild:A"),
 			user: &api.User{
 				Username: "rusty",
 			},
 		},
 		{
+			desc: "fails if username already exists in book",
+			book: entity.BookN("guild:other"),
+			user: &api.User{
+				Username: "rusty",
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if book is invalid (has a slash)",
+			book: "guild/A",
+			user: &api.User{
+				Username: "rusty",
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if book is invalid length",
+			book: strings.Repeat("A", 37),
+			user: &api.User{
+				Username: "rusty",
+			},
+			expectErr: true,
+		},
+		{
 			desc:      "fails if username is empty",
+			book:      entity.BookN("guild:A"),
 			user:      &api.User{},
 			expectErr: true,
 		},
 		{
 			desc:      "fails if username is too long",
+			book:      entity.BookN("guild:A"),
 			user:      &api.User{Username: strings.Repeat("A", 256)},
 			expectErr: true,
 		},
 		{
 			desc:      "fails if username is not alphanumeric",
+			book:      entity.BookN("guild:A"),
 			user:      &api.User{Username: "ᵣᵤₛₜᵧ"},
 			expectErr: true,
 		},
 		{
 			desc:      "fails if user is nil",
+			book:      entity.BookN("guild:A"),
 			user:      nil,
+			expectErr: true,
+		},
+		{
+			desc: "fails is book is not set",
+			book: "",
+			user: &api.User{
+				Username: "rusty",
+			},
 			expectErr: true,
 		},
 	}
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s, err := server.New(server.WithRepo(&mem.Repo{}))
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: users}))
 			require.Nil(t, err)
-			out, err := s.CreateUser(context.Background(), connect.NewRequest(&api.CreateUserRequest{User: tC.user}))
+			out, err := s.CreateUser(context.Background(), connect.NewRequest(&api.CreateUserRequest{Book: tC.book, User: tC.user}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
@@ -68,7 +112,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
@@ -112,28 +156,32 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUserByUsername(t *testing.T) {
 	user := &api.User{
-		Name:        entity.UserN(uuid.NewString()),
+		Name:        entity.UserN("guild:1", uuid.NewString()),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
 	testCases := []struct {
 		desc      string
+		book      string
 		username  string
 		expected  *api.User
 		expectErr bool
 	}{
 		{
 			desc:     "basic case",
+			book:     entity.BookN("guild:1"),
 			username: "rusty",
 			expected: user,
 		},
 		{
 			desc:      "fails if user does not exist",
+			book:      entity.BookN("guild:1"),
 			username:  "does-not-exist",
 			expectErr: true,
 		},
 		{
 			desc:      "fails if id is empty",
+			book:      entity.BookN("guild:1"),
 			username:  "",
 			expectErr: true,
 		},
@@ -143,7 +191,7 @@ func TestGetUserByUsername(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}}))
 			require.Nil(t, err)
-			out, err := s.GetUserByUsername(context.Background(), connect.NewRequest(&api.GetUserByUsernameRequest{Username: tC.username}))
+			out, err := s.GetUserByUsername(context.Background(), connect.NewRequest(&api.GetUserByUsernameRequest{Book: tC.book, Username: tC.username}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
@@ -157,18 +205,19 @@ func TestGetUserByUsername(t *testing.T) {
 func TestListUsers(t *testing.T) {
 	// tests pagination until all users are returned
 	// alphabetically ordered ids
+	bookID := "Z"
 	user1 := &api.User{
-		Name:        entity.UserN("a"),
+		Name:        entity.UserN(bookID, "a"),
 		Username:    "rusty",
 		Centipoints: 100,
 	}
 	user2 := &api.User{
-		Name:        entity.UserN("b"),
+		Name:        entity.UserN(bookID, "b"),
 		Username:    "danny",
 		Centipoints: 200,
 	}
 	user3 := &api.User{
-		Name:        entity.UserN("c"),
+		Name:        entity.UserN(bookID, "c"),
 		Username:    "linus",
 		Centipoints: 300,
 	}
@@ -181,37 +230,43 @@ func TestListUsers(t *testing.T) {
 	}{
 		{
 			desc:          "basic case",
-			req:           &api.ListUsersRequest{},
+			req:           &api.ListUsersRequest{Book: entity.BookN(bookID)},
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 1,
 		},
 		{
+			desc:          "searches within book",
+			req:           &api.ListUsersRequest{Book: entity.BookN("other")},
+			expected:      nil,
+			expectedCalls: 1,
+		},
+		{
 			desc:          "page size 1",
-			req:           &api.ListUsersRequest{PageSize: 1},
+			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), PageSize: 1},
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 3,
 		},
 		{
 			desc:          "page size 2",
-			req:           &api.ListUsersRequest{PageSize: 2},
+			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), PageSize: 2},
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 2,
 		},
 		{
 			desc:          "page size 3",
-			req:           &api.ListUsersRequest{PageSize: 3},
+			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), PageSize: 3},
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "page size 4",
-			req:           &api.ListUsersRequest{PageSize: 4},
+			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), PageSize: 4},
 			expected:      []*api.User{user1, user2, user3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by user resource names",
-			req:           &api.ListUsersRequest{Users: []string{user1.Name, user2.Name}},
+			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), Users: []string{user1.Name, user2.Name}},
 			expected:      []*api.User{user1, user2},
 			expectedCalls: 1,
 		},

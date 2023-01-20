@@ -28,7 +28,7 @@ var getBetCommand = &discordgo.ApplicationCommand{
 // GetBet is the handler for the /get-bet command.
 func GetBet(ctx context.Context, client bettorClient) Handler {
 	return func(s *discordgo.Session, event *discordgo.InteractionCreate) (*discordgo.InteractionResponseData, error) {
-		_, options, err := commandArgs(event)
+		guildID, _, options, err := commandArgs(event)
 		if err != nil {
 			return &discordgo.InteractionResponseData{Content: "🔺 Failed to handle command"}, fmt.Errorf("failed to handle command: %w", err)
 		}
@@ -57,7 +57,7 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
 			var choices []*discordgo.ApplicationCommandOptionChoice
-			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{PageSize: 25}})
+			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{Book: bookName(guildID), PageSize: 25}})
 			if err != nil {
 				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bets"}, fmt.Errorf("failed to ListMarkets: %w", err)
 			}

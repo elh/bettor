@@ -91,14 +91,15 @@ func initCommands(ctx context.Context, client bettorClient, logger log.Logger) m
 }
 
 // commandArgs is a helper function to extract the Discord user ID and options from an InteractionCreate event.
-func commandArgs(event *discordgo.InteractionCreate) (userID string, options map[string]*discordgo.ApplicationCommandInteractionDataOption, err error) {
+func commandArgs(event *discordgo.InteractionCreate) (guildID, userID string, options map[string]*discordgo.ApplicationCommandInteractionDataOption, err error) {
 	if event.Member == nil || event.Member.User == nil || event.Member.User.ID == "" {
-		return "", nil, fmt.Errorf("no user provided in interaction event")
+		return "", "", nil, fmt.Errorf("no user provided in interaction event")
 	}
+	guildID = event.GuildID
 	userID = event.Member.User.ID
 	options = map[string]*discordgo.ApplicationCommandInteractionDataOption{}
 	for _, opt := range event.ApplicationCommandData().Options {
 		options[opt.Name] = opt
 	}
-	return userID, options, nil
+	return guildID, userID, options, nil
 }
