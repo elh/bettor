@@ -45,7 +45,7 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 		market.GetPool().Winner = ""
 		outcomeTitles := map[string]bool{}
 		for _, outcome := range market.GetPool().GetOutcomes() {
-			outcome.Name = entity.OutcomeN(marketID, uuid.NewString())
+			outcome.Name = entity.OutcomeN(in.Msg.GetBook(), marketID, uuid.NewString())
 			outcome.Centipoints = 0
 			if outcomeTitles[outcome.GetTitle()] {
 				return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("duplicate outcome title"))

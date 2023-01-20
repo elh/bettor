@@ -13,7 +13,7 @@ const (
 var (
 	userRegex    = regexp.MustCompile(`books\/([^/]*)\/users\/([^/]*)`)
 	marketRegex  = regexp.MustCompile(`books\/([^/]*)\/markets\/([^/]*)`)
-	outcomeRegex = regexp.MustCompile(`markets\/([^/]*)\/outcomes\/([^/]*)`)
+	outcomeRegex = regexp.MustCompile(`books\/([^/]*)\/markets\/([^/]*)\/outcomes\/([^/]*)`)
 	betRegex     = regexp.MustCompile(`bets\/([^/]*)`)
 )
 
@@ -46,17 +46,17 @@ func MarketIDs(name string) (bookID, marketID string) {
 }
 
 // OutcomeN returns a resource name from outcome ids.
-func OutcomeN(marketID, outcomeID string) string {
-	return marketCollection + "/" + marketID + "/" + outcomeCollection + "/" + outcomeID
+func OutcomeN(bookID, marketID, outcomeID string) string {
+	return bookCollection + "/" + bookID + "/" + marketCollection + "/" + marketID + "/" + outcomeCollection + "/" + outcomeID
 }
 
 // OutcomeIDs returns ids from outcome resource name.
-func OutcomeIDs(name string) (marketID, outcomeID string) {
+func OutcomeIDs(name string) (bookID, marketID, outcomeID string) {
 	parts := outcomeRegex.FindStringSubmatch(name)
-	if len(parts) != 3 {
-		return "", ""
+	if len(parts) != 4 {
+		return "", "", ""
 	}
-	return parts[1], parts[2]
+	return parts[1], parts[2], parts[3]
 }
 
 // BetN returns a resource name from bet ids.

@@ -664,7 +664,7 @@ func (m *Outcome) validate(all bool) error {
 	if !_Outcome_Name_Pattern.MatchString(m.GetName()) {
 		err := OutcomeValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^markets/[^/]+/outcomes/[^/]+$\"",
+			reason: "value does not match regex pattern \"^books/[^/]+/markets/[^/]+/outcomes/[^/]+$\"",
 		}
 		if !all {
 			return err
@@ -762,7 +762,7 @@ var _ interface {
 	ErrorName() string
 } = OutcomeValidationError{}
 
-var _Outcome_Name_Pattern = regexp.MustCompile("^markets/[^/]+/outcomes/[^/]+$")
+var _Outcome_Name_Pattern = regexp.MustCompile("^books/[^/]+/markets/[^/]+/outcomes/[^/]+$")
 
 // Validate checks the field values on Bet with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error

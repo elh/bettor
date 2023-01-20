@@ -65,7 +65,7 @@ message Outcome {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^markets/[^/]+/outcomes/[^/]+$"
+    pattern: "^books/[^/]+/markets/[^/]+/outcomes/[^/]+$"
   }];
   string title = 2 [(validate.rules).string = {
     min_len: 1,
