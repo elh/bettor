@@ -154,7 +154,8 @@ message GetMarketResponse {
 message ListMarketsRequest {
   int32 page_size = 1 [(validate.rules).int32.lte = 50];
   string page_token = 2;
-  Market.Status status = 3;
+  string book = 3 [(validate.rules).string.min_len = 1];
+  Market.Status status = 4;
 }
 
 message ListMarketsResponse {

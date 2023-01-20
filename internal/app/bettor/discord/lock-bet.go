@@ -67,6 +67,7 @@ func LockBet(ctx context.Context, client bettorClient) Handler {
 
 			var choices []*discordgo.ApplicationCommandOptionChoice
 			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{
+				Book:     bookName(guildID),
 				Status:   api.Market_STATUS_OPEN,
 				PageSize: 25,
 			}})

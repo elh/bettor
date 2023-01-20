@@ -54,6 +54,7 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	}
 
 	openMarkets, _, err := s.Repo.ListMarkets(ctx, &repo.ListMarketsArgs{
+		Book:   in.Msg.GetBook(),
 		Status: api.Market_STATUS_OPEN,
 		Limit:  MaxNumberOfOpenMarkets,
 	})
@@ -101,6 +102,10 @@ func (s *Server) GetMarket(ctx context.Context, in *connect.Request[api.GetMarke
 
 // ListMarkets lists markets by filters.
 func (s *Server) ListMarkets(ctx context.Context, in *connect.Request[api.ListMarketsRequest]) (*connect.Response[api.ListMarketsResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
 	pageSize := defaultPageSize
 	if in.Msg.GetPageSize() > 0 && in.Msg.GetPageSize() <= maxPageSize {
 		pageSize = int(in.Msg.GetPageSize())
@@ -123,6 +128,7 @@ func (s *Server) ListMarkets(ctx context.Context, in *connect.Request[api.ListMa
 	}
 
 	markets, hasMore, err := s.Repo.ListMarkets(ctx, &repo.ListMarketsArgs{
+		Book:          in.Msg.GetBook(),
 		GreaterThanID: cursor,
 		Status:        in.Msg.GetStatus(),
 		Limit:         pageSize,

@@ -33,6 +33,7 @@ type ListUsersArgs struct {
 
 // ListMarketsArgs are the arguments for listing markets.
 type ListMarketsArgs struct {
+	Book          string
 	GreaterThanID string
 	Status        api.Market_Status
 	Limit         int

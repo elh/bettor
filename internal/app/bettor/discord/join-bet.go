@@ -104,6 +104,7 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
 			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{
+				Book:     bookName(guildID),
 				Status:   api.Market_STATUS_OPEN,
 				PageSize: 25,
 			}})

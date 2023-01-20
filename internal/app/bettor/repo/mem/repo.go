@@ -165,6 +165,10 @@ func (r *Repo) ListMarkets(ctx context.Context, args *repo.ListMarketsArgs) (mar
 	defer r.marketMtx.RUnlock()
 	var out []*api.Market //nolint:prealloc
 	for _, m := range r.Markets {
+		uBookID, _ := entity.MarketIDs(m.GetName())
+		if uBookID != args.Book {
+			continue
+		}
 		if m.GetName() <= args.GreaterThanID {
 			continue
 		}
