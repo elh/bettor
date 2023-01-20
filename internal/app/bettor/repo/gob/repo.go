@@ -96,8 +96,8 @@ func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 }
 
 // GetUserByUsername gets a user by username.
-func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.User, error) {
-	return r.Mem.GetUserByUsername(ctx, username)
+func (r *Repo) GetUserByUsername(ctx context.Context, book, username string) (*api.User, error) {
+	return r.Mem.GetUserByUsername(ctx, book, username)
 }
 
 // ListUsers lists users.

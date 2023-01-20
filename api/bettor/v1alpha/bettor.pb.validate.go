@@ -1527,6 +1527,17 @@ func (m *GetUserByUsernameRequest) validate(all bool) error {
 
 	var errors []error
 
+	if utf8.RuneCountInString(m.GetBook()) < 1 {
+		err := GetUserByUsernameRequestValidationError{
+			field:  "Book",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if utf8.RuneCountInString(m.GetUsername()) < 1 {
 		err := GetUserByUsernameRequestValidationError{
 			field:  "Username",

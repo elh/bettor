@@ -7,6 +7,7 @@ import (
 
 	"github.com/bufbuild/connect-go" // too lazy to isolate errors. repo pkgs will return connect errors
 	api "github.com/elh/bettor/api/bettor/v1alpha"
+	"github.com/elh/bettor/internal/app/bettor/entity"
 	"github.com/elh/bettor/internal/app/bettor/repo"
 )
 
@@ -26,12 +27,15 @@ type Repo struct {
 func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
 	r.userMtx.Lock()
 	defer r.userMtx.Unlock()
+
+	bookID, _ := entity.UserIDs(user.GetName())
 	for _, u := range r.Users {
 		if u.GetName() == user.GetName() {
 			return connect.NewError(connect.CodeInvalidArgument, errors.New("user with id already exists"))
 		}
-		if u.Username == user.Username {
-			return connect.NewError(connect.CodeInvalidArgument, errors.New("user with username already exists"))
+		uBookID, _ := entity.UserIDs(u.GetName())
+		if bookID == uBookID && u.Username == user.Username {
+			return connect.NewError(connect.CodeInvalidArgument, errors.New("user with username already exists in book"))
 		}
 	}
 	r.Users = append(r.Users, user)
@@ -71,11 +75,12 @@ func (r *Repo) GetUser(ctx context.Context, id string) (*api.User, error) {
 }
 
 // GetUserByUsername gets a user by username.
-func (r *Repo) GetUserByUsername(ctx context.Context, username string) (*api.User, error) {
+func (r *Repo) GetUserByUsername(ctx context.Context, book, username string) (*api.User, error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
 	for _, u := range r.Users {
-		if u.Username == username {
+		uBookID, _ := entity.UserIDs(u.GetName())
+		if uBookID == book && u.Username == username {
 			return u, nil
 		}
 	}

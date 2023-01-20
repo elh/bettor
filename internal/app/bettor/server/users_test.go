@@ -17,6 +17,12 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
+	users := []*api.User{
+		{
+			Name:     "books/guild:other/users/asdf",
+			Username: "rusty",
+		},
+	}
 	testCases := []struct {
 		desc      string
 		book      string
@@ -31,8 +37,24 @@ func TestCreateUser(t *testing.T) {
 			},
 		},
 		{
+			desc: "fails if username already exists in book",
+			book: "guild:other",
+			user: &api.User{
+				Username: "rusty",
+			},
+			expectErr: true,
+		},
+		{
 			desc: "fails if book is invalid (has a slash)",
 			book: "guild/A",
+			user: &api.User{
+				Username: "rusty",
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if book is invalid length",
+			book: strings.Repeat("A", 37),
 			user: &api.User{
 				Username: "rusty",
 			},
@@ -74,7 +96,7 @@ func TestCreateUser(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s, err := server.New(server.WithRepo(&mem.Repo{}))
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: users}))
 			require.Nil(t, err)
 			out, err := s.CreateUser(context.Background(), connect.NewRequest(&api.CreateUserRequest{Book: tC.book, User: tC.user}))
 			if tC.expectErr {
@@ -140,22 +162,26 @@ func TestGetUserByUsername(t *testing.T) {
 	}
 	testCases := []struct {
 		desc      string
+		book      string
 		username  string
 		expected  *api.User
 		expectErr bool
 	}{
 		{
 			desc:     "basic case",
+			book:     "A",
 			username: "rusty",
 			expected: user,
 		},
 		{
 			desc:      "fails if user does not exist",
+			book:      "A",
 			username:  "does-not-exist",
 			expectErr: true,
 		},
 		{
 			desc:      "fails if id is empty",
+			book:      "A",
 			username:  "",
 			expectErr: true,
 		},
@@ -165,7 +191,7 @@ func TestGetUserByUsername(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}}))
 			require.Nil(t, err)
-			out, err := s.GetUserByUsername(context.Background(), connect.NewRequest(&api.GetUserByUsernameRequest{Username: tC.username}))
+			out, err := s.GetUserByUsername(context.Background(), connect.NewRequest(&api.GetUserByUsernameRequest{Book: tC.book, Username: tC.username}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return

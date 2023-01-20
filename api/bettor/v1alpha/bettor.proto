@@ -114,7 +114,8 @@ message GetUserResponse {
 }
 
 message GetUserByUsernameRequest {
-  string username = 1 [(validate.rules).string.min_len = 1];
+  string book = 1 [(validate.rules).string.min_len = 1];
+  string username = 2 [(validate.rules).string.min_len = 1];
 }
 
 message GetUserByUsernameResponse {

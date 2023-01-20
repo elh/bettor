@@ -130,7 +130,10 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 }
 
 func getUserOrCreateIfNotExist(ctx context.Context, client bettorClient, guildID, discordUserID string) (bettorUser *api.User, err error) {
-	getUserResp, err := client.GetUserByUsername(ctx, &connect.Request[api.GetUserByUsernameRequest]{Msg: &api.GetUserByUsernameRequest{Username: discordUserID}})
+	getUserResp, err := client.GetUserByUsername(ctx, &connect.Request[api.GetUserByUsernameRequest]{Msg: &api.GetUserByUsernameRequest{
+		Book:     bookName(guildID),
+		Username: discordUserID,
+	}})
 	if err != nil {
 		var connectErr *connect.Error
 		if errors.As(err, &connectErr) {

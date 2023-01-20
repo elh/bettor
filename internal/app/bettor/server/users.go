@@ -73,7 +73,7 @@ func (s *Server) GetUserByUsername(ctx context.Context, in *connect.Request[api.
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	user, err := s.Repo.GetUserByUsername(ctx, in.Msg.GetUsername())
+	user, err := s.Repo.GetUserByUsername(ctx, in.Msg.GetBook(), in.Msg.GetUsername())
 	if err != nil {
 		return nil, err
 	}
