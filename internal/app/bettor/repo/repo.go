@@ -41,6 +41,7 @@ type ListMarketsArgs struct {
 
 // ListBetsArgs are the arguments for listing bets.
 type ListBetsArgs struct {
+	Book           string
 	GreaterThanID  string
 	User           string
 	Market         string

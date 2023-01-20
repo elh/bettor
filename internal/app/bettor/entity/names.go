@@ -67,7 +67,7 @@ func BetN(bookID, betID string) string {
 // BetIDs returns ids from bet resource name.
 func BetIDs(name string) (bookID, betID string) {
 	parts := betRegex.FindStringSubmatch(name)
-	if len(parts) != 2 {
+	if len(parts) != 3 {
 		return "", ""
 	}
 	return parts[1], parts[2]

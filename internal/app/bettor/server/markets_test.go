@@ -468,8 +468,8 @@ func TestSettleMarket(t *testing.T) {
 			market: marketName,
 			winner: "other",
 			bets: []*api.Bet{
-				{Name: "a", User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
-				{Name: "b", User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
 			},
 			expectErr: true,
 		},
@@ -493,12 +493,12 @@ func TestSettleMarket(t *testing.T) {
 			market: marketName,
 			winner: "outcome-1",
 			bets: []*api.Bet{
-				{Name: "a", User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
-				{Name: "b", User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
 			},
 			expectedBetSettledCentipoints: map[string]uint64{
-				"a": 200,
-				"b": 0,
+				entity.BetN("guild:1", "a"): 200,
+				entity.BetN("guild:1", "b"): 0,
 			},
 			expectedUserCentipoints: map[string]uint64{
 				user1.GetName(): 1200,
@@ -525,14 +525,14 @@ func TestSettleMarket(t *testing.T) {
 			market: marketName,
 			winner: "outcome-1",
 			bets: []*api.Bet{
-				{Name: "a", User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
-				{Name: "b", User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
-				{Name: "c", User: user3.GetName(), Market: marketName, Centipoints: 50, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "c"), User: user3.GetName(), Market: marketName, Centipoints: 50, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
 			},
 			expectedBetSettledCentipoints: map[string]uint64{
-				"a": 250,
-				"b": 0,
-				"c": 0,
+				entity.BetN("guild:1", "a"): 250,
+				entity.BetN("guild:1", "b"): 0,
+				entity.BetN("guild:1", "c"): 0,
 			},
 			expectedUserCentipoints: map[string]uint64{
 				user1.GetName(): 1250,
@@ -560,14 +560,14 @@ func TestSettleMarket(t *testing.T) {
 			market: marketName,
 			winner: "outcome-1",
 			bets: []*api.Bet{
-				{Name: "a", User: user1.GetName(), Market: marketName, Centipoints: 25, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
-				{Name: "b", User: user2.GetName(), Market: marketName, Centipoints: 75, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
-				{Name: "c", User: user3.GetName(), Market: marketName, Centipoints: 200, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 25, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 75, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "c"), User: user3.GetName(), Market: marketName, Centipoints: 200, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
 			},
 			expectedBetSettledCentipoints: map[string]uint64{
-				"a": 75,
-				"b": 225,
-				"c": 0,
+				entity.BetN("guild:1", "a"): 75,
+				entity.BetN("guild:1", "b"): 225,
+				entity.BetN("guild:1", "c"): 0,
 			},
 			expectedUserCentipoints: map[string]uint64{
 				user1.GetName(): 1075,
@@ -620,12 +620,12 @@ func TestSettleMarket(t *testing.T) {
 			market: marketName,
 			winner: "outcome-1",
 			bets: []*api.Bet{
-				{Name: "a", User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
-				{Name: "b", User: user2.GetName(), Market: marketName, Centipoints: 50, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 50, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
 			},
 			expectedBetSettledCentipoints: map[string]uint64{
-				"a": 100,
-				"b": 50,
+				entity.BetN("guild:1", "a"): 100,
+				entity.BetN("guild:1", "b"): 50,
 			},
 			expectedUserCentipoints: map[string]uint64{
 				user1.GetName(): 1100,
@@ -895,17 +895,17 @@ func TestListBets(t *testing.T) {
 	// tests pagination until all bets are returned
 	// alphabetically ordered ids
 	bet1 := &api.Bet{
-		Name:   "a",
+		Name:   entity.BetN("guild:1", "a"),
 		User:   "rusty",
 		Market: "one",
 	}
 	bet2 := &api.Bet{
-		Name:   "b",
+		Name:   entity.BetN("guild:1", "b"),
 		User:   "danny",
 		Market: "two",
 	}
 	bet3 := &api.Bet{
-		Name:      "c",
+		Name:      entity.BetN("guild:1", "c"),
 		User:      "linus",
 		Market:    "three",
 		SettledAt: timestamppb.Now(),
@@ -919,61 +919,67 @@ func TestListBets(t *testing.T) {
 	}{
 		{
 			desc:          "basic case",
-			req:           &api.ListBetsRequest{},
+			req:           &api.ListBetsRequest{Book: "guild:1"},
 			expected:      []*api.Bet{bet1, bet2, bet3},
 			expectedCalls: 1,
 		},
 		{
+			desc:          "list within book",
+			req:           &api.ListBetsRequest{Book: "other"},
+			expected:      nil,
+			expectedCalls: 1,
+		},
+		{
 			desc:          "page size 1",
-			req:           &api.ListBetsRequest{PageSize: 1},
+			req:           &api.ListBetsRequest{Book: "guild:1", PageSize: 1},
 			expected:      []*api.Bet{bet1, bet2, bet3},
 			expectedCalls: 3,
 		},
 		{
 			desc:          "page size 2",
-			req:           &api.ListBetsRequest{PageSize: 2},
+			req:           &api.ListBetsRequest{Book: "guild:1", PageSize: 2},
 			expected:      []*api.Bet{bet1, bet2, bet3},
 			expectedCalls: 2,
 		},
 		{
 			desc:          "page size 3",
-			req:           &api.ListBetsRequest{PageSize: 3},
+			req:           &api.ListBetsRequest{Book: "guild:1", PageSize: 3},
 			expected:      []*api.Bet{bet1, bet2, bet3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "page size 4",
-			req:           &api.ListBetsRequest{PageSize: 4},
+			req:           &api.ListBetsRequest{Book: "guild:1", PageSize: 4},
 			expected:      []*api.Bet{bet1, bet2, bet3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by user",
-			req:           &api.ListBetsRequest{User: "rusty"},
+			req:           &api.ListBetsRequest{Book: "guild:1", User: "rusty"},
 			expected:      []*api.Bet{bet1},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by market",
-			req:           &api.ListBetsRequest{Market: "two"},
+			req:           &api.ListBetsRequest{Book: "guild:1", Market: "two"},
 			expected:      []*api.Bet{bet2},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list excluding settled",
-			req:           &api.ListBetsRequest{ExcludeSettled: true},
+			req:           &api.ListBetsRequest{Book: "guild:1", ExcludeSettled: true},
 			expected:      []*api.Bet{bet1, bet2},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by user and market - match",
-			req:           &api.ListBetsRequest{User: "linus", Market: "three"},
+			req:           &api.ListBetsRequest{Book: "guild:1", User: "linus", Market: "three"},
 			expected:      []*api.Bet{bet3},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "list by user and market - no match",
-			req:           &api.ListBetsRequest{User: "linus", Market: "two"},
+			req:           &api.ListBetsRequest{Book: "guild:1", User: "linus", Market: "two"},
 			expected:      nil,
 			expectedCalls: 1,
 		},

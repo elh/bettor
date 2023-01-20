@@ -203,9 +203,10 @@ message GetBetResponse {
 message ListBetsRequest {
   int32 page_size = 1 [(validate.rules).int32.lte = 50];
   string page_token = 2;
-  string user = 3;
-  string market = 4;
-  bool exclude_settled = 5;
+  string book = 3 [(validate.rules).string.min_len = 1];
+  string user = 4;
+  string market = 5;
+  bool exclude_settled = 6;
 }
 
 message ListBetsResponse {

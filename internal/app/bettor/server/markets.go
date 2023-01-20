@@ -203,10 +203,12 @@ func (s *Server) SettleMarket(ctx context.Context, in *connect.Request[api.Settl
 	if totalCentipointsBet > 0 {
 		winnerRatio := float64(totalCentipointsBet) / float64(winnerCentipointsBet)
 
+		bookID, _ := entity.MarketIDs(in.Msg.GetName())
+		fmt.Println(bookID)
 		var bets []*api.Bet
 		var greaterThanID string
 		for {
-			bs, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{GreaterThanID: greaterThanID, Market: market.GetName(), Limit: 100})
+			bs, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{Book: bookID, GreaterThanID: greaterThanID, Market: market.GetName(), Limit: 100})
 			if err != nil {
 				return nil, err
 			}
@@ -382,6 +384,10 @@ func (s *Server) GetBet(ctx context.Context, in *connect.Request[api.GetBetReque
 
 // ListBets lists bets by filters.
 func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsRequest]) (*connect.Response[api.ListBetsResponse], error) {
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
 	pageSize := defaultPageSize
 	if in.Msg.GetPageSize() > 0 && in.Msg.GetPageSize() <= maxPageSize {
 		pageSize = int(in.Msg.GetPageSize())
@@ -404,6 +410,7 @@ func (s *Server) ListBets(ctx context.Context, in *connect.Request[api.ListBetsR
 	}
 
 	bets, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{
+		Book:           in.Msg.GetBook(),
 		GreaterThanID:  cursor,
 		User:           in.Msg.GetUser(),
 		Market:         in.Msg.GetMarket(),

@@ -3848,6 +3848,17 @@ func (m *ListBetsRequest) validate(all bool) error {
 
 	// no validation rules for PageToken
 
+	if utf8.RuneCountInString(m.GetBook()) < 1 {
+		err := ListBetsRequestValidationError{
+			field:  "Book",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	// no validation rules for User
 
 	// no validation rules for Market
