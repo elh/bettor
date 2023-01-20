@@ -22,7 +22,7 @@ func TestCreateMarket(t *testing.T) {
 	var maxOpenMarkets []*api.Market
 	for i := 0; i < server.MaxNumberOfOpenMarkets; i++ {
 		maxOpenMarkets = append(maxOpenMarkets, &api.Market{
-			Name:   entity.MarketN(uuid.NewString()),
+			Name:   entity.MarketN("guild:1", uuid.NewString()),
 			Status: api.Market_STATUS_OPEN,
 		})
 	}
@@ -34,11 +34,13 @@ func TestCreateMarket(t *testing.T) {
 	testCases := []struct {
 		desc            string
 		existingMarkets []*api.Market
+		book            string
 		market          *api.Market
 		expectErr       bool
 	}{
 		{
 			desc: "basic case",
+			book: "guild:A",
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: user.GetName(),
@@ -53,7 +55,24 @@ func TestCreateMarket(t *testing.T) {
 			},
 		},
 		{
+			desc: "fails if book not set",
+			market: &api.Market{
+				Title:   "Will I PB?",
+				Creator: user.GetName(),
+				Type: &api.Market_Pool{
+					Pool: &api.Pool{
+						Outcomes: []*api.Outcome{
+							{Title: "Yes"},
+							{Title: "No"},
+						},
+					},
+				},
+			},
+			expectErr: true,
+		},
+		{
 			desc: "fails if title not set",
+			book: "guild:A",
 			market: &api.Market{
 				Creator: user.GetName(),
 				Type: &api.Market_Pool{
@@ -69,6 +88,7 @@ func TestCreateMarket(t *testing.T) {
 		},
 		{
 			desc: "fails if creator is not an existing user",
+			book: "guild:A",
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: "other",
@@ -85,6 +105,7 @@ func TestCreateMarket(t *testing.T) {
 		},
 		{
 			desc: "fails if type not implemented",
+			book: "guild:A",
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: user.GetName(),
@@ -93,6 +114,7 @@ func TestCreateMarket(t *testing.T) {
 		},
 		{
 			desc: "fails if pool has less than 2 outcomes",
+			book: "guild:A",
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: user.GetName(),
@@ -108,6 +130,7 @@ func TestCreateMarket(t *testing.T) {
 		},
 		{
 			desc: "fails if duplicate outcome titles",
+			book: "guild:A",
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: user.GetName(),
@@ -124,6 +147,7 @@ func TestCreateMarket(t *testing.T) {
 		},
 		{
 			desc:            "fails if max number of open markets reached",
+			book:            "guild:A",
 			existingMarkets: maxOpenMarkets,
 			market: &api.Market{
 				Title:   "Will I PB?",
@@ -145,7 +169,7 @@ func TestCreateMarket(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}, Markets: tC.existingMarkets}))
 			require.Nil(t, err)
-			out, err := s.CreateMarket(context.Background(), connect.NewRequest(&api.CreateMarketRequest{Market: tC.market}))
+			out, err := s.CreateMarket(context.Background(), connect.NewRequest(&api.CreateMarketRequest{Book: tC.book, Market: tC.market}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
@@ -159,7 +183,7 @@ func TestCreateMarket(t *testing.T) {
 
 func TestGetMarket(t *testing.T) {
 	market := &api.Market{
-		Name: entity.MarketN(uuid.NewString()),
+		Name: entity.MarketN("guild:1", uuid.NewString()),
 	}
 	testCases := []struct {
 		desc      string
@@ -203,15 +227,15 @@ func TestListMarkets(t *testing.T) {
 	// tests pagination until all markets are returned
 	// alphabetically ordered ids
 	market1 := &api.Market{
-		Name:   entity.MarketN("a"),
+		Name:   entity.MarketN("guild:1", "a"),
 		Status: api.Market_STATUS_OPEN,
 	}
 	market2 := &api.Market{
-		Name:   entity.MarketN("b"),
+		Name:   entity.MarketN("guild:1", "b"),
 		Status: api.Market_STATUS_OPEN,
 	}
 	market3 := &api.Market{
-		Name:   entity.MarketN("c"),
+		Name:   entity.MarketN("guild:1", "c"),
 		Status: api.Market_STATUS_BETS_LOCKED,
 	}
 	testCases := []struct {
@@ -296,7 +320,7 @@ func TestLockMarket(t *testing.T) {
 		Centipoints: 100,
 	}
 	market := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user.GetName(),
 		Status:  api.Market_STATUS_OPEN,
@@ -310,7 +334,7 @@ func TestLockMarket(t *testing.T) {
 		},
 	}
 	lockedMarket := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user.GetName(),
 		Status:  api.Market_STATUS_BETS_LOCKED,
@@ -364,7 +388,7 @@ func TestLockMarket(t *testing.T) {
 }
 
 func TestSettleMarket(t *testing.T) {
-	marketName := entity.MarketN(uuid.NewString())
+	marketName := entity.MarketN("guild:1", uuid.NewString())
 	user1 := &api.User{
 		Name:        entity.UserN("A", uuid.NewString()),
 		Username:    "rusty",
@@ -381,7 +405,7 @@ func TestSettleMarket(t *testing.T) {
 		Centipoints: 1000,
 	}
 	settledMarket := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user1.GetName(),
 		Status:  api.Market_STATUS_SETTLED,
@@ -647,7 +671,7 @@ func TestCreateBet(t *testing.T) {
 		Centipoints: 1000,
 	}
 	poolMarket := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user.GetName(),
 		Status:  api.Market_STATUS_OPEN,
@@ -661,7 +685,7 @@ func TestCreateBet(t *testing.T) {
 		},
 	}
 	lockedPoolMarket := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user.GetName(),
 		Status:  api.Market_STATUS_BETS_LOCKED,
@@ -675,7 +699,7 @@ func TestCreateBet(t *testing.T) {
 		},
 	}
 	settledPoolMarket := &api.Market{
-		Name:    entity.MarketN(uuid.NewString()),
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
 		Creator: user.GetName(),
 		Status:  api.Market_STATUS_SETTLED,
@@ -967,7 +991,7 @@ func TestCreateBetConcurrency(t *testing.T) {
 		Username:    "rusty",
 	}
 	poolMarket := &api.Market{
-		Name:   entity.MarketN(uuid.NewString()),
+		Name:   entity.MarketN("guild:1", uuid.NewString()),
 		Status: api.Market_STATUS_OPEN,
 		Type: &api.Market_Pool{
 			Pool: &api.Pool{
@@ -1012,7 +1036,7 @@ func TestCreateBetLockMarketConcurrency(t *testing.T) {
 			Username:    "rusty",
 		}
 		poolMarket := &api.Market{
-			Name:   entity.MarketN(uuid.NewString()),
+			Name:   entity.MarketN("guild:1", uuid.NewString()),
 			Status: api.Market_STATUS_OPEN,
 			Type: &api.Market_Pool{
 				Pool: &api.Pool{

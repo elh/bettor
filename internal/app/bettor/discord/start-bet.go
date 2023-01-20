@@ -101,15 +101,18 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 				})
 			}
 		}
-		resp, err := client.CreateMarket(ctx, &connect.Request[api.CreateMarketRequest]{Msg: &api.CreateMarketRequest{Market: &api.Market{
-			Title:   options["bet"].StringValue(),
-			Creator: bettorUser.GetName(),
-			Type: &api.Market_Pool{
-				Pool: &api.Pool{
-					Outcomes: outcomes,
+		resp, err := client.CreateMarket(ctx, &connect.Request[api.CreateMarketRequest]{Msg: &api.CreateMarketRequest{
+			Book: bookName(guildID),
+			Market: &api.Market{
+				Title:   options["bet"].StringValue(),
+				Creator: bettorUser.GetName(),
+				Type: &api.Market_Pool{
+					Pool: &api.Pool{
+						Outcomes: outcomes,
+					},
 				},
 			},
-		}}})
+		}})
 		if err != nil {
 			return &discordgo.InteractionResponseData{Content: "🔺 Failed to start bet"}, fmt.Errorf("failed to create market: %w", err)
 		}

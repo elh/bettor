@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
+	"fmt"
 
 	"github.com/bufbuild/connect-go"
 	api "github.com/elh/bettor/api/bettor/v1alpha"
@@ -33,7 +34,8 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	market := proto.Clone(in.Msg.GetMarket()).(*api.Market)
 
 	marketID := uuid.NewString()
-	market.Name = entity.MarketN(marketID)
+	market.Name = entity.MarketN(in.Msg.GetBook(), marketID)
+	fmt.Println("market name", market.Name)
 	market.CreatedAt = timestamppb.Now()
 	market.UpdatedAt = timestamppb.Now()
 	market.SettledAt = nil

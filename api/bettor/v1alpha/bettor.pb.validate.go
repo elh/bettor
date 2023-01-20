@@ -240,7 +240,7 @@ func (m *Market) validate(all bool) error {
 	if !_Market_Name_Pattern.MatchString(m.GetName()) {
 		err := MarketValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^markets/[^/]+$\"",
+			reason: "value does not match regex pattern \"^books/[^/]+/markets/[^/]+$\"",
 		}
 		if !all {
 			return err
@@ -478,7 +478,7 @@ var _ interface {
 	ErrorName() string
 } = MarketValidationError{}
 
-var _Market_Name_Pattern = regexp.MustCompile("^markets/[^/]+$")
+var _Market_Name_Pattern = regexp.MustCompile("^books/[^/]+/markets/[^/]+$")
 
 var _Market_Status_NotInLookup = map[Market_Status]struct{}{
 	0: {},

@@ -27,7 +27,7 @@ message Market {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^markets/[^/]+$"
+    pattern: "^books/[^/]+/markets/[^/]+$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
