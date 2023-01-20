@@ -166,6 +166,7 @@ func bookName(guildID string) string {
 func getMarketBets(ctx context.Context, client bettorClient, marketName string) ([]*api.Bet, []*api.User, error) {
 	bookID, _ := entity.MarketIDs(marketName)
 	betsResp, err := client.ListBets(ctx, &connect.Request[api.ListBetsRequest]{Msg: &api.ListBetsRequest{
+		Book:     bookName(bookID),
 		PageSize: 50,
 		Market:   marketName,
 	}})
