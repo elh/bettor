@@ -714,6 +714,7 @@ func TestCreateBet(t *testing.T) {
 	}
 	testCases := []struct {
 		desc                  string
+		book                  string
 		bet                   *api.Bet
 		expectUserCentipoints uint64
 		expectErr             bool
@@ -721,6 +722,7 @@ func TestCreateBet(t *testing.T) {
 		// pool bets
 		{
 			desc: "basic case - pool bet",
+			book: "guild:1",
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      poolMarket.GetName(),
@@ -730,7 +732,18 @@ func TestCreateBet(t *testing.T) {
 			expectUserCentipoints: 900,
 		},
 		{
+			desc: "fails if book not set",
+			bet: &api.Bet{
+				User:        user.GetName(),
+				Market:      poolMarket.GetName(),
+				Centipoints: 100,
+				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
+			},
+			expectErr: true,
+		},
+		{
 			desc: "fails if user does not exist",
+			book: "guild:1",
 			bet: &api.Bet{
 				User:        "other",
 				Market:      poolMarket.GetName(),
@@ -741,6 +754,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if market does not exist",
+			book: "guild:1",
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      "other",
@@ -751,6 +765,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if type not provided",
+			book: "guild:1",
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      poolMarket.GetName(),
@@ -760,6 +775,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if outcome does not exist",
+			book: "guild:1",
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      poolMarket.GetName(),
@@ -770,6 +786,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if creating a bet on a locked market",
+			book: "guild:1",
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      lockedPoolMarket.GetName(),
@@ -780,6 +797,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if creating a bet on a settled market",
+			book: "guild:1",
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      settledPoolMarket.GetName(),
@@ -790,6 +808,7 @@ func TestCreateBet(t *testing.T) {
 		},
 		{
 			desc: "fails if betting more points than user has",
+			book: "guild:1",
 			bet: &api.Bet{
 				User:        user.GetName(),
 				Market:      poolMarket.GetName(),
@@ -804,7 +823,7 @@ func TestCreateBet(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket, lockedPoolMarket, settledPoolMarket}}))
 			require.Nil(t, err)
-			out, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Bet: tC.bet}))
+			out, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Book: tC.book, Bet: tC.bet}))
 			if tC.expectErr {
 				require.NotNil(t, err)
 				return
@@ -1009,12 +1028,15 @@ func TestCreateBetConcurrency(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		go func() {
 			defer wg.Done()
-			_, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Bet: &api.Bet{
-				User:        user.GetName(),
-				Market:      poolMarket.GetName(),
-				Centipoints: 10,
-				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
-			}}))
+			_, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{
+				Book: "guild:1",
+				Bet: &api.Bet{
+					User:        user.GetName(),
+					Market:      poolMarket.GetName(),
+					Centipoints: 10,
+					Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
+				},
+			}))
 			require.Nil(t, err)
 		}()
 	}
@@ -1055,12 +1077,15 @@ func TestCreateBetLockMarketConcurrency(t *testing.T) {
 		wg.Add(2)
 		go func() {
 			defer wg.Done()
-			_, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Bet: &api.Bet{
-				User:        user.GetName(),
-				Market:      poolMarket.GetName(),
-				Centipoints: 10,
-				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
-			}}))
+			_, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{
+				Book: "guild:1",
+				Bet: &api.Bet{
+					User:        user.GetName(),
+					Market:      poolMarket.GetName(),
+					Centipoints: 10,
+					Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
+				},
+			}))
 			if err != nil {
 				var connectErr *connect.Error
 				if errors.As(err, &connectErr) {

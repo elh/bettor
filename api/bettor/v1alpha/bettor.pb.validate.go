@@ -799,7 +799,7 @@ func (m *Bet) validate(all bool) error {
 	if !_Bet_Name_Pattern.MatchString(m.GetName()) {
 		err := BetValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^bets/[^/]+$\"",
+			reason: "value does not match regex pattern \"^books/[^/]+/bets/[^/]+$\"",
 		}
 		if !all {
 			return err
@@ -999,7 +999,7 @@ var _ interface {
 	ErrorName() string
 } = BetValidationError{}
 
-var _Bet_Name_Pattern = regexp.MustCompile("^bets/[^/]+$")
+var _Bet_Name_Pattern = regexp.MustCompile("^books/[^/]+/bets/[^/]+$")
 
 // Validate checks the field values on CreateUserRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the

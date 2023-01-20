@@ -61,6 +61,7 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 			bettorUserN := bettorUser.GetName()
 
 			if _, err := client.CreateBet(ctx, &connect.Request[api.CreateBetRequest]{Msg: &api.CreateBetRequest{
+				Book: bookName(guildID),
 				Bet: &api.Bet{
 					User:        bettorUserN,
 					Market:      options["bet"].StringValue(),

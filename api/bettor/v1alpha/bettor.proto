@@ -79,7 +79,7 @@ message Bet {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^bets/[^/]+$"
+    pattern: "^books/[^/]+/bets/[^/]+$"
   }];
   google.protobuf.Timestamp created_at = 2 [(validate.rules).timestamp.required = true];
   google.protobuf.Timestamp updated_at = 3 [(validate.rules).timestamp.required = true];
