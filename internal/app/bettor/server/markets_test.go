@@ -31,6 +31,11 @@ func TestCreateMarket(t *testing.T) {
 		Username:    "rusty",
 		Centipoints: 100,
 	}
+	userB := &api.User{
+		Name:        entity.UserN("guild:B", uuid.NewString()),
+		Username:    "rusty",
+		Centipoints: 100,
+	}
 	testCases := []struct {
 		desc            string
 		existingMarkets []*api.Market
@@ -59,6 +64,23 @@ func TestCreateMarket(t *testing.T) {
 			market: &api.Market{
 				Title:   "Will I PB?",
 				Creator: user.GetName(),
+				Type: &api.Market_Pool{
+					Pool: &api.Pool{
+						Outcomes: []*api.Outcome{
+							{Title: "Yes"},
+							{Title: "No"},
+						},
+					},
+				},
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if creator not in the same book as market",
+			book: entity.BookN("guild:A"),
+			market: &api.Market{
+				Title:   "Will I PB?",
+				Creator: userB.GetName(),
 				Type: &api.Market_Pool{
 					Pool: &api.Pool{
 						Outcomes: []*api.Outcome{
@@ -169,7 +191,7 @@ func TestCreateMarket(t *testing.T) {
 			existingMarkets: maxOpenMarkets,
 			market: &api.Market{
 				Title:   "Will I PB?",
-				Creator: user.GetName(),
+				Creator: userB.GetName(),
 				Type: &api.Market_Pool{
 					Pool: &api.Pool{
 						Outcomes: []*api.Outcome{
@@ -184,7 +206,7 @@ func TestCreateMarket(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}, Markets: tC.existingMarkets}))
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user, userB}, Markets: tC.existingMarkets}))
 			require.Nil(t, err)
 			out, err := s.CreateMarket(context.Background(), connect.NewRequest(&api.CreateMarketRequest{Book: tC.book, Market: tC.market}))
 			if tC.expectErr {
@@ -693,6 +715,11 @@ func TestCreateBet(t *testing.T) {
 		Username:    "rusty",
 		Centipoints: 1000,
 	}
+	user2 := &api.User{
+		Name:        entity.UserN("guild:2", uuid.NewString()),
+		Username:    "rusty",
+		Centipoints: 1000,
+	}
 	poolMarket := &api.Market{
 		Name:    entity.MarketN("guild:1", uuid.NewString()),
 		Title:   "Will I PB?",
@@ -753,6 +780,29 @@ func TestCreateBet(t *testing.T) {
 				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
 			},
 			expectUserCentipoints: 900,
+		},
+		{
+			desc: "fails if user is not in the same book as bet",
+			book: entity.BookN("guild:1"),
+			bet: &api.Bet{
+				User:        user2.GetName(),
+				Market:      poolMarket.GetName(),
+				Centipoints: 100,
+				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if market is not in the same book as bet",
+			book: entity.BookN("guild:other"),
+			bet: &api.Bet{
+				User:        user.GetName(),
+				Market:      poolMarket.GetName(),
+				Centipoints: 100,
+				Type:        &api.Bet_Outcome{Outcome: poolMarket.GetPool().Outcomes[0].GetName()},
+			},
+			expectUserCentipoints: 900,
+			expectErr:             true,
 		},
 		{
 			desc: "fails if book not set",
@@ -844,7 +894,7 @@ func TestCreateBet(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}, Markets: []*api.Market{poolMarket, lockedPoolMarket, settledPoolMarket}}))
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user, user2}, Markets: []*api.Market{poolMarket, lockedPoolMarket, settledPoolMarket}}))
 			require.Nil(t, err)
 			out, err := s.CreateBet(context.Background(), connect.NewRequest(&api.CreateBetRequest{Book: tC.book, Bet: tC.bet}))
 			if tC.expectErr {

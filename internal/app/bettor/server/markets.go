@@ -41,6 +41,11 @@ func (s *Server) CreateMarket(ctx context.Context, in *connect.Request[api.Creat
 	market.SettledAt = nil
 	market.Status = api.Market_STATUS_OPEN
 
+	creatorBookID, _ := entity.UserIDs(market.GetCreator())
+	if bookID != creatorBookID {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("creator must be a member of the book"))
+	}
+
 	if market.GetPool() != nil {
 		market.GetPool().Winner = ""
 		outcomeTitles := map[string]bool{}
@@ -303,6 +308,15 @@ func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBe
 	bet.UpdatedAt = timestamppb.Now()
 	bet.SettledAt = nil
 	bet.SettledCentipoints = 0
+
+	userBookID, _ := entity.UserIDs(bet.GetUser())
+	if bookID != userBookID {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("bettor must be a member of the book"))
+	}
+	marketBookID, _ := entity.MarketIDs(bet.GetMarket())
+	if bookID != marketBookID {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("bet book does not match market book"))
+	}
 
 	user, err := s.Repo.GetUser(ctx, bet.GetUser())
 	if err != nil {
