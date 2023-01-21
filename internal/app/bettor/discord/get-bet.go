@@ -30,26 +30,26 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 	return func(s *discordgo.Session, event *discordgo.InteractionCreate) (*discordgo.InteractionResponseData, error) {
 		guildID, _, options, err := commandArgs(event)
 		if err != nil {
-			return &discordgo.InteractionResponseData{Content: "🔺 Failed to handle command"}, fmt.Errorf("failed to handle command: %w", err)
+			return nil, CErr("Failed to handle command", err)
 		}
 
 		switch event.Type { //nolint:exhaustive
 		case discordgo.InteractionApplicationCommand:
 			resp, err := client.GetMarket(ctx, &connect.Request[api.GetMarketRequest]{Msg: &api.GetMarketRequest{Name: options["bet"].StringValue()}})
 			if err != nil {
-				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bet"}, fmt.Errorf("failed to GetMarket: %w", err)
+				return nil, CErr("Failed to lookup bet", err)
 			}
 			market := resp.Msg.GetMarket()
 
 			userResp, err := client.GetUser(ctx, &connect.Request[api.GetUserRequest]{Msg: &api.GetUserRequest{Name: market.GetCreator()}})
 			if err != nil {
-				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bet creator"}, fmt.Errorf("failed to GetUser for market creator: %w", err)
+				return nil, CErr("Failed to lookup bet creator", err)
 			}
 			marketCreator := userResp.Msg.GetUser()
 
 			bets, bettors, err := getMarketBets(ctx, client, market.GetName())
 			if err != nil {
-				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bettors"}, fmt.Errorf("failed to getMarketBets: %w", err)
+				return nil, CErr("Failed to lookup bettors", err)
 			}
 
 			msgformat, margs := formatMarket(market, marketCreator, bets, bettors)
@@ -59,7 +59,7 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 			var choices []*discordgo.ApplicationCommandOptionChoice
 			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{Book: bookName(guildID), PageSize: 25}})
 			if err != nil {
-				return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bets"}, fmt.Errorf("failed to ListMarkets: %w", err)
+				return nil, CErr("Failed to lookup bets", err)
 			}
 			for _, market := range resp.Msg.GetMarkets() {
 				choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
@@ -69,7 +69,7 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 			}
 			return &discordgo.InteractionResponseData{Choices: withDefaultChoices(choices)}, nil
 		default:
-			return &discordgo.InteractionResponseData{Content: "🔺 Something went wrong..."}, fmt.Errorf("unexpected event type %v", event.Type)
+			return nil, CErr("Something went wrong", fmt.Errorf("unexpected event type %v", event.Type))
 		}
 	}
 }

@@ -2,6 +2,7 @@ package discord
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -63,12 +64,14 @@ func initCommands(ctx context.Context, client bettorClient, logger log.Logger) m
 				respData, err := handlerFn(s, event)
 				durMS := time.Now().Sub(now).Milliseconds()
 				if err != nil {
-					if respData == nil {
-						respData = &discordgo.InteractionResponseData{
-							Content: "🔺 An error occurred while processing your command.",
-						}
+					var cErr *CommandError
+					if !errors.As(err, &cErr) {
+						cErr = CErr("An error occurred while processing your command.", err)
 					}
-					logger.Log("msg", "command handler failure", "dur_ms", durMS, "err", err)
+					respData = &discordgo.InteractionResponseData{
+						Content: fmt.Sprintf("🔺 %s", cErr.UserMsg),
+					}
+					logger.Log("msg", "command handler failure", "dur_ms", durMS, "err", cErr)
 				} else {
 					logger.Log("msg", "command handler success", "dur_ms", durMS)
 				}
