@@ -2,7 +2,6 @@ package discord
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/bufbuild/connect-go"
 	"github.com/bwmarrin/discordgo"
@@ -19,12 +18,12 @@ func GetBettor(ctx context.Context, client bettorClient) Handler {
 	return func(s *discordgo.Session, event *discordgo.InteractionCreate) (*discordgo.InteractionResponseData, error) {
 		guildID, discordUserID, _, err := commandArgs(event)
 		if err != nil {
-			return &discordgo.InteractionResponseData{Content: "🔺 Failed to handle command"}, fmt.Errorf("failed to handle command: %w", err)
+			return nil, CErr("Failed to handle command", err)
 		}
 
 		bettorUser, err := getUserOrCreateIfNotExist(ctx, client, guildID, discordUserID)
 		if err != nil {
-			return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
+			return nil, CErr("Failed to get or create new user", err)
 		}
 
 		resp, err := client.ListBets(ctx, &connect.Request[api.ListBetsRequest]{Msg: &api.ListBetsRequest{
@@ -33,7 +32,7 @@ func GetBettor(ctx context.Context, client bettorClient) Handler {
 			ExcludeSettled: true,
 		}})
 		if err != nil {
-			return &discordgo.InteractionResponseData{Content: "🔺 Failed to list bets"}, fmt.Errorf("failed to list bets: %w", err)
+			return nil, CErr("Failed to list bets", err)
 		}
 		var unsettledCentipoints uint64
 		for _, b := range resp.Msg.GetBets() {

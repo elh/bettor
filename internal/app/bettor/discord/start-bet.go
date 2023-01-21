@@ -83,13 +83,13 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 	return func(s *discordgo.Session, event *discordgo.InteractionCreate) (*discordgo.InteractionResponseData, error) {
 		guildID, discordUserID, options, err := commandArgs(event)
 		if err != nil {
-			return &discordgo.InteractionResponseData{Content: "🔺 Failed to handle command"}, fmt.Errorf("failed to handle command: %w", err)
+			return nil, CErr("Failed to handle command", err)
 		}
 
 		// make sure caller user exists. if not, create a new user.
 		bettorUser, err := getUserOrCreateIfNotExist(ctx, client, guildID, discordUserID)
 		if err != nil {
-			return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup (or create nonexistent) user"}, fmt.Errorf("failed to get or create user: %w", err)
+			return nil, CErr("Failed to get or create user", err)
 		}
 
 		outcomeKeys := []string{"outcome1", "outcome2", "outcome3", "outcome4", "outcome5", "outcome6"}
@@ -115,13 +115,13 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 			},
 		}})
 		if err != nil {
-			return &discordgo.InteractionResponseData{Content: "🔺 Failed to start bet"}, fmt.Errorf("failed to create market: %w", err)
+			return nil, CErr("Failed to start bet", err)
 		}
 		market := resp.Msg.GetMarket()
 
 		bets, bettors, err := getMarketBets(ctx, client, market.GetName())
 		if err != nil {
-			return &discordgo.InteractionResponseData{Content: "🔺 Failed to lookup bettors"}, fmt.Errorf("failed to getMarketBets: %w", err)
+			return nil, CErr("Failed to lookup bettors", err)
 		}
 
 		msgformat, margs := formatMarket(market, bettorUser, bets, bettors)
