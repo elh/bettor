@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := gen
-.PHONY: run test lint gen breaking wc
+.PHONY: run test lint gen docker breaking wc
 
 run:
 	@go run cmd/server/main.go
@@ -15,6 +15,9 @@ lint:
 gen:
 	@buf format -w
 	@buf generate
+
+docker:
+	@docker build --tag bettor:$(shell git rev-parse HEAD | cut -c1-8) .
 
 breaking: # detect breaking proto changes
 	@buf breaking --against ".git#branch=main"
