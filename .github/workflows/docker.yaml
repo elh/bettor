@@ -7,7 +7,9 @@
 # To get a newer version, you will need to update the SHA.
 # You can also reference a tag or branch, but the action may change without warning.
 
-name: Docker Image
+# NOTE(2023-01-23): modified to add Fly.io deploy
+
+name: CD (ghcr, Fly.io)
 
 on:
   push:
@@ -16,6 +18,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
 jobs:
   build-and-push-image:
@@ -49,3 +52,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: "Deploy to Fly.io"
+        run: flyctl deploy --local-only --image ${{ env.IMAGE_NAME }}:main
