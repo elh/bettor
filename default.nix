@@ -15,5 +15,7 @@ mkShell {
     protoc-gen-validate
     protoc-gen-doc
     jq # for buf generate
+    # Deployment dependencies
+    # flyctl # NOTE: maybe this is too active to be running off of nix registry
   ];
 }
