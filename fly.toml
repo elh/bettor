@@ -6,6 +6,11 @@ kill_timeout = 120                  # NOTE: 2 minutes. default was 5 seconds
 processes = []
 
 [env]
+gobDBFile = "/data/gob.db"          # persisted via mounted volume. see `mount`
+
+[mounts]
+source="bettor_data"
+destination="/data"
 
 [deploy]
   strategy = "rolling"
