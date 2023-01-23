@@ -32,11 +32,11 @@ import (
 var (
 	port         = envflag.Int("port", 8080, "The server port")
 	discordToken = envflag.String("discordToken", "", "Discord bot token (secret)")
+	gobDBFile    = envflag.String("gobDBFile", "bettor.gob", "Gob file to use for persistence")
 )
 
 const (
 	serviceName = "bettor"
-	gobDBFile   = "bettor.gob"
 )
 
 func init() {
@@ -48,7 +48,7 @@ func main() {
 	serverLogger := log.With(logger, "component", "server")
 
 	// Server with gob file-backed repo
-	r, err := gob.New(gobDBFile)
+	r, err := gob.New(*gobDBFile)
 	if err != nil {
 		logger.Log("msg", "error creating repo", "err", err)
 		panic(err)
