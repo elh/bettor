@@ -62,4 +62,4 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: "Deploy to Fly.io"
-        run: flyctl deploy --local-only --image ${{ env.IMAGE_NAME }}:main
+        run: flyctl deploy --local-only --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main
