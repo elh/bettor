@@ -52,6 +52,14 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Build Docker image and save locally for Fly.io deploy
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          outputs: type=image,name=${{ env.IMAGE_NAME }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: "Deploy to Fly.io"
         run: flyctl deploy --local-only --image ${{ env.IMAGE_NAME }}:main
