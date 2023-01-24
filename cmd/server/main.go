@@ -19,6 +19,7 @@ import (
 	"github.com/elh/bettor/internal/app/bettor/server"
 	"github.com/elh/bettor/internal/pkg/envflag"
 	"github.com/go-kit/log"
+	"github.com/google/uuid"
 	_ "github.com/joho/godotenv/autoload" // loads .env file before envflag reads from them
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
@@ -48,7 +49,7 @@ func init() {
 }
 
 func main() {
-	logger := log.NewJSONLogger(os.Stdout)
+	logger := log.With(log.NewJSONLogger(os.Stdout), "instance", uuid.NewString())
 	serverLogger := log.With(logger, "component", "server")
 
 	// Server with gob file-backed repo

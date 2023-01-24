@@ -170,12 +170,16 @@ func (b *Bot) guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		return
 	}
 
+	defs := make([]*discordgo.ApplicationCommand, len(b.Commands))
+	i := 0
 	for _, v := range b.Commands {
-		_, err := s.ApplicationCommandCreate(botDiscordUser, guildID, v.Def)
-		if err != nil {
-			logger.Log("msg", "failed to create command", "command", v.Def.Name, "err", err)
-		}
+		defs[i] = v.Def
+		i++
 	}
+	if _, err := s.ApplicationCommandBulkOverwrite(botDiscordUser, guildID, defs); err != nil {
+		logger.Log("msg", "failed to create commands", "err", err)
+	}
+
 	logger.Log("msg", "joined guild")
 
 	b.GuildIDs = append(b.GuildIDs, guildID)
