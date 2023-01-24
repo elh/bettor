@@ -16,10 +16,11 @@ type bettorClient bettorv1alphaconnect.BettorServiceClient
 
 // Bot is a Discord Bot for Bettor. Only one instance can be running.
 type Bot struct {
-	Ctx    context.Context
-	D      *discordgo.Session
-	Client bettorClient
-	Logger log.Logger
+	Ctx     context.Context
+	D       *discordgo.Session
+	Client  bettorClient
+	Logger  log.Logger
+	CleanUp bool
 
 	Commands map[string]*DGCommand
 
@@ -58,6 +59,7 @@ func New(ctx context.Context, args ...Arg) (*Bot, error) {
 		D:        d,
 		Client:   discordArgs.bettorClient,
 		Logger:   discordArgs.logger,
+		CleanUp:  discordArgs.cleanUp,
 		Commands: initCommands(ctx, discordArgs.bettorClient, discordArgs.logger),
 	}
 
@@ -76,6 +78,7 @@ type discordArgs struct {
 	token        string
 	bettorClient bettorv1alphaconnect.BettorServiceClient
 	logger       log.Logger
+	cleanUp      bool
 }
 
 // Arg is an argument for constructing a Discord bot.
@@ -102,6 +105,13 @@ func WithLogger(logger log.Logger) Arg {
 	})
 }
 
+// WithCleanUp configured Discord bot to clean up registered commands on shutdown.
+func WithCleanUp() Arg {
+	return Arg(func(a *discordArgs) {
+		a.cleanUp = true
+	})
+}
+
 // Run starts the bot. This blocks until the bot is terminated.
 func (b *Bot) Run() error {
 	// Open websocket and begin listening
@@ -119,6 +129,11 @@ func (b *Bot) Run() error {
 func (b *Bot) cleanup() {
 	b.guildIDMtx.Lock()
 	defer b.guildIDMtx.Unlock()
+
+	if !b.CleanUp {
+		b.Logger.Log("msg", "no command cleanup")
+		return
+	}
 
 	if b.D == nil || b.D.State == nil || b.D.State.User == nil {
 		b.Logger.Log("msg", "failed to get bot user for cleanup")

@@ -34,8 +34,9 @@ var (
 	gobDBFile = envflag.String("gobDBFile", "bettor.gob", "Gob file to use for persistence")
 
 	// Discord bot flags.
-	runDiscord   = envflag.Bool("runDiscord", false, "Run the Discord bot")
-	discordToken = envflag.String("discordToken", "", "Discord bot token (secret)")
+	runDiscord             = envflag.Bool("runDiscord", false, "Run the Discord bot")
+	discordToken           = envflag.String("discordToken", "", "Discord bot token (secret)")
+	cleanUpDiscordCommands = envflag.Bool("cleanUpDiscordCommands", true, "If true, deletes registered Discord commands on shutdown") // default to true for local testing
 )
 
 const (
@@ -118,7 +119,11 @@ func main() {
 			},
 		}
 		client := bettorv1alphaconnect.NewBettorServiceClient(netClient, fmt.Sprintf("http://localhost:%d", *port))
-		bot, err := discord.New(ctx, discord.WithToken(*discordToken), discord.WithBettorClient(client), discord.WithLogger(botLogger))
+		opts := []discord.Arg{discord.WithToken(*discordToken), discord.WithBettorClient(client), discord.WithLogger(botLogger)}
+		if *cleanUpDiscordCommands {
+			opts = append(opts, discord.WithCleanUp())
+		}
+		bot, err := discord.New(ctx, opts...)
 		if err != nil {
 			botLogger.Log("msg", "error creating discord bot", "err", err)
 			cancelFn()
