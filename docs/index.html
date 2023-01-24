@@ -183,6 +183,14 @@
                 </li>
               
                 <li>
+                  <a href="#bettor.v1alpha.CancelMarketRequest"><span class="badge">M</span>CancelMarketRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#bettor.v1alpha.CancelMarketResponse"><span class="badge">M</span>CancelMarketResponse</a>
+                </li>
+              
+                <li>
                   <a href="#bettor.v1alpha.CreateBetRequest"><span class="badge">M</span>CreateBetRequest</a>
                 </li>
               
@@ -482,6 +490,81 @@
               </tbody>
             </table>
             
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.CancelMarketRequest">CancelMarketRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>name</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+            
+            
+            <h4>Validated Fields</h4>
+            <table>
+              <thead>
+                <tr>
+                  <td>Field</td>
+                  <td>Validations</td>
+                </tr>
+              </thead>
+              <tbody>
+              
+                <tr>
+                  <td>name</td>
+                  <td>
+                    <ul>
+                    
+                      <li>string.min_len: 1</li>
+                    
+                    </ul>
+                  </td>
+                </tr>
+              
+              </tbody>
+            </table>
+            
+          
+
+        
+      
+        <h3 id="bettor.v1alpha.CancelMarketResponse">CancelMarketResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>market</td>
+                  <td><a href="#bettor.v1alpha.Market">Market</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
           
 
         
@@ -1939,6 +2022,12 @@
                 <td><p></p></td>
               </tr>
             
+              <tr>
+                <td>STATUS_CANCELED</td>
+                <td>4</td>
+                <td><p></p></td>
+              </tr>
+            
           </tbody>
         </table>
       
@@ -2015,6 +2104,13 @@
                 <td><a href="#bettor.v1alpha.SettleMarketRequest">SettleMarketRequest</a></td>
                 <td><a href="#bettor.v1alpha.SettleMarketResponse">SettleMarketResponse</a></td>
                 <td><p>SettleMarket settles a betting market and pays out bets.</p></td>
+              </tr>
+            
+              <tr>
+                <td>CancelMarket</td>
+                <td><a href="#bettor.v1alpha.CancelMarketRequest">CancelMarketRequest</a></td>
+                <td><a href="#bettor.v1alpha.CancelMarketResponse">CancelMarketResponse</a></td>
+                <td><p>CancelMarket cancels a betting market and redunds all bettors.</p></td>
               </tr>
             
               <tr>

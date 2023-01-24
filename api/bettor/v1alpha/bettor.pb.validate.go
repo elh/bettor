@@ -3311,6 +3311,250 @@ var _ interface {
 	ErrorName() string
 } = SettleMarketResponseValidationError{}
 
+// Validate checks the field values on CancelMarketRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CancelMarketRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CancelMarketRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CancelMarketRequestMultiError, or nil if none found.
+func (m *CancelMarketRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CancelMarketRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetName()) < 1 {
+		err := CancelMarketRequestValidationError{
+			field:  "Name",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return CancelMarketRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CancelMarketRequestMultiError is an error wrapping multiple validation
+// errors returned by CancelMarketRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CancelMarketRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CancelMarketRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CancelMarketRequestMultiError) AllErrors() []error { return m }
+
+// CancelMarketRequestValidationError is the validation error returned by
+// CancelMarketRequest.Validate if the designated constraints aren't met.
+type CancelMarketRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CancelMarketRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CancelMarketRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CancelMarketRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CancelMarketRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CancelMarketRequestValidationError) ErrorName() string {
+	return "CancelMarketRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CancelMarketRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCancelMarketRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CancelMarketRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CancelMarketRequestValidationError{}
+
+// Validate checks the field values on CancelMarketResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CancelMarketResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CancelMarketResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CancelMarketResponseMultiError, or nil if none found.
+func (m *CancelMarketResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CancelMarketResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetMarket()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CancelMarketResponseValidationError{
+					field:  "Market",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CancelMarketResponseValidationError{
+					field:  "Market",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMarket()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CancelMarketResponseValidationError{
+				field:  "Market",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CancelMarketResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CancelMarketResponseMultiError is an error wrapping multiple validation
+// errors returned by CancelMarketResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CancelMarketResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CancelMarketResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CancelMarketResponseMultiError) AllErrors() []error { return m }
+
+// CancelMarketResponseValidationError is the validation error returned by
+// CancelMarketResponse.Validate if the designated constraints aren't met.
+type CancelMarketResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CancelMarketResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CancelMarketResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CancelMarketResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CancelMarketResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CancelMarketResponseValidationError) ErrorName() string {
+	return "CancelMarketResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CancelMarketResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCancelMarketResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CancelMarketResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CancelMarketResponseValidationError{}
+
 // Validate checks the field values on CreateBetRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.

@@ -37,6 +37,10 @@ func initCommands(ctx context.Context, client bettorClient, logger log.Logger) m
 			Def:     settleBetCommand,
 			Handler: SettleBet(ctx, client),
 		},
+		"cancel-bet": {
+			Def:     cancelBetCommand,
+			Handler: CancelBet(ctx, client),
+		},
 		"get-bet": {
 			Def:     getBetCommand,
 			Handler: GetBet(ctx, client),

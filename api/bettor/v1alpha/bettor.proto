@@ -51,6 +51,7 @@ message Market {
     STATUS_OPEN = 1;
     STATUS_BETS_LOCKED = 2;
     STATUS_SETTLED = 3;
+    STATUS_CANCELED = 4;
   }
 }
 
@@ -183,6 +184,14 @@ message SettleMarketResponse {
   Market market = 1;
 }
 
+message CancelMarketRequest {
+  string name = 1 [(validate.rules).string.min_len = 1];
+}
+
+message CancelMarketResponse {
+  Market market = 1;
+}
+
 message CreateBetRequest {
   string book = 1;
   Bet bet = 2;
@@ -234,6 +243,8 @@ service BettorService {
   rpc LockMarket(LockMarketRequest) returns (LockMarketResponse) {}
   // SettleMarket settles a betting market and pays out bets.
   rpc SettleMarket(SettleMarketRequest) returns (SettleMarketResponse) {}
+  // CancelMarket cancels a betting market and redunds all bettors.
+  rpc CancelMarket(CancelMarketRequest) returns (CancelMarketResponse) {}
   // CreateBet places a bet on an open betting market.
   rpc CreateBet(CreateBetRequest) returns (CreateBetResponse) {}
   // GetBet gets a bet.

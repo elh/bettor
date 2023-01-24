@@ -293,6 +293,84 @@ func (s *Server) LockMarket(ctx context.Context, in *connect.Request[api.LockMar
 	return connect.NewResponse(&api.LockMarketResponse{Market: market}), nil
 }
 
+// CancelMarket cancels a betting market and redunds all bettors.
+func (s *Server) CancelMarket(ctx context.Context, in *connect.Request[api.CancelMarketRequest]) (*connect.Response[api.CancelMarketResponse], error) {
+	s.marketMtx.Lock()
+	defer s.marketMtx.Unlock()
+	if err := in.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	market, err := s.Repo.GetMarket(ctx, in.Msg.GetName())
+	if err != nil {
+		return nil, err
+	}
+	if market.GetStatus() == api.Market_STATUS_SETTLED {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market is already settled"))
+	}
+	if market.GetStatus() == api.Market_STATUS_CANCELED {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market is already canceled"))
+	}
+	market.Status = api.Market_STATUS_CANCELED
+	market.UpdatedAt = timestamppb.Now()
+	market.SettledAt = timestamppb.Now()
+
+	if market.GetPool() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("market has no pool"))
+	}
+
+	// refund all bets
+	var totalCentipointsBet uint64
+	for _, outcome := range market.GetPool().GetOutcomes() {
+		totalCentipointsBet += outcome.GetCentipoints()
+	}
+	if totalCentipointsBet > 0 {
+		bookID, _ := entity.MarketIDs(in.Msg.GetName())
+		var bets []*api.Bet
+		var greaterThanName string
+		for {
+			bs, hasMore, err := s.Repo.ListBets(ctx, &repo.ListBetsArgs{Book: entity.BookN(bookID), GreaterThanName: greaterThanName, Market: market.GetName(), Limit: 100})
+			if err != nil {
+				return nil, err
+			}
+			bets = append(bets, bs...)
+			if !hasMore {
+				break
+			}
+			greaterThanName = bs[len(bs)-1].GetName()
+		}
+
+		for _, bet := range bets {
+			bet.UpdatedAt = timestamppb.Now()
+			bet.SettledAt = timestamppb.Now()
+			bet.SettledCentipoints = bet.GetCentipoints()
+		}
+
+		for _, bet := range bets {
+			user, err := s.Repo.GetUser(ctx, bet.GetUser())
+			if err != nil {
+				return nil, err
+			}
+			user.UpdatedAt = timestamppb.Now()
+			user.Centipoints += bet.GetSettledCentipoints()
+
+			if err := s.Repo.UpdateUser(ctx, user); err != nil {
+				return nil, err
+			}
+
+			if err := s.Repo.UpdateBet(ctx, bet); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if err := s.Repo.UpdateMarket(ctx, market); err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&api.CancelMarketResponse{Market: market}), nil
+}
+
 // CreateBet places a bet on an open betting market.
 func (s *Server) CreateBet(ctx context.Context, in *connect.Request[api.CreateBetRequest]) (*connect.Response[api.CreateBetResponse], error) {
 	s.marketMtx.Lock()
