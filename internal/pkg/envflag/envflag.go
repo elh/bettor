@@ -21,6 +21,13 @@ func String(name string, value string, usage string) *string {
 	return flag.String(name, envString(name, value), usage)
 }
 
+// Bool defines a bool flag with specified name, default value, and usage string. If an environment variable with
+// the same name as the flag is set, it will be used instead of the default value. The return value is the address of a
+// bool variable that stores the value of the flag.
+func Bool(name string, value bool, usage string) *bool {
+	return flag.Bool(name, envBool(name, value), usage)
+}
+
 // Parse parses the command-line flags from os.Args[1:]. Must be called after all flags are defined and before flags are
 // accessed by the program.
 func Parse() {
@@ -40,6 +47,13 @@ func envInt(key string, defaultVal int) int {
 func envString(key string, defaultVal string) string {
 	if val, ok := os.LookupEnv(key); ok {
 		return val
+	}
+	return defaultVal
+}
+
+func envBool(key string, defaultVal bool) bool {
+	if val, ok := os.LookupEnv(key); ok {
+		return val == "true"
 	}
 	return defaultVal
 }

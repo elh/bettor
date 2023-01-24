@@ -30,9 +30,12 @@ import (
 )
 
 var (
-	port         = envflag.Int("port", 8080, "The server port")
+	port      = envflag.Int("port", 8080, "The server port")
+	gobDBFile = envflag.String("gobDBFile", "bettor.gob", "Gob file to use for persistence")
+
+	// Discord bot flags.
+	runDiscord   = envflag.Bool("runDiscord", false, "Run the Discord bot")
 	discordToken = envflag.String("discordToken", "", "Discord bot token (secret)")
-	gobDBFile    = envflag.String("gobDBFile", "bettor.gob", "Gob file to use for persistence")
 )
 
 const (
@@ -88,6 +91,7 @@ func main() {
 			ReadHeaderTimeout: 2 * time.Second,
 		}
 		go func() {
+			serverLogger.Log("msg", "starting http server", "err", err)
 			if err := httpServer.ListenAndServe(); err != nil {
 				serverLogger.Log("msg", "http server error", "err", err)
 				cancelFn()
@@ -101,7 +105,7 @@ func main() {
 	}()
 
 	// Discord bot
-	go func() {
+	if *runDiscord {
 		defer wg.Done()
 		botLogger := log.With(logger, "component", "discord-bot")
 		netClient := &http.Client{
@@ -120,12 +124,17 @@ func main() {
 			cancelFn()
 			return
 		}
-		if err := bot.Run(); err != nil {
-			botLogger.Log("msg", "discord bot run exited", "err", err)
-			cancelFn()
-			return
-		}
-	}()
+		go func() {
+			botLogger.Log("msg", "starting discord bot", "err", err)
+			if err := bot.Run(); err != nil {
+				botLogger.Log("msg", "discord bot run exited", "err", err)
+				cancelFn()
+				return
+			}
+		}()
+	} else {
+		wg.Done()
+	}
 
 	// Wait for graceful shutdown of server and discord bot
 	wg.Wait()
