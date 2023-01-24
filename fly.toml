@@ -6,6 +6,7 @@ kill_timeout = 120                  # NOTE: 2 minutes. default was 5 seconds
 processes = []
 
 [env]
+runDiscord = "true"
 gobDBFile = "/data/gob.db"          # persisted via mounted volume. see `mount`
 
 [mounts]
