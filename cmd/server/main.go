@@ -93,7 +93,7 @@ func main() {
 			ReadHeaderTimeout: 2 * time.Second,
 		}
 		go func() {
-			serverLogger.Log("msg", "starting http server", "err", err)
+			serverLogger.Log("msg", "starting http server")
 			if err := httpServer.ListenAndServe(); err != nil {
 				serverLogger.Log("msg", "http server error", "err", err)
 				cancelFn()
@@ -133,7 +133,7 @@ func main() {
 			}
 			botLogger.Log("msg", "starting discord bot", "err", err)
 			if err := bot.Run(); err != nil {
-				botLogger.Log("msg", "discord bot run exited", "err", err)
+				botLogger.Log("msg", "discord bot run exited")
 				cancelFn()
 				return
 			}

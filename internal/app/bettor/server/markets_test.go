@@ -3,6 +3,7 @@ package server_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 
@@ -683,7 +684,7 @@ func TestSettleMarket(t *testing.T) {
 				return
 			}
 			require.Nil(t, err)
-			assert.Equal(t, out.Msg.GetMarket().GetStatus(), out.Msg.GetMarket().GetStatus())
+			assert.Equal(t, api.Market_STATUS_SETTLED, out.Msg.GetMarket().GetStatus())
 			assert.NotEmpty(t, out.Msg.GetMarket().GetSettledAt())
 			assert.Equal(t, tC.winner, out.Msg.GetMarket().GetPool().GetWinner())
 
@@ -692,6 +693,236 @@ func TestSettleMarket(t *testing.T) {
 			assert.Equal(t, out.Msg.GetMarket().GetStatus(), got.Msg.GetMarket().GetStatus())
 			assert.NotEmpty(t, got.Msg.GetMarket().GetSettledAt())
 			assert.Equal(t, tC.winner, got.Msg.GetMarket().GetPool().GetWinner())
+
+			for betN, cp := range tC.expectedBetSettledCentipoints {
+				gotBet, err := s.GetBet(context.Background(), connect.NewRequest(&api.GetBetRequest{Bet: betN}))
+				require.Nil(t, err)
+				assert.NotEmpty(t, gotBet.Msg.GetBet().GetSettledAt())
+				assert.Equal(t, cp, gotBet.Msg.GetBet().GetSettledCentipoints(), betN)
+			}
+
+			for userN, cp := range tC.expectedUserCentipoints {
+				gotUser, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{Name: userN}))
+				require.Nil(t, err)
+				assert.Equal(t, cp, gotUser.Msg.GetUser().GetCentipoints())
+			}
+		})
+	}
+}
+
+func TestCancelMarket(t *testing.T) {
+	marketName := entity.MarketN("guild:1", uuid.NewString())
+	user1 := &api.User{
+		Name:        entity.UserN("guild:1", uuid.NewString()),
+		Username:    "rusty",
+		Centipoints: 1000,
+	}
+	user2 := &api.User{
+		Name:        entity.UserN("guild:1", uuid.NewString()),
+		Username:    "danny",
+		Centipoints: 1000,
+	}
+	user3 := &api.User{
+		Name:        entity.UserN("guild:1", uuid.NewString()),
+		Username:    "linus",
+		Centipoints: 1000,
+	}
+	settledMarket := &api.Market{
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
+		Title:   "Will I PB?",
+		Creator: user1.GetName(),
+		Status:  api.Market_STATUS_SETTLED,
+		Type: &api.Market_Pool{
+			Pool: &api.Pool{
+				Outcomes: []*api.Outcome{
+					{Name: "outcome-1", Title: "Yes"},
+					{Name: "outcome-2", Title: "No"},
+				},
+			},
+		},
+	}
+	canceledMarket := &api.Market{
+		Name:    entity.MarketN("guild:1", uuid.NewString()),
+		Title:   "Will I PB?",
+		Creator: user1.GetName(),
+		Status:  api.Market_STATUS_CANCELED,
+		Type: &api.Market_Pool{
+			Pool: &api.Pool{
+				Outcomes: []*api.Outcome{
+					{Name: "outcome-1", Title: "Yes"},
+					{Name: "outcome-2", Title: "No"},
+				},
+			},
+		},
+	}
+	testCases := []struct {
+		desc                          string
+		market                        string
+		markets                       []*api.Market
+		bets                          []*api.Bet
+		expectedBetSettledCentipoints map[string]uint64
+		expectedUserCentipoints       map[string]uint64
+		expectErr                     bool
+	}{
+		{
+			desc:      "fails if market does not exist",
+			market:    marketName,
+			expectErr: true,
+		},
+		{
+			desc:      "fails if market is already settled",
+			markets:   []*api.Market{settledMarket},
+			market:    settledMarket.GetName(),
+			expectErr: true,
+		},
+		{
+			desc:      "fails if market is already canceled",
+			markets:   []*api.Market{canceledMarket},
+			market:    canceledMarket.GetName(),
+			expectErr: true,
+		},
+		{
+			markets: []*api.Market{
+				{
+					Name:    marketName,
+					Title:   "Will I PB?",
+					Creator: user1.GetName(),
+					Status:  api.Market_STATUS_BETS_LOCKED,
+					Type: &api.Market_Pool{
+						Pool: &api.Pool{
+							Outcomes: []*api.Outcome{
+								{Name: "outcome-1", Title: "Yes", Centipoints: 100},
+								{Name: "outcome-2", Title: "No", Centipoints: 100},
+							},
+						},
+					},
+				},
+			},
+			market: marketName,
+			bets: []*api.Bet{
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+			},
+			expectedBetSettledCentipoints: map[string]uint64{
+				entity.BetN("guild:1", "a"): 100,
+				entity.BetN("guild:1", "b"): 100,
+			},
+			expectedUserCentipoints: map[string]uint64{
+				user1.GetName(): 1100,
+				user2.GetName(): 1100,
+			},
+		},
+		{
+			markets: []*api.Market{
+				{
+					Name:    marketName,
+					Title:   "Will I PB?",
+					Creator: user1.GetName(),
+					Status:  api.Market_STATUS_BETS_LOCKED,
+					Type: &api.Market_Pool{
+						Pool: &api.Pool{
+							Outcomes: []*api.Outcome{
+								{Name: "outcome-1", Title: "Yes", Centipoints: 100},
+								{Name: "outcome-2", Title: "No", Centipoints: 150},
+							},
+						},
+					},
+				},
+			},
+			market: marketName,
+			bets: []*api.Bet{
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 100, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+				{Name: entity.BetN("guild:1", "c"), User: user3.GetName(), Market: marketName, Centipoints: 50, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+			},
+			expectedBetSettledCentipoints: map[string]uint64{
+				entity.BetN("guild:1", "a"): 100,
+				entity.BetN("guild:1", "b"): 100,
+				entity.BetN("guild:1", "c"): 50,
+			},
+			expectedUserCentipoints: map[string]uint64{
+				user1.GetName(): 1100,
+				user2.GetName(): 1100,
+				user3.GetName(): 1050,
+			},
+		},
+		{
+			markets: []*api.Market{
+				{
+					Name:    marketName,
+					Title:   "Will I PB?",
+					Creator: user1.GetName(),
+					Status:  api.Market_STATUS_BETS_LOCKED,
+					Type: &api.Market_Pool{
+						Pool: &api.Pool{
+							Outcomes: []*api.Outcome{
+								{Name: "outcome-1", Title: "Yes", Centipoints: 100},
+								{Name: "outcome-2", Title: "No", Centipoints: 200},
+							},
+						},
+					},
+				},
+			},
+			market: marketName,
+			bets: []*api.Bet{
+				{Name: entity.BetN("guild:1", "a"), User: user1.GetName(), Market: marketName, Centipoints: 25, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "b"), User: user2.GetName(), Market: marketName, Centipoints: 75, Type: &api.Bet_Outcome{Outcome: "outcome-1"}},
+				{Name: entity.BetN("guild:1", "c"), User: user3.GetName(), Market: marketName, Centipoints: 200, Type: &api.Bet_Outcome{Outcome: "outcome-2"}},
+			},
+			expectedBetSettledCentipoints: map[string]uint64{
+				entity.BetN("guild:1", "a"): 25,
+				entity.BetN("guild:1", "b"): 75,
+				entity.BetN("guild:1", "c"): 200,
+			},
+			expectedUserCentipoints: map[string]uint64{
+				user1.GetName(): 1025,
+				user2.GetName(): 1075,
+				user3.GetName(): 1200,
+			},
+		},
+		{
+			desc: "nop if there were no bets",
+			markets: []*api.Market{
+				{
+					Name:    marketName,
+					Title:   "Will I PB?",
+					Creator: user1.GetName(),
+					Status:  api.Market_STATUS_BETS_LOCKED,
+					Type: &api.Market_Pool{
+						Pool: &api.Pool{
+							Outcomes: []*api.Outcome{
+								{Name: "outcome-1", Title: "Yes", Centipoints: 100},
+								{Name: "outcome-2", Title: "No", Centipoints: 100},
+							},
+						},
+					},
+				},
+			},
+			market:                        marketName,
+			bets:                          []*api.Bet{},
+			expectedBetSettledCentipoints: map[string]uint64{},
+			expectedUserCentipoints:       map[string]uint64{},
+		},
+	}
+	for _, tC := range testCases {
+		tC := tC
+		t.Run(tC.desc, func(t *testing.T) {
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{proto.Clone(user1).(*api.User), proto.Clone(user2).(*api.User), proto.Clone(user3).(*api.User)}, Markets: tC.markets, Bets: tC.bets}))
+			require.Nil(t, err)
+			out, err := s.CancelMarket(context.Background(), connect.NewRequest(&api.CancelMarketRequest{Name: tC.market}))
+			if tC.expectErr {
+				fmt.Println(err)
+				require.NotNil(t, err)
+				return
+			}
+			require.Nil(t, err)
+			assert.Equal(t, api.Market_STATUS_CANCELED, out.Msg.GetMarket().GetStatus())
+			assert.NotEmpty(t, out.Msg.GetMarket().GetSettledAt())
+
+			got, err := s.GetMarket(context.Background(), connect.NewRequest(&api.GetMarketRequest{Name: tC.market}))
+			require.Nil(t, err)
+			assert.Equal(t, out.Msg.GetMarket().GetStatus(), got.Msg.GetMarket().GetStatus())
+			assert.NotEmpty(t, got.Msg.GetMarket().GetSettledAt())
 
 			for betN, cp := range tC.expectedBetSettledCentipoints {
 				gotBet, err := s.GetBet(context.Background(), connect.NewRequest(&api.GetBetRequest{Bet: betN}))
