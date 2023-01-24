@@ -7,6 +7,7 @@ processes = []
 
 [env]
 runDiscord = "true"
+cleanUpDiscordCommands = "false"
 gobDBFile = "/data/gob.db"          # persisted via mounted volume. see `mount`
 
 [mounts]
