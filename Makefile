@@ -1,8 +1,11 @@
 .DEFAULT_GOAL := gen
-.PHONY: run test lint gen docker breaking wc
+.PHONY: run-local-server run-local-bot test lint gen docker breaking wc
 
-run:
+run-local-server:
 	@go run cmd/server/main.go
+
+run-local-bot:
+	@go run cmd/server/main.go -runDiscord -cleanUpDiscordCommands
 
 test:
 	@go test -race -covermode=atomic -coverprofile=coverage.out ./...

@@ -12,7 +12,7 @@ Discord bot must be added with `applications.commands` scopes.
 
 ## API
 
-Bettor offers a [Buf Connect](https://connect.build/), gRPC-compatible API. Web clients can hit this via gRPC-Web generated clients.
+Bettor offers a Buf Connect, gRPC-compatible API. Web clients can hit this via gRPC-Web generated clients.
 
 Resources are partitioned by betting "book".
 
@@ -28,6 +28,8 @@ Dependencies are managed using Nix. Optionally if `direnv` is installed, a Nix s
 
 APIs are defined using Protocol buffers built with Buf. Server is implemented using Buf Connect.
 
+Integration with Discord API is provided by `bwmarrin/discordgo`.
+
 Bettor is deployed to Fly.io via Docker.
 
 CI/CD is provided by Github Actions.
@@ -36,12 +38,15 @@ Tracing and logging are provided using OpenTelemetry and go-kit/log.
 
 ### Running Locally
 
-Install dependencies using Nix. [default.nix](https://github.com/elh/bettor/blob/main/default.nix) defines all development dependencies for the project.
+Install dependencies using Nix. `default.nix` defines all development dependencies for the project.
 
-If you want to run the Discord bot, you will need to enable it and provide a Discord bot token as flags in the server main file.
+If you want to run the Discord bot, you will need to enable it and provide a Discord bot token as flags in the server main file. For dev testing, you will want to use a different Discord bot than the one used in production, joined to your test Discord servers.
+
+Go flags can be provided via environment variables and `.env` files using `joho/godotenv`.
 
 ```
-$ make run
+$ make run-local-server
+$ make run-local-bot
 ```
 
 ### Development

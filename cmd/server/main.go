@@ -108,36 +108,42 @@ func main() {
 
 	// Discord bot
 	if *runDiscord {
-		go func() {
-			defer wg.Done()
-			botLogger := log.With(logger, "component", "discord-bot")
-			netClient := &http.Client{
-				Timeout: time.Second * 5,
-				Transport: &http.Transport{
-					Dial: (&net.Dialer{
-						Timeout: 5 * time.Second,
-					}).Dial,
-					TLSHandshakeTimeout: 5 * time.Second,
-				},
-			}
-			client := bettorv1alphaconnect.NewBettorServiceClient(netClient, fmt.Sprintf("http://localhost:%d", *port))
-			opts := []discord.Arg{discord.WithToken(*discordToken), discord.WithBettorClient(client), discord.WithLogger(botLogger)}
-			if *cleanUpDiscordCommands {
-				opts = append(opts, discord.WithCleanUp())
-			}
-			bot, err := discord.New(ctx, opts...)
-			if err != nil {
-				botLogger.Log("msg", "error creating discord bot", "err", err)
-				cancelFn()
-				return
-			}
-			botLogger.Log("msg", "starting discord bot", "err", err)
-			if err := bot.Run(); err != nil {
-				botLogger.Log("msg", "discord bot run exited")
-				cancelFn()
-				return
-			}
-		}()
+		if *discordToken == "" {
+			logger.Log("msg", "if runDiscord, discordToken is required")
+			cancelFn()
+			wg.Done()
+		} else {
+			go func() {
+				defer wg.Done()
+				botLogger := log.With(logger, "component", "discord-bot")
+				netClient := &http.Client{
+					Timeout: time.Second * 5,
+					Transport: &http.Transport{
+						Dial: (&net.Dialer{
+							Timeout: 5 * time.Second,
+						}).Dial,
+						TLSHandshakeTimeout: 5 * time.Second,
+					},
+				}
+				client := bettorv1alphaconnect.NewBettorServiceClient(netClient, fmt.Sprintf("http://localhost:%d", *port))
+				opts := []discord.Arg{discord.WithToken(*discordToken), discord.WithBettorClient(client), discord.WithLogger(botLogger)}
+				if *cleanUpDiscordCommands {
+					opts = append(opts, discord.WithCleanUp())
+				}
+				bot, err := discord.New(ctx, opts...)
+				if err != nil {
+					botLogger.Log("msg", "error creating discord bot", "err", err)
+					cancelFn()
+					return
+				}
+				botLogger.Log("msg", "starting discord bot", "err", err)
+				if err := bot.Run(); err != nil {
+					botLogger.Log("msg", "discord bot run exited")
+					cancelFn()
+					return
+				}
+			}()
+		}
 	} else {
 		wg.Done()
 	}
