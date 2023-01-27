@@ -77,7 +77,7 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 			}
 		}
 		resp, err := client.CreateMarket(ctx, &connect.Request[api.CreateMarketRequest]{Msg: &api.CreateMarketRequest{
-			Book: bookName(guildID),
+			Book: guildBookName(guildID),
 			Market: &api.Market{
 				Title:   options["bet"].StringValue(),
 				Creator: bettorUser.GetName(),
@@ -106,7 +106,7 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 
 func getUserOrCreateIfNotExist(ctx context.Context, client bettorClient, guildID, discordUserID string) (bettorUser *api.User, err error) {
 	getUserResp, err := client.GetUserByUsername(ctx, &connect.Request[api.GetUserByUsernameRequest]{Msg: &api.GetUserByUsernameRequest{
-		Book:     bookName(guildID),
+		Book:     guildBookName(guildID),
 		Username: discordUserID,
 	}})
 	if err != nil {
@@ -114,7 +114,7 @@ func getUserOrCreateIfNotExist(ctx context.Context, client bettorClient, guildID
 		if errors.As(err, &connectErr) {
 			if connectErr.Code() == connect.CodeNotFound {
 				createUserResp, err := client.CreateUser(ctx, &connect.Request[api.CreateUserRequest]{Msg: &api.CreateUserRequest{
-					Book: bookName(guildID),
+					Book: guildBookName(guildID),
 					User: &api.User{
 						Username:    discordUserID,
 						Centipoints: defaultNewUserCentipoints,
@@ -132,15 +132,16 @@ func getUserOrCreateIfNotExist(ctx context.Context, client bettorClient, guildID
 	return getUserResp.Msg.GetUser(), nil
 }
 
-func bookName(guildID string) string {
+func guildBookName(guildID string) string {
 	return fmt.Sprintf("books/discord:%s", guildID)
 }
 
 // returns a potentially nonexhaustive list of bettors in a market.
 func getMarketBets(ctx context.Context, client bettorClient, marketName string) ([]*api.Bet, []*api.User, error) {
 	bookID, _ := entity.MarketIDs(marketName)
+	bookName := entity.BookN(bookID)
 	betsResp, err := client.ListBets(ctx, &connect.Request[api.ListBetsRequest]{Msg: &api.ListBetsRequest{
-		Book:     bookName(bookID),
+		Book:     bookName,
 		PageSize: 50,
 		Market:   marketName,
 	}})
@@ -149,17 +150,21 @@ func getMarketBets(ctx context.Context, client bettorClient, marketName string) 
 	}
 	bets := betsResp.Msg.GetBets()
 
-	var userIDs []string //nolint:prealloc
-	for _, bet := range bets {
-		userIDs = append(userIDs, bet.GetUser())
+	var bettors []*api.User
+	if len(bets) != 0 {
+		var userIDs []string //nolint:prealloc
+		for _, bet := range bets {
+			userIDs = append(userIDs, bet.GetUser())
+		}
+		userResp, err := client.ListUsers(ctx, &connect.Request[api.ListUsersRequest]{Msg: &api.ListUsersRequest{
+			Book:     bookName,
+			PageSize: 50,
+			Users:    userIDs,
+		}})
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to list users: %w", err)
+		}
+		bettors = userResp.Msg.GetUsers()
 	}
-	userResp, err := client.ListUsers(ctx, &connect.Request[api.ListUsersRequest]{Msg: &api.ListUsersRequest{
-		Book:     bookName(bookID),
-		PageSize: 50,
-		Users:    userIDs,
-	}})
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to list users: %w", err)
-	}
-	return bets, userResp.Msg.GetUsers(), nil
+	return bets, bettors, nil
 }

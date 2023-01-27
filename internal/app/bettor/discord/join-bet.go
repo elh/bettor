@@ -61,7 +61,7 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 			bettorUserN := bettorUser.GetName()
 
 			if _, err := client.CreateBet(ctx, &connect.Request[api.CreateBetRequest]{Msg: &api.CreateBetRequest{
-				Book: bookName(guildID),
+				Book: guildBookName(guildID),
 				Bet: &api.Bet{
 					User:        bettorUserN,
 					Market:      options["bet"].StringValue(),
@@ -104,7 +104,7 @@ func JoinBet(ctx context.Context, client bettorClient) Handler {
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
 			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{
-				Book:     bookName(guildID),
+				Book:     guildBookName(guildID),
 				Status:   api.Market_STATUS_OPEN,
 				PageSize: 25,
 			}})

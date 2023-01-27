@@ -29,28 +29,29 @@ func formatMarket(market *api.Market, creator *api.User, bets []*api.Bet, bettor
 		if outcome.GetCentipoints() > 0 && totalCentipoints != outcome.GetCentipoints() {
 			margs = append(margs, outcome.GetTitle(), (float32(outcome.GetCentipoints()) / 100), float32(totalCentipoints)/float32(outcome.GetCentipoints()))
 			msgformat += "- **%s** (Points: **%v**, Odds: **1:%.3f**)"
-
-			outcomeBettors := map[string]bool{} // user ids
-			for _, bet := range bets {
-				if bet.GetOutcome() != outcome.GetName() {
-					continue
-				}
-				for _, bettor := range bettors {
-					if bettor.GetName() != bet.GetUser() {
-						continue
-					}
-					if outcomeBettors[bettor.GetName()] {
-						continue
-					}
-					outcomeBettors[bettor.GetName()] = true
-					margs = append(margs, bettor.GetUsername())
-					msgformat += " <@!%s>"
-				}
-			}
 		} else {
 			margs = append(margs, outcome.GetTitle(), float32(outcome.GetCentipoints())/100)
 			msgformat += "- **%s** (Points: **%v**, Odds: **-**)"
 		}
+
+		outcomeBettors := map[string]bool{} // user resource names
+		for _, bet := range bets {
+			if bet.GetOutcome() != outcome.GetName() {
+				continue
+			}
+			for _, bettor := range bettors {
+				if bettor.GetName() != bet.GetUser() {
+					continue
+				}
+				if outcomeBettors[bettor.GetName()] {
+					continue
+				}
+				outcomeBettors[bettor.GetName()] = true
+				margs = append(margs, bettor.GetUsername())
+				msgformat += " <@!%s>"
+			}
+		}
+
 		if market.GetPool().GetWinner() != "" && outcome.GetName() == market.GetPool().GetWinner() {
 			msgformat += " ✅ "
 		}

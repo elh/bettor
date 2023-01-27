@@ -4,8 +4,8 @@
 run-local-server:
 	@go run cmd/server/main.go
 
-run-local-bot:
-	@go run cmd/server/main.go -runDiscord -cleanUpDiscordCommands
+run-local-bot: # does not clean up Discord commands so it can shutdown faster
+	@go run cmd/server/main.go -runDiscord -cleanUpDiscordCommands=false
 
 test:
 	@go test -race -covermode=atomic -coverprofile=coverage.out ./...
