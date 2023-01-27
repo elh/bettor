@@ -505,10 +505,10 @@ func (m *Pool) validate(all bool) error {
 
 	var errors []error
 
-	if len(m.GetOutcomes()) < 2 {
+	if l := len(m.GetOutcomes()); l < 2 || l > 99 {
 		err := PoolValidationError{
 			field:  "Outcomes",
-			reason: "value must contain at least 2 item(s)",
+			reason: "value must contain between 2 and 99 items, inclusive",
 		}
 		if !all {
 			return err
@@ -664,7 +664,7 @@ func (m *Outcome) validate(all bool) error {
 	if !_Outcome_Name_Pattern.MatchString(m.GetName()) {
 		err := OutcomeValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^books/[^/]{1,36}/markets/[^/]{36}/outcomes/[^/]$\"",
+			reason: "value does not match regex pattern \"^books/[^/]{1,36}/markets/[^/]{36}/outcomes/[^/]{1,2}$\"",
 		}
 		if !all {
 			return err
@@ -762,7 +762,7 @@ var _ interface {
 	ErrorName() string
 } = OutcomeValidationError{}
 
-var _Outcome_Name_Pattern = regexp.MustCompile("^books/[^/]{1,36}/markets/[^/]{36}/outcomes/[^/]$")
+var _Outcome_Name_Pattern = regexp.MustCompile("^books/[^/]{1,36}/markets/[^/]{36}/outcomes/[^/]{1,2}$")
 
 // Validate checks the field values on Bet with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error

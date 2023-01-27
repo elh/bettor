@@ -18,6 +18,12 @@ const (
 var (
 	one = 1
 
+	// initialized in init(). n = 10.
+	startBetCommandOutcomeKeys []string
+	startBetCommand            *discordgo.ApplicationCommand
+)
+
+func init() {
 	startBetCommand = &discordgo.ApplicationCommand{
 		Name:        "start-bet",
 		Description: "Start a new bet. At least 2 outcome options are required",
@@ -30,53 +36,23 @@ var (
 				MinLength:   &one,
 				MaxLength:   1024,
 			},
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "outcome1",
-				Description: "Outcome 1",
-				Required:    true,
-				MinLength:   &one,
-				MaxLength:   1024,
-			},
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "outcome2",
-				Description: "Outcome 2",
-				Required:    true,
-				MinLength:   &one,
-				MaxLength:   1024,
-			},
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "outcome3",
-				Description: "Outcome 3",
-				MinLength:   &one,
-				MaxLength:   1024,
-			},
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "outcome4",
-				Description: "Outcome 4",
-				MinLength:   &one,
-				MaxLength:   1024,
-			},
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "outcome5",
-				Description: "Outcome 5",
-				MinLength:   &one,
-				MaxLength:   1024,
-			},
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "outcome6",
-				Description: "Outcome 6",
-				MinLength:   &one,
-				MaxLength:   1024,
-			},
 		},
 	}
-)
+
+	for i := 1; i <= 10; i++ {
+		key := fmt.Sprintf("outcome%d", i)
+		desc := fmt.Sprintf("Outcome %d", i)
+		startBetCommandOutcomeKeys = append(startBetCommandOutcomeKeys, key)
+		startBetCommand.Options = append(startBetCommand.Options, &discordgo.ApplicationCommandOption{
+			Type:        discordgo.ApplicationCommandOptionString,
+			Name:        key,
+			Description: desc,
+			Required:    true,
+			MinLength:   &one,
+			MaxLength:   1024,
+		})
+	}
+}
 
 // StartBet is the handler for the /start-bet command.
 func StartBet(ctx context.Context, client bettorClient) Handler {
@@ -92,10 +68,8 @@ func StartBet(ctx context.Context, client bettorClient) Handler {
 			return nil, CErr("Failed to get or create user", err)
 		}
 
-		outcomeKeys := []string{"outcome1", "outcome2", "outcome3", "outcome4", "outcome5", "outcome6"}
-
 		var outcomes []*api.Outcome
-		for _, k := range outcomeKeys {
+		for _, k := range startBetCommandOutcomeKeys {
 			if option, ok := options[k]; ok {
 				outcomes = append(outcomes, &api.Outcome{
 					Title: option.StringValue(),

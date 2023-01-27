@@ -57,7 +57,10 @@ message Market {
 
 // Pool or parimutuel betting market.
 message Pool {
-  repeated Outcome outcomes = 1 [(validate.rules).repeated.min_items = 2];
+  repeated Outcome outcomes = 1 [(validate.rules).repeated = {
+    min_items: 2,
+    max_items: 99
+  }];
   string winner = 2;
 }
 
@@ -66,7 +69,7 @@ message Outcome {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 1024,
-    pattern: "^books/[^/]{1,36}/markets/[^/]{36}/outcomes/[^/]$"
+    pattern: "^books/[^/]{1,36}/markets/[^/]{36}/outcomes/[^/]{1,2}$"
   }];
   string title = 2 [(validate.rules).string = {
     min_len: 1,
