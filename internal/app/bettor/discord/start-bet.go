@@ -47,7 +47,7 @@ func init() {
 			Type:        discordgo.ApplicationCommandOptionString,
 			Name:        key,
 			Description: desc,
-			Required:    true,
+			Required:    i <= 2,
 			MinLength:   &one,
 			MaxLength:   1024,
 		})
