@@ -37,6 +37,12 @@ func TestCreateMarket(t *testing.T) {
 		Username:    "rusty",
 		Centipoints: 100,
 	}
+	var tooManyOutcomes []*api.Outcome
+	for i := 0; i < 100; i++ {
+		tooManyOutcomes = append(tooManyOutcomes, &api.Outcome{
+			Title: fmt.Sprintf("Outcome %d", i),
+		})
+	}
 	testCases := []struct {
 		desc            string
 		existingMarkets []*api.Market
@@ -146,6 +152,20 @@ func TestCreateMarket(t *testing.T) {
 						Outcomes: []*api.Outcome{
 							{Title: "Yes"},
 						},
+					},
+				},
+			},
+			expectErr: true,
+		},
+		{
+			desc: "fails if pool has too many outcomes",
+			book: entity.BookN("guild:A"),
+			market: &api.Market{
+				Title:   "Will I PB?",
+				Creator: user.GetName(),
+				Type: &api.Market_Pool{
+					Pool: &api.Pool{
+						Outcomes: tooManyOutcomes,
 					},
 				},
 			},
@@ -911,7 +931,6 @@ func TestCancelMarket(t *testing.T) {
 			require.Nil(t, err)
 			out, err := s.CancelMarket(context.Background(), connect.NewRequest(&api.CancelMarketRequest{Name: tC.market}))
 			if tC.expectErr {
-				fmt.Println(err)
 				require.NotNil(t, err)
 				return
 			}
