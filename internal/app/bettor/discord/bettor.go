@@ -27,7 +27,7 @@ func GetBettor(ctx context.Context, client bettorClient) Handler {
 		}
 
 		resp, err := client.ListBets(ctx, &connect.Request[api.ListBetsRequest]{Msg: &api.ListBetsRequest{
-			Book:           bookName(guildID),
+			Book:           guildBookName(guildID),
 			User:           bettorUser.GetName(),
 			ExcludeSettled: true,
 		}})

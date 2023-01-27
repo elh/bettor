@@ -68,7 +68,7 @@ func CancelBet(ctx context.Context, client bettorClient) Handler {
 			}
 
 			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{
-				Book:     bookName(guildID),
+				Book:     guildBookName(guildID),
 				Status:   api.Market_STATUS_BETS_LOCKED,
 				PageSize: 25,
 			}})

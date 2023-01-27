@@ -57,7 +57,7 @@ func GetBet(ctx context.Context, client bettorClient) Handler {
 			return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 		case discordgo.InteractionApplicationCommandAutocomplete:
 			var choices []*discordgo.ApplicationCommandOptionChoice
-			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{Book: bookName(guildID), PageSize: 25}})
+			resp, err := client.ListMarkets(ctx, &connect.Request[api.ListMarketsRequest]{Msg: &api.ListMarketsRequest{Book: guildBookName(guildID), PageSize: 25}})
 			if err != nil {
 				return nil, CErr("Failed to lookup bets", err)
 			}
