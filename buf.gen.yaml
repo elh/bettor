@@ -6,8 +6,11 @@ plugins:
   - plugin: connect-go
     out: api
     opt: paths=source_relative
+  - plugin: doc                 # default html output
+    out: docs
   - plugin: doc
     out: docs
+    opt: markdown,bettor.md     # markdown output
   - plugin: validate
     out: api
     opt:
