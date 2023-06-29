@@ -116,6 +116,18 @@ func TestGetUser(t *testing.T) {
 		Username:    "rusty",
 		Centipoints: 100,
 	}
+	userWithUnsettled := &api.User{
+		Name:        entity.UserN("guild:1", uuid.NewString()),
+		Username:    "linus",
+		Centipoints: 100,
+	}
+	unsettledBet := &api.Bet{
+		Name:        entity.BetN("guild:1", "b"),
+		User:        userWithUnsettled.Name,
+		Centipoints: 200,
+	}
+	hydratedUserWithUnsettled := proto.Clone(userWithUnsettled).(*api.User)
+	hydratedUserWithUnsettled.UnsettledCentipoints = unsettledBet.Centipoints
 	testCases := []struct {
 		desc      string
 		user      string
@@ -126,6 +138,11 @@ func TestGetUser(t *testing.T) {
 			desc:     "basic case",
 			user:     user.GetName(),
 			expected: user,
+		},
+		{
+			desc:     "hydrate unsettled points",
+			user:     userWithUnsettled.GetName(),
+			expected: hydratedUserWithUnsettled,
 		},
 		{
 			desc:      "fails if user does not exist",
@@ -141,7 +158,7 @@ func TestGetUser(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}}))
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user, userWithUnsettled}, Bets: []*api.Bet{unsettledBet}}))
 			require.Nil(t, err)
 			out, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{Name: tC.user}))
 			if tC.expectErr {
@@ -154,6 +171,7 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
+// TODO: add test for unsettled
 func TestGetUserByUsername(t *testing.T) {
 	user := &api.User{
 		Name:        entity.UserN("guild:1", uuid.NewString()),
@@ -202,6 +220,7 @@ func TestGetUserByUsername(t *testing.T) {
 	}
 }
 
+// TODO: add test for unsettled
 func TestListUsers(t *testing.T) {
 	// tests pagination until all users are returned
 	// alphabetically ordered ids

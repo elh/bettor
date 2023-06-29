@@ -93,7 +93,7 @@ func (r *Repo) GetUser(_ context.Context, name string) (*api.User, error) {
 		if u.GetName() == name {
 			u, err := r.hydrateUser(u)
 			if err != nil {
-				return nil, connect.NewError(connect.CodeInternal, errors.New("failed to compute unsettled points"))
+				return nil, connect.NewError(connect.CodeInternal, err)
 			}
 			return u, nil
 		}
@@ -111,7 +111,7 @@ func (r *Repo) GetUserByUsername(_ context.Context, book, username string) (*api
 		if uBookID == bookID && u.Username == username {
 			u, err := r.hydrateUser(u)
 			if err != nil {
-				return nil, connect.NewError(connect.CodeInternal, errors.New("failed to compute unsettled points"))
+				return nil, connect.NewError(connect.CodeInternal, err)
 			}
 			return u, nil
 		}
