@@ -3,6 +3,7 @@ package mem
 import (
 	"context"
 	"errors"
+	"sort"
 	"sync"
 
 	"github.com/bufbuild/connect-go" // too lazy to isolate errors. repo pkgs will return connect errors
@@ -39,6 +40,9 @@ func (r *Repo) CreateUser(_ context.Context, user *api.User) error {
 		}
 	}
 	r.Users = append(r.Users, user)
+	sort.SliceStable(r.Users, func(i, j int) bool {
+		return r.Users[i].Name < r.Users[j].Name
+	})
 	return nil
 }
 
@@ -126,6 +130,9 @@ func (r *Repo) CreateMarket(_ context.Context, market *api.Market) error {
 		}
 	}
 	r.Markets = append(r.Markets, market)
+	sort.SliceStable(r.Markets, func(i, j int) bool {
+		return r.Markets[i].Name < r.Markets[j].Name
+	})
 	return nil
 }
 
@@ -199,6 +206,9 @@ func (r *Repo) CreateBet(_ context.Context, bet *api.Bet) error {
 		}
 	}
 	r.Bets = append(r.Bets, bet)
+	sort.SliceStable(r.Bets, func(i, j int) bool {
+		return r.Bets[i].Name < r.Bets[j].Name
+	})
 	return nil
 }
 
