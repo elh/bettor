@@ -25,6 +25,49 @@ const (
 	BettorServiceName = "bettor.v1alpha.BettorService"
 )
 
+// These constants are the fully-qualified names of the RPCs defined in this package. They're
+// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+//
+// Note that these are different from the fully-qualified method names used by
+// google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
+// reflection-formatted method names, remove the leading slash and convert the remaining slash to a
+// period.
+const (
+	// BettorServiceCreateUserProcedure is the fully-qualified name of the BettorService's CreateUser
+	// RPC.
+	BettorServiceCreateUserProcedure = "/bettor.v1alpha.BettorService/CreateUser"
+	// BettorServiceGetUserProcedure is the fully-qualified name of the BettorService's GetUser RPC.
+	BettorServiceGetUserProcedure = "/bettor.v1alpha.BettorService/GetUser"
+	// BettorServiceGetUserByUsernameProcedure is the fully-qualified name of the BettorService's
+	// GetUserByUsername RPC.
+	BettorServiceGetUserByUsernameProcedure = "/bettor.v1alpha.BettorService/GetUserByUsername"
+	// BettorServiceListUsersProcedure is the fully-qualified name of the BettorService's ListUsers RPC.
+	BettorServiceListUsersProcedure = "/bettor.v1alpha.BettorService/ListUsers"
+	// BettorServiceCreateMarketProcedure is the fully-qualified name of the BettorService's
+	// CreateMarket RPC.
+	BettorServiceCreateMarketProcedure = "/bettor.v1alpha.BettorService/CreateMarket"
+	// BettorServiceGetMarketProcedure is the fully-qualified name of the BettorService's GetMarket RPC.
+	BettorServiceGetMarketProcedure = "/bettor.v1alpha.BettorService/GetMarket"
+	// BettorServiceListMarketsProcedure is the fully-qualified name of the BettorService's ListMarkets
+	// RPC.
+	BettorServiceListMarketsProcedure = "/bettor.v1alpha.BettorService/ListMarkets"
+	// BettorServiceLockMarketProcedure is the fully-qualified name of the BettorService's LockMarket
+	// RPC.
+	BettorServiceLockMarketProcedure = "/bettor.v1alpha.BettorService/LockMarket"
+	// BettorServiceSettleMarketProcedure is the fully-qualified name of the BettorService's
+	// SettleMarket RPC.
+	BettorServiceSettleMarketProcedure = "/bettor.v1alpha.BettorService/SettleMarket"
+	// BettorServiceCancelMarketProcedure is the fully-qualified name of the BettorService's
+	// CancelMarket RPC.
+	BettorServiceCancelMarketProcedure = "/bettor.v1alpha.BettorService/CancelMarket"
+	// BettorServiceCreateBetProcedure is the fully-qualified name of the BettorService's CreateBet RPC.
+	BettorServiceCreateBetProcedure = "/bettor.v1alpha.BettorService/CreateBet"
+	// BettorServiceGetBetProcedure is the fully-qualified name of the BettorService's GetBet RPC.
+	BettorServiceGetBetProcedure = "/bettor.v1alpha.BettorService/GetBet"
+	// BettorServiceListBetsProcedure is the fully-qualified name of the BettorService's ListBets RPC.
+	BettorServiceListBetsProcedure = "/bettor.v1alpha.BettorService/ListBets"
+)
+
 // BettorServiceClient is a client for the bettor.v1alpha.BettorService service.
 type BettorServiceClient interface {
 	// CreateUser creates a new user.
@@ -67,67 +110,67 @@ func NewBettorServiceClient(httpClient connect_go.HTTPClient, baseURL string, op
 	return &bettorServiceClient{
 		createUser: connect_go.NewClient[v1alpha.CreateUserRequest, v1alpha.CreateUserResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/CreateUser",
+			baseURL+BettorServiceCreateUserProcedure,
 			opts...,
 		),
 		getUser: connect_go.NewClient[v1alpha.GetUserRequest, v1alpha.GetUserResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/GetUser",
+			baseURL+BettorServiceGetUserProcedure,
 			opts...,
 		),
 		getUserByUsername: connect_go.NewClient[v1alpha.GetUserByUsernameRequest, v1alpha.GetUserByUsernameResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/GetUserByUsername",
+			baseURL+BettorServiceGetUserByUsernameProcedure,
 			opts...,
 		),
 		listUsers: connect_go.NewClient[v1alpha.ListUsersRequest, v1alpha.ListUsersResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/ListUsers",
+			baseURL+BettorServiceListUsersProcedure,
 			opts...,
 		),
 		createMarket: connect_go.NewClient[v1alpha.CreateMarketRequest, v1alpha.CreateMarketResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/CreateMarket",
+			baseURL+BettorServiceCreateMarketProcedure,
 			opts...,
 		),
 		getMarket: connect_go.NewClient[v1alpha.GetMarketRequest, v1alpha.GetMarketResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/GetMarket",
+			baseURL+BettorServiceGetMarketProcedure,
 			opts...,
 		),
 		listMarkets: connect_go.NewClient[v1alpha.ListMarketsRequest, v1alpha.ListMarketsResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/ListMarkets",
+			baseURL+BettorServiceListMarketsProcedure,
 			opts...,
 		),
 		lockMarket: connect_go.NewClient[v1alpha.LockMarketRequest, v1alpha.LockMarketResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/LockMarket",
+			baseURL+BettorServiceLockMarketProcedure,
 			opts...,
 		),
 		settleMarket: connect_go.NewClient[v1alpha.SettleMarketRequest, v1alpha.SettleMarketResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/SettleMarket",
+			baseURL+BettorServiceSettleMarketProcedure,
 			opts...,
 		),
 		cancelMarket: connect_go.NewClient[v1alpha.CancelMarketRequest, v1alpha.CancelMarketResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/CancelMarket",
+			baseURL+BettorServiceCancelMarketProcedure,
 			opts...,
 		),
 		createBet: connect_go.NewClient[v1alpha.CreateBetRequest, v1alpha.CreateBetResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/CreateBet",
+			baseURL+BettorServiceCreateBetProcedure,
 			opts...,
 		),
 		getBet: connect_go.NewClient[v1alpha.GetBetRequest, v1alpha.GetBetResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/GetBet",
+			baseURL+BettorServiceGetBetProcedure,
 			opts...,
 		),
 		listBets: connect_go.NewClient[v1alpha.ListBetsRequest, v1alpha.ListBetsResponse](
 			httpClient,
-			baseURL+"/bettor.v1alpha.BettorService/ListBets",
+			baseURL+BettorServiceListBetsProcedure,
 			opts...,
 		),
 	}
@@ -252,68 +295,68 @@ type BettorServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewBettorServiceHandler(svc BettorServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
 	mux := http.NewServeMux()
-	mux.Handle("/bettor.v1alpha.BettorService/CreateUser", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/CreateUser",
+	mux.Handle(BettorServiceCreateUserProcedure, connect_go.NewUnaryHandler(
+		BettorServiceCreateUserProcedure,
 		svc.CreateUser,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/GetUser", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/GetUser",
+	mux.Handle(BettorServiceGetUserProcedure, connect_go.NewUnaryHandler(
+		BettorServiceGetUserProcedure,
 		svc.GetUser,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/GetUserByUsername", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/GetUserByUsername",
+	mux.Handle(BettorServiceGetUserByUsernameProcedure, connect_go.NewUnaryHandler(
+		BettorServiceGetUserByUsernameProcedure,
 		svc.GetUserByUsername,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/ListUsers", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/ListUsers",
+	mux.Handle(BettorServiceListUsersProcedure, connect_go.NewUnaryHandler(
+		BettorServiceListUsersProcedure,
 		svc.ListUsers,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/CreateMarket", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/CreateMarket",
+	mux.Handle(BettorServiceCreateMarketProcedure, connect_go.NewUnaryHandler(
+		BettorServiceCreateMarketProcedure,
 		svc.CreateMarket,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/GetMarket", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/GetMarket",
+	mux.Handle(BettorServiceGetMarketProcedure, connect_go.NewUnaryHandler(
+		BettorServiceGetMarketProcedure,
 		svc.GetMarket,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/ListMarkets", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/ListMarkets",
+	mux.Handle(BettorServiceListMarketsProcedure, connect_go.NewUnaryHandler(
+		BettorServiceListMarketsProcedure,
 		svc.ListMarkets,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/LockMarket", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/LockMarket",
+	mux.Handle(BettorServiceLockMarketProcedure, connect_go.NewUnaryHandler(
+		BettorServiceLockMarketProcedure,
 		svc.LockMarket,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/SettleMarket", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/SettleMarket",
+	mux.Handle(BettorServiceSettleMarketProcedure, connect_go.NewUnaryHandler(
+		BettorServiceSettleMarketProcedure,
 		svc.SettleMarket,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/CancelMarket", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/CancelMarket",
+	mux.Handle(BettorServiceCancelMarketProcedure, connect_go.NewUnaryHandler(
+		BettorServiceCancelMarketProcedure,
 		svc.CancelMarket,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/CreateBet", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/CreateBet",
+	mux.Handle(BettorServiceCreateBetProcedure, connect_go.NewUnaryHandler(
+		BettorServiceCreateBetProcedure,
 		svc.CreateBet,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/GetBet", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/GetBet",
+	mux.Handle(BettorServiceGetBetProcedure, connect_go.NewUnaryHandler(
+		BettorServiceGetBetProcedure,
 		svc.GetBet,
 		opts...,
 	))
-	mux.Handle("/bettor.v1alpha.BettorService/ListBets", connect_go.NewUnaryHandler(
-		"/bettor.v1alpha.BettorService/ListBets",
+	mux.Handle(BettorServiceListBetsProcedure, connect_go.NewUnaryHandler(
+		BettorServiceListBetsProcedure,
 		svc.ListBets,
 		opts...,
 	))

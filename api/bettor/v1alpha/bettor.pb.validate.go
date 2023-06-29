@@ -324,7 +324,7 @@ func (m *Market) validate(all bool) error {
 	if _, ok := _Market_Status_NotInLookup[m.GetStatus()]; ok {
 		err := MarketValidationError{
 			field:  "Status",
-			reason: "value must not be in list [0]",
+			reason: "value must not be in list [STATUS_UNSPECIFIED]",
 		}
 		if !all {
 			return err
