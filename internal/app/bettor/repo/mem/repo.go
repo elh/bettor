@@ -24,10 +24,10 @@ type Repo struct {
 	betMtx    sync.RWMutex
 }
 
-// hydrate virtual fields like unsettled_centipoints
-func (r *Repo) hydrateUser(user *api.User) (*api.User, error) {
+// hydrate virtual fields like unsettled_centipoints.
+func (r *Repo) hydrateUser(ctx context.Context, user *api.User) (*api.User, error) {
 	bookID, _ := entity.UserIDs(user.GetName())
-	bets, _, err := r.ListBets(context.Background(), &repo.ListBetsArgs{
+	bets, _, err := r.ListBets(ctx, &repo.ListBetsArgs{
 		Book:           entity.BookN(bookID),
 		User:           user.GetName(),
 		ExcludeSettled: true,
@@ -50,6 +50,8 @@ func (r *Repo) hydrateUser(user *api.User) (*api.User, error) {
 func (r *Repo) CreateUser(_ context.Context, user *api.User) error {
 	r.userMtx.Lock()
 	defer r.userMtx.Unlock()
+
+	user.UnsettledCentipoints = 0 // defensive
 
 	bookID, _ := entity.UserIDs(user.GetName())
 	for _, u := range r.Users {
@@ -86,12 +88,12 @@ func (r *Repo) UpdateUser(_ context.Context, user *api.User) error {
 }
 
 // GetUser gets a user by ID.
-func (r *Repo) GetUser(_ context.Context, name string) (*api.User, error) {
+func (r *Repo) GetUser(ctx context.Context, name string) (*api.User, error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
 	for _, u := range r.Users {
 		if u.GetName() == name {
-			u, err := r.hydrateUser(u)
+			u, err := r.hydrateUser(ctx, u)
 			if err != nil {
 				return nil, connect.NewError(connect.CodeInternal, err)
 			}
@@ -102,14 +104,14 @@ func (r *Repo) GetUser(_ context.Context, name string) (*api.User, error) {
 }
 
 // GetUserByUsername gets a user by username.
-func (r *Repo) GetUserByUsername(_ context.Context, book, username string) (*api.User, error) {
+func (r *Repo) GetUserByUsername(ctx context.Context, book, username string) (*api.User, error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
 	bookID := entity.BooksIDs(book)
 	for _, u := range r.Users {
 		uBookID, _ := entity.UserIDs(u.GetName())
 		if uBookID == bookID && u.Username == username {
-			u, err := r.hydrateUser(u)
+			u, err := r.hydrateUser(ctx, u)
 			if err != nil {
 				return nil, connect.NewError(connect.CodeInternal, err)
 			}
@@ -120,7 +122,7 @@ func (r *Repo) GetUserByUsername(_ context.Context, book, username string) (*api
 }
 
 // ListUsers lists users by filters.
-func (r *Repo) ListUsers(_ context.Context, args *repo.ListUsersArgs) (users []*api.User, hasMore bool, err error) {
+func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users []*api.User, hasMore bool, err error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
 	bookID := entity.BooksIDs(args.Book)
@@ -137,7 +139,7 @@ func (r *Repo) ListUsers(_ context.Context, args *repo.ListUsersArgs) (users []*
 			continue
 		}
 		// hydrate
-		u, err := r.hydrateUser(u)
+		u, err := r.hydrateUser(ctx, u)
 		if err != nil {
 			return nil, false, connect.NewError(connect.CodeInternal, errors.New("failed to compute unsettled points"))
 		}

@@ -6,6 +6,8 @@ import (
 	api "github.com/elh/bettor/api/bettor/v1alpha"
 )
 
+// NOTE: same models E2E from API to repo out of laziness
+
 // Repo is a persistence repository.
 type Repo interface {
 	CreateUser(ctx context.Context, user *api.User) error
@@ -26,12 +28,9 @@ type Repo interface {
 // ListUsersArgs are the arguments for listing users.
 type ListUsersArgs struct {
 	Book            string
-	GreaterThanName string // only supported if OrderBy=name
+	GreaterThanName string
 	Users           []string
 	Limit           int
-	// TODO: implement
-	// "name" (asc) or "total_centipoints" (desc). defaults to "name"
-	OrderBy string
 }
 
 // ListMarketsArgs are the arguments for listing markets.

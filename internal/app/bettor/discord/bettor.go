@@ -3,9 +3,7 @@ package discord
 import (
 	"context"
 
-	"github.com/bufbuild/connect-go"
 	"github.com/bwmarrin/discordgo"
-	api "github.com/elh/bettor/api/bettor/v1alpha"
 )
 
 var getBettorCommand = &discordgo.ApplicationCommand{
@@ -26,20 +24,7 @@ func GetBettor(ctx context.Context, client bettorClient) Handler {
 			return nil, CErr("Failed to get or create new user", err)
 		}
 
-		resp, err := client.ListBets(ctx, &connect.Request[api.ListBetsRequest]{Msg: &api.ListBetsRequest{
-			Book:           guildBookName(guildID),
-			User:           bettorUser.GetName(),
-			ExcludeSettled: true,
-		}})
-		if err != nil {
-			return nil, CErr("Failed to list bets", err)
-		}
-		var unsettledCentipoints uint64
-		for _, b := range resp.Msg.GetBets() {
-			unsettledCentipoints += b.GetCentipoints()
-		}
-
-		msgformat, margs := formatUser(bettorUser, unsettledCentipoints)
+		msgformat, margs := formatUser(bettorUser, bettorUser.UnsettledCentipoints)
 		msgformat = "🎲 👤\n\n" + msgformat
 		return &discordgo.InteractionResponseData{Content: localized.Sprintf(msgformat, margs...)}, nil
 	}
