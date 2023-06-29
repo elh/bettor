@@ -24,7 +24,7 @@ type Repo struct {
 }
 
 // CreateUser creates a new user.
-func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
+func (r *Repo) CreateUser(_ context.Context, user *api.User) error {
 	r.userMtx.Lock()
 	defer r.userMtx.Unlock()
 
@@ -43,7 +43,7 @@ func (r *Repo) CreateUser(ctx context.Context, user *api.User) error {
 }
 
 // UpdateUser updates a user.
-func (r *Repo) UpdateUser(ctx context.Context, user *api.User) error {
+func (r *Repo) UpdateUser(_ context.Context, user *api.User) error {
 	r.userMtx.Lock()
 	defer r.userMtx.Unlock()
 	var found bool
@@ -63,7 +63,7 @@ func (r *Repo) UpdateUser(ctx context.Context, user *api.User) error {
 }
 
 // GetUser gets a user by ID.
-func (r *Repo) GetUser(ctx context.Context, name string) (*api.User, error) {
+func (r *Repo) GetUser(_ context.Context, name string) (*api.User, error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
 	for _, u := range r.Users {
@@ -75,7 +75,7 @@ func (r *Repo) GetUser(ctx context.Context, name string) (*api.User, error) {
 }
 
 // GetUserByUsername gets a user by username.
-func (r *Repo) GetUserByUsername(ctx context.Context, book, username string) (*api.User, error) {
+func (r *Repo) GetUserByUsername(_ context.Context, book, username string) (*api.User, error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
 	bookID := entity.BooksIDs(book)
@@ -89,7 +89,7 @@ func (r *Repo) GetUserByUsername(ctx context.Context, book, username string) (*a
 }
 
 // ListUsers lists users by filters.
-func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users []*api.User, hasMore bool, err error) {
+func (r *Repo) ListUsers(_ context.Context, args *repo.ListUsersArgs) (users []*api.User, hasMore bool, err error) {
 	r.userMtx.RLock()
 	defer r.userMtx.RUnlock()
 	bookID := entity.BooksIDs(args.Book)
@@ -117,7 +117,7 @@ func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users [
 }
 
 // CreateMarket creates a new market.
-func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
+func (r *Repo) CreateMarket(_ context.Context, market *api.Market) error {
 	r.marketMtx.Lock()
 	defer r.marketMtx.Unlock()
 	for _, u := range r.Users {
@@ -130,7 +130,7 @@ func (r *Repo) CreateMarket(ctx context.Context, market *api.Market) error {
 }
 
 // UpdateMarket updates a market.
-func (r *Repo) UpdateMarket(ctx context.Context, market *api.Market) error {
+func (r *Repo) UpdateMarket(_ context.Context, market *api.Market) error {
 	r.marketMtx.Lock()
 	defer r.marketMtx.Unlock()
 	var found bool
@@ -150,7 +150,7 @@ func (r *Repo) UpdateMarket(ctx context.Context, market *api.Market) error {
 }
 
 // GetMarket gets a market by ID.
-func (r *Repo) GetMarket(ctx context.Context, name string) (*api.Market, error) {
+func (r *Repo) GetMarket(_ context.Context, name string) (*api.Market, error) {
 	r.marketMtx.RLock()
 	defer r.marketMtx.RUnlock()
 	for _, m := range r.Markets {
@@ -162,7 +162,7 @@ func (r *Repo) GetMarket(ctx context.Context, name string) (*api.Market, error) 
 }
 
 // ListMarkets lists markets by filters.
-func (r *Repo) ListMarkets(ctx context.Context, args *repo.ListMarketsArgs) (markets []*api.Market, hasMore bool, err error) {
+func (r *Repo) ListMarkets(_ context.Context, args *repo.ListMarketsArgs) (markets []*api.Market, hasMore bool, err error) {
 	r.marketMtx.RLock()
 	defer r.marketMtx.RUnlock()
 	bookID := entity.BooksIDs(args.Book)
@@ -190,7 +190,7 @@ func (r *Repo) ListMarkets(ctx context.Context, args *repo.ListMarketsArgs) (mar
 }
 
 // CreateBet creates a new bet.
-func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
+func (r *Repo) CreateBet(_ context.Context, bet *api.Bet) error {
 	r.betMtx.Lock()
 	defer r.betMtx.Unlock()
 	for _, u := range r.Users {
@@ -203,7 +203,7 @@ func (r *Repo) CreateBet(ctx context.Context, bet *api.Bet) error {
 }
 
 // UpdateBet updates a bet.
-func (r *Repo) UpdateBet(ctx context.Context, bet *api.Bet) error {
+func (r *Repo) UpdateBet(_ context.Context, bet *api.Bet) error {
 	r.betMtx.Lock()
 	defer r.betMtx.Unlock()
 	var found bool
@@ -223,7 +223,7 @@ func (r *Repo) UpdateBet(ctx context.Context, bet *api.Bet) error {
 }
 
 // GetBet gets a bet by ID.
-func (r *Repo) GetBet(ctx context.Context, name string) (*api.Bet, error) {
+func (r *Repo) GetBet(_ context.Context, name string) (*api.Bet, error) {
 	r.betMtx.RLock()
 	defer r.betMtx.RUnlock()
 	for _, b := range r.Bets {
@@ -235,7 +235,7 @@ func (r *Repo) GetBet(ctx context.Context, name string) (*api.Bet, error) {
 }
 
 // ListBets lists bets by filters.
-func (r *Repo) ListBets(ctx context.Context, args *repo.ListBetsArgs) (bets []*api.Bet, hasMore bool, err error) {
+func (r *Repo) ListBets(_ context.Context, args *repo.ListBetsArgs) (bets []*api.Bet, hasMore bool, err error) {
 	r.betMtx.RLock()
 	defer r.betMtx.RUnlock()
 	bookID := entity.BooksIDs(args.Book)

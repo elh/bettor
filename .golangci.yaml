@@ -20,7 +20,9 @@ linters:
     - godox
     - nestif
     - maintidx
+    - depguard
 issues:
   exclude-rules:
     - linters: [errcheck]
       text: "Error return value of `(.*Log)` is not checked"
+  max-same-issues: 25
