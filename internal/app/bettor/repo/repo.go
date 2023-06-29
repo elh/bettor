@@ -26,9 +26,12 @@ type Repo interface {
 // ListUsersArgs are the arguments for listing users.
 type ListUsersArgs struct {
 	Book            string
-	GreaterThanName string
+	GreaterThanName string // only supported if OrderBy=name
 	Users           []string
 	Limit           int
+	// TODO: implement
+	// "name" (asc) or "total_centipoints" (desc). defaults to "name"
+	OrderBy string
 }
 
 // ListMarketsArgs are the arguments for listing markets.

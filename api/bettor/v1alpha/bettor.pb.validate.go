@@ -124,6 +124,8 @@ func (m *User) validate(all bool) error {
 
 	// no validation rules for Centipoints
 
+	// no validation rules for UnsettledCentipoints
+
 	if len(errors) > 0 {
 		return UserMultiError(errors)
 	}

@@ -551,6 +551,7 @@ User information.
 | updated_at | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 | username | [string](#string) |  |  |
 | centipoints | [uint64](#uint64) |  |  |
+| unsettled_centipoints | [uint64](#uint64) |  | virtual field hydrated on read |
 
 
 

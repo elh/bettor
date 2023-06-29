@@ -9,6 +9,7 @@ import (
 	api "github.com/elh/bettor/api/bettor/v1alpha"
 	"github.com/elh/bettor/internal/app/bettor/entity"
 	"github.com/elh/bettor/internal/app/bettor/repo"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ repo.Repo = (*Repo)(nil)
@@ -21,6 +22,28 @@ type Repo struct {
 	userMtx   sync.RWMutex
 	marketMtx sync.RWMutex
 	betMtx    sync.RWMutex
+}
+
+// hydrate virtual fields like unsettled_centipoints
+func (r *Repo) hydrateUser(user *api.User) (*api.User, error) {
+	bookID, _ := entity.UserIDs(user.GetName())
+	bets, _, err := r.ListBets(context.Background(), &repo.ListBetsArgs{
+		Book:           entity.BookN(bookID),
+		User:           user.GetName(),
+		ExcludeSettled: true,
+		Limit:          1000, // no pagination here
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var unsettledCentipoints uint64
+	for _, b := range bets {
+		unsettledCentipoints += b.GetCentipoints()
+	}
+	userCopy := proto.Clone(user).(*api.User)
+	userCopy.UnsettledCentipoints = unsettledCentipoints
+	return userCopy, nil
 }
 
 // CreateUser creates a new user.
@@ -68,6 +91,10 @@ func (r *Repo) GetUser(_ context.Context, name string) (*api.User, error) {
 	defer r.userMtx.RUnlock()
 	for _, u := range r.Users {
 		if u.GetName() == name {
+			u, err := r.hydrateUser(u)
+			if err != nil {
+				return nil, connect.NewError(connect.CodeInternal, errors.New("failed to compute unsettled points"))
+			}
 			return u, nil
 		}
 	}
@@ -82,6 +109,10 @@ func (r *Repo) GetUserByUsername(_ context.Context, book, username string) (*api
 	for _, u := range r.Users {
 		uBookID, _ := entity.UserIDs(u.GetName())
 		if uBookID == bookID && u.Username == username {
+			u, err := r.hydrateUser(u)
+			if err != nil {
+				return nil, connect.NewError(connect.CodeInternal, errors.New("failed to compute unsettled points"))
+			}
 			return u, nil
 		}
 	}
@@ -105,6 +136,12 @@ func (r *Repo) ListUsers(_ context.Context, args *repo.ListUsersArgs) (users []*
 		if len(args.Users) > 0 && !containsStr(args.Users, u.GetName()) {
 			continue
 		}
+		// hydrate
+		u, err := r.hydrateUser(u)
+		if err != nil {
+			return nil, false, connect.NewError(connect.CodeInternal, errors.New("failed to compute unsettled points"))
+		}
+
 		out = append(out, u)
 		if len(out) >= args.Limit+1 {
 			break

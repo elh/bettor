@@ -20,6 +20,7 @@ message User {
     pattern: "^[a-zA-Z0-9_]+$"
   }];
   uint64 centipoints = 5;
+  uint64 unsettled_centipoints = 6; // virtual field hydrated on read
 }
 
 // A betting market.
