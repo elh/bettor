@@ -131,7 +131,33 @@ func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users [
 	defer r.userMtx.RUnlock()
 	bookID := entity.BooksIDs(args.Book)
 	var out []*api.User //nolint:prealloc
-	for _, u := range r.Users {
+
+	var orderedUsers []*api.User
+	switch args.OrderBy {
+	case "", "name":
+		orderedUsers = r.Users
+	case "total_centipoints":
+		if args.GreaterThanName != "" {
+			return nil, false, connect.NewError(connect.CodeInvalidArgument, errors.New("cannot use GreaterThanName with total_centipoints order"))
+		}
+
+		var hydratedUsers []*api.User
+		for _, u := range r.Users {
+			u, err := r.hydrateUser(ctx, u)
+			if err != nil {
+				return nil, false, connect.NewError(connect.CodeInternal, err)
+			}
+			hydratedUsers = append(hydratedUsers, u)
+		}
+		sort.SliceStable(hydratedUsers, func(i, j int) bool {
+			return hydratedUsers[i].Centipoints+hydratedUsers[i].UnsettledCentipoints < hydratedUsers[j].Centipoints+hydratedUsers[j].UnsettledCentipoints
+		})
+		orderedUsers = hydratedUsers
+	default:
+		return nil, false, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid order by"))
+	}
+
+	for _, u := range orderedUsers {
 		uBookID, _ := entity.UserIDs(u.GetName())
 		if uBookID != bookID {
 			continue
