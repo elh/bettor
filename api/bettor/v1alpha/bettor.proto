@@ -132,6 +132,14 @@ message ListUsersRequest {
   string page_token = 2;
   string book = 3 [(validate.rules).string.min_len = 1];
   repeated string users = 4;
+  // valid options: "name" asc (default), "total_centipoints" desc
+  string order_by = 5 [(validate.rules).string = {
+    in: [
+      "",
+      "name",
+      "total_centipoints"
+    ]
+  }];
 }
 
 message ListUsersResponse {

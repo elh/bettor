@@ -1808,6 +1808,17 @@ func (m *ListUsersRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if _, ok := _ListUsersRequest_OrderBy_InLookup[m.GetOrderBy()]; !ok {
+		err := ListUsersRequestValidationError{
+			field:  "OrderBy",
+			reason: "value must be in list [ name total_centipoints]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return ListUsersRequestMultiError(errors)
 	}
@@ -1885,6 +1896,12 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListUsersRequestValidationError{}
+
+var _ListUsersRequest_OrderBy_InLookup = map[string]struct{}{
+	"":                  {},
+	"name":              {},
+	"total_centipoints": {},
+}
 
 // Validate checks the field values on ListUsersResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the

@@ -400,6 +400,7 @@ A user&#39;s bet on a betting market.
 | page_token | [string](#string) |  |  |
 | book | [string](#string) |  |  |
 | users | [string](#string) | repeated |  |
+| order_by | [string](#string) |  | valid options: &#34;name&#34; asc (default), &#34;total_centipoints&#34; desc |
 
 
 
