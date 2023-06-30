@@ -150,7 +150,7 @@ func (r *Repo) ListUsers(ctx context.Context, args *repo.ListUsersArgs) (users [
 			hydratedUsers = append(hydratedUsers, u)
 		}
 		sort.SliceStable(hydratedUsers, func(i, j int) bool {
-			return hydratedUsers[i].Centipoints+hydratedUsers[i].UnsettledCentipoints < hydratedUsers[j].Centipoints+hydratedUsers[j].UnsettledCentipoints
+			return hydratedUsers[i].Centipoints+hydratedUsers[i].UnsettledCentipoints > hydratedUsers[j].Centipoints+hydratedUsers[j].UnsettledCentipoints
 		})
 		orderedUsers = hydratedUsers
 	default:

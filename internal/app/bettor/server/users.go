@@ -86,6 +86,7 @@ func (s *Server) GetUserByUsername(ctx context.Context, in *connect.Request[api.
 }
 
 // ListUsers lists users by filters.
+// NOTE: "total_centipoints" cannot be paginated at the moment.
 func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUsersRequest]) (*connect.Response[api.ListUsersResponse], error) {
 	if err := in.Msg.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
@@ -118,7 +119,7 @@ func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUser
 	case "", "name":
 		var hasMore bool
 		var err error
-		users, hasMore, err = s.Repo.ListUsers(ctx, &repo.ListUsersArgs{Book: in.Msg.GetBook(), GreaterThanName: cursor, Users: in.Msg.GetUsers(), Limit: pageSize})
+		users, hasMore, err = s.Repo.ListUsers(ctx, &repo.ListUsersArgs{Book: in.Msg.GetBook(), GreaterThanName: cursor, Users: in.Msg.GetUsers(), Limit: pageSize, OrderBy: in.Msg.GetOrderBy()})
 		if err != nil {
 			return nil, err
 		}
@@ -133,11 +134,16 @@ func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUser
 			}
 		}
 	case "total_centipoints":
+		// NOTE: "total_centipoints" cannot be paginated at the moment.
 		if cursor != "" {
 			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("page token is not supported for order by total centipoints"))
 		}
-		// TODO: implement
-		return nil, connect.NewError(connect.CodeUnimplemented, errors.New("order by total centipoints is not implemented"))
+
+		var err error
+		users, _, err = s.Repo.ListUsers(ctx, &repo.ListUsersArgs{Book: in.Msg.GetBook(), Users: in.Msg.GetUsers(), Limit: pageSize, OrderBy: in.Msg.GetOrderBy()})
+		if err != nil {
+			return nil, err
+		}
 	default:
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid order by"))
 	}
