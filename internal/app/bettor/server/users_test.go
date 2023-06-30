@@ -116,6 +116,24 @@ func TestGetUser(t *testing.T) {
 		Username:    "rusty",
 		Centipoints: 100,
 	}
+	userHydrated := &api.User{
+		Name:        entity.UserN("guild:1", uuid.NewString()),
+		Username:    "linus",
+		Centipoints: 100,
+	}
+	unsettledBet := &api.Bet{
+		Name:        entity.BetN("guild:1", "a"),
+		User:        userHydrated.Name,
+		Centipoints: 200,
+	}
+	unsettledBet2 := &api.Bet{
+		Name:        entity.BetN("guild:1", "b"),
+		User:        userHydrated.Name,
+		Centipoints: 50,
+	}
+	hydratedUserHydrated := proto.Clone(userHydrated).(*api.User)
+	hydratedUserHydrated.UnsettledCentipoints += unsettledBet.Centipoints
+	hydratedUserHydrated.UnsettledCentipoints += unsettledBet2.Centipoints
 	testCases := []struct {
 		desc      string
 		user      string
@@ -126,6 +144,11 @@ func TestGetUser(t *testing.T) {
 			desc:     "basic case",
 			user:     user.GetName(),
 			expected: user,
+		},
+		{
+			desc:     "hydrate unsettled points",
+			user:     userHydrated.GetName(),
+			expected: hydratedUserHydrated,
 		},
 		{
 			desc:      "fails if user does not exist",
@@ -141,7 +164,7 @@ func TestGetUser(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}}))
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user, userHydrated}, Bets: []*api.Bet{unsettledBet, unsettledBet2}}))
 			require.Nil(t, err)
 			out, err := s.GetUser(context.Background(), connect.NewRequest(&api.GetUserRequest{Name: tC.user}))
 			if tC.expectErr {
@@ -160,6 +183,24 @@ func TestGetUserByUsername(t *testing.T) {
 		Username:    "rusty",
 		Centipoints: 100,
 	}
+	userHydrated := &api.User{
+		Name:        entity.UserN("guild:1", uuid.NewString()),
+		Username:    "linus",
+		Centipoints: 100,
+	}
+	unsettledBet := &api.Bet{
+		Name:        entity.BetN("guild:1", "a"),
+		User:        userHydrated.Name,
+		Centipoints: 200,
+	}
+	unsettledBet2 := &api.Bet{
+		Name:        entity.BetN("guild:1", "b"),
+		User:        userHydrated.Name,
+		Centipoints: 50,
+	}
+	hydratedUserHydrated := proto.Clone(userHydrated).(*api.User)
+	hydratedUserHydrated.UnsettledCentipoints += unsettledBet.Centipoints
+	hydratedUserHydrated.UnsettledCentipoints += unsettledBet2.Centipoints
 	testCases := []struct {
 		desc      string
 		book      string
@@ -172,6 +213,12 @@ func TestGetUserByUsername(t *testing.T) {
 			book:     entity.BookN("guild:1"),
 			username: "rusty",
 			expected: user,
+		},
+		{
+			desc:     "hydrate unsettled points",
+			book:     entity.BookN("guild:1"),
+			username: "linus",
+			expected: hydratedUserHydrated,
 		},
 		{
 			desc:      "fails if user does not exist",
@@ -189,7 +236,7 @@ func TestGetUserByUsername(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user}}))
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user, userHydrated}, Bets: []*api.Bet{unsettledBet, unsettledBet2}}))
 			require.Nil(t, err)
 			out, err := s.GetUserByUsername(context.Background(), connect.NewRequest(&api.GetUserByUsernameRequest{Book: tC.book, Username: tC.username}))
 			if tC.expectErr {
@@ -216,11 +263,19 @@ func TestListUsers(t *testing.T) {
 		Username:    "danny",
 		Centipoints: 200,
 	}
+	// has an unsettled bet
 	user3 := &api.User{
 		Name:        entity.UserN(bookID, "c"),
 		Username:    "linus",
 		Centipoints: 300,
 	}
+	unsettledBet := &api.Bet{
+		Name:        entity.BetN(bookID, "a"),
+		User:        user3.Name,
+		Centipoints: 200,
+	}
+	user3Hydrated := proto.Clone(user3).(*api.User)
+	user3Hydrated.UnsettledCentipoints += unsettledBet.Centipoints
 	testCases := []struct {
 		desc          string
 		req           *api.ListUsersRequest
@@ -231,7 +286,7 @@ func TestListUsers(t *testing.T) {
 		{
 			desc:          "basic case",
 			req:           &api.ListUsersRequest{Book: entity.BookN(bookID)},
-			expected:      []*api.User{user1, user2, user3},
+			expected:      []*api.User{user1, user2, user3Hydrated},
 			expectedCalls: 1,
 		},
 		{
@@ -243,25 +298,25 @@ func TestListUsers(t *testing.T) {
 		{
 			desc:          "page size 1",
 			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), PageSize: 1},
-			expected:      []*api.User{user1, user2, user3},
+			expected:      []*api.User{user1, user2, user3Hydrated},
 			expectedCalls: 3,
 		},
 		{
 			desc:          "page size 2",
 			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), PageSize: 2},
-			expected:      []*api.User{user1, user2, user3},
+			expected:      []*api.User{user1, user2, user3Hydrated},
 			expectedCalls: 2,
 		},
 		{
 			desc:          "page size 3",
 			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), PageSize: 3},
-			expected:      []*api.User{user1, user2, user3},
+			expected:      []*api.User{user1, user2, user3Hydrated},
 			expectedCalls: 1,
 		},
 		{
 			desc:          "page size 4",
 			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), PageSize: 4},
-			expected:      []*api.User{user1, user2, user3},
+			expected:      []*api.User{user1, user2, user3Hydrated},
 			expectedCalls: 1,
 		},
 		{
@@ -274,7 +329,7 @@ func TestListUsers(t *testing.T) {
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user1, user2, user3}}))
+			s, err := server.New(server.WithRepo(&mem.Repo{Users: []*api.User{user1, user2, user3}, Bets: []*api.Bet{unsettledBet}}))
 			require.Nil(t, err)
 			var all []*api.User
 			var calls int

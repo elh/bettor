@@ -38,6 +38,7 @@ func (s *Server) CreateUser(ctx context.Context, in *connect.Request[api.CreateU
 	user.Name = entity.UserN(bookID, uuid.NewString())
 	user.CreatedAt = timestamppb.Now()
 	user.UpdatedAt = timestamppb.Now()
+	user.UnsettledCentipoints = 0
 
 	if err := user.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)

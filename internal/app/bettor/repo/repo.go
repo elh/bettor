@@ -6,6 +6,8 @@ import (
 	api "github.com/elh/bettor/api/bettor/v1alpha"
 )
 
+// NOTE: same models E2E from API to repo out of laziness
+
 // Repo is a persistence repository.
 type Repo interface {
 	CreateUser(ctx context.Context, user *api.User) error
