@@ -11,7 +11,7 @@ var getBettorCommand = &discordgo.ApplicationCommand{
 	Description: "Get your bettor stats",
 }
 
-// GetBettor is the handler for the /get-bet command.
+// GetBettor is the handler for the /bettor command.
 func GetBettor(ctx context.Context, client bettorClient) Handler {
 	return func(s *discordgo.Session, event *discordgo.InteractionCreate) (*discordgo.InteractionResponseData, error) {
 		guildID, discordUserID, _, err := commandArgs(event)
