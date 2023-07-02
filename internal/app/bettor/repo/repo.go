@@ -31,6 +31,8 @@ type ListUsersArgs struct {
 	GreaterThanName string
 	Users           []string
 	Limit           int
+	// valid options: "name" asc (default), "total_centipoints" desc
+	OrderBy string
 }
 
 // ListMarketsArgs are the arguments for listing markets.

@@ -86,6 +86,7 @@ func (s *Server) GetUserByUsername(ctx context.Context, in *connect.Request[api.
 }
 
 // ListUsers lists users by filters.
+// NOTE: "total_centipoints" cannot be paginated at the moment.
 func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUsersRequest]) (*connect.Response[api.ListUsersResponse], error) {
 	if err := in.Msg.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
@@ -112,21 +113,41 @@ func (s *Server) ListUsers(ctx context.Context, in *connect.Request[api.ListUser
 		}
 	}
 
-	users, hasMore, err := s.Repo.ListUsers(ctx, &repo.ListUsersArgs{Book: in.Msg.GetBook(), GreaterThanName: cursor, Users: in.Msg.GetUsers(), Limit: pageSize})
-	if err != nil {
-		return nil, err
-	}
-
+	var users []*api.User
 	var nextPageToken string
-	if hasMore {
-		nextPageToken, err = pagination.ToToken(pagination.Pagination{
-			Cursor:      users[len(users)-1].GetName(),
-			ListRequest: in.Msg,
-		})
+	switch in.Msg.GetOrderBy() {
+	case "", "name":
+		var hasMore bool
+		var err error
+		users, hasMore, err = s.Repo.ListUsers(ctx, &repo.ListUsersArgs{Book: in.Msg.GetBook(), GreaterThanName: cursor, Users: in.Msg.GetUsers(), Limit: pageSize, OrderBy: in.Msg.GetOrderBy()})
 		if err != nil {
 			return nil, err
 		}
+
+		if hasMore {
+			nextPageToken, err = pagination.ToToken(pagination.Pagination{
+				Cursor:      users[len(users)-1].GetName(),
+				ListRequest: in.Msg,
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+	case "total_centipoints":
+		// NOTE: "total_centipoints" cannot be paginated at the moment.
+		if cursor != "" {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("page token is not supported for order by total centipoints"))
+		}
+
+		var err error
+		users, _, err = s.Repo.ListUsers(ctx, &repo.ListUsersArgs{Book: in.Msg.GetBook(), Users: in.Msg.GetUsers(), Limit: pageSize, OrderBy: in.Msg.GetOrderBy()})
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid order by"))
 	}
+
 	return connect.NewResponse(&api.ListUsersResponse{
 		Users:         users,
 		NextPageToken: nextPageToken,

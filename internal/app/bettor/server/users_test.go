@@ -267,12 +267,12 @@ func TestListUsers(t *testing.T) {
 	user3 := &api.User{
 		Name:        entity.UserN(bookID, "c"),
 		Username:    "linus",
-		Centipoints: 300,
+		Centipoints: 50,
 	}
 	unsettledBet := &api.Bet{
 		Name:        entity.BetN(bookID, "a"),
 		User:        user3.Name,
-		Centipoints: 200,
+		Centipoints: 100,
 	}
 	user3Hydrated := proto.Clone(user3).(*api.User)
 	user3Hydrated.UnsettledCentipoints += unsettledBet.Centipoints
@@ -324,6 +324,24 @@ func TestListUsers(t *testing.T) {
 			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), Users: []string{user1.Name, user2.Name}},
 			expected:      []*api.User{user1, user2},
 			expectedCalls: 1,
+		},
+		// order by total_centipoints desc
+		{
+			desc:          "order by total_centipoints desc",
+			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), OrderBy: "total_centipoints"},
+			expected:      []*api.User{user2, user3Hydrated, user1},
+			expectedCalls: 1,
+		},
+		{
+			desc:          "order by total_centipoints limit",
+			req:           &api.ListUsersRequest{Book: entity.BookN(bookID), OrderBy: "total_centipoints", PageSize: 2},
+			expected:      []*api.User{user2, user3Hydrated},
+			expectedCalls: 1,
+		},
+		{
+			desc:      "order by invalid",
+			req:       &api.ListUsersRequest{Book: entity.BookN(bookID), OrderBy: "bad"},
+			expectErr: true,
 		},
 	}
 	for _, tC := range testCases {
