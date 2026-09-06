@@ -1,28 +1,92 @@
+version: "2"
 linters:
-  presets:
-    - bugs
-    - comment
-    - complexity
-    # - error
-    - format
-    - import
-    - metalinter
-    - module
-    - performance
-    - sql
-    # - style
-    # - test
-    - unused
+  # Explicit equivalents of the v1 presets; avoid opting into new style rules
+  # as part of the Go toolchain upgrade.
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - contextcheck
+    - dupword
+    - durationcheck
+    - errchkjson
+    - errorlint
+    - exhaustive
+    - fatcontext
+    - gocheckcompilerdirectives
+    - gochecksumtype
+    - gocritic
+    - gocyclo
+    - godot
+    - gomoddirectives
+    - gomodguard
+    - gosec
+    - gosmopolitan
+    - loggercheck
+    - makezero
+    - misspell
+    - musttag
+    - nilerr
+    - nilnesserr
+    - noctx
+    - prealloc
+    - reassign
+    - recvcheck
+    - revive
+    - rowserrcheck
+    - spancheck
+    - sqlclosecheck
+    - unparam
+    - zerologlint
   disable:
-    - funlen
     - cyclop
+    - depguard
+    - funlen
     - gocognit
     - godox
-    - nestif
     - maintidx
-    - depguard
+    - nestif
+  settings:
+    revive:
+      rules:
+        - name: unused-parameter
+          disabled: true
+    staticcheck:
+      checks:
+        - all
+        - '-QF*'
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      # Keep the existing h2c Upgrade support; moving to net/http.Protocols is
+      # a separate transport migration, not required for these security fixes.
+      - linters:
+          - staticcheck
+        text: 'SA1019:.*(http2/h2c|h2c.NewHandler)'
+      - linters:
+          - errcheck
+        text: Error return value of `(.*Log)` is not checked
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  exclude-rules:
-    - linters: [errcheck]
-      text: "Error return value of `(.*Log)` is not checked"
   max-same-issues: 25
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

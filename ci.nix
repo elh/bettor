@@ -4,7 +4,7 @@ with pkgs;
 
 mkShell {
   buildInputs = [
-    go_1_19
+    go_1_26
     # CI dependencies
     golangci-lint
     golint

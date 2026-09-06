@@ -57,6 +57,8 @@ Dependencies are managed using Nix. Optionally if `direnv` is installed, a Nix s
 
 ### Running Locally
 
+Go 1.26 or newer is required. The Docker build uses Go 1.26.8.
+
 Install dependencies using Nix. `default.nix` defines all development dependencies for the project.
 
 If you want to run the Discord bot, you will need to enable it and provide a Discord bot token as flags in the server main file. For dev testing, you will want to use a different Discord bot than the one used in production, joined to your test Discord servers.
