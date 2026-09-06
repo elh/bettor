@@ -119,9 +119,9 @@ func main() {
 				netClient := &http.Client{
 					Timeout: time.Second * 5,
 					Transport: &http.Transport{
-						Dial: (&net.Dialer{
+						DialContext: (&net.Dialer{
 							Timeout: 5 * time.Second,
-						}).Dial,
+						}).DialContext,
 						TLSHandshakeTimeout: 5 * time.Second,
 					},
 				}
