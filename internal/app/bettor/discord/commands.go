@@ -70,7 +70,7 @@ func initCommands(ctx context.Context, client bettorClient, logger log.Logger) m
 				logger := log.With(logger, "command", k, "interaction", event.ID, "user", event.Member.User.ID, "guild", event.GuildID)
 				now := time.Now()
 				respData, err := handlerFn(s, event)
-				durMS := time.Now().Sub(now).Milliseconds()
+				durMS := time.Since(now).Milliseconds()
 				if err != nil {
 					var cErr *CommandError
 					if !errors.As(err, &cErr) {

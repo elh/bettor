@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.19-bullseye as build
+FROM golang:1.26.8-bookworm AS build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-w -s" -o /server c
 
 #################################################################################################
 
-FROM scratch as run
+FROM scratch AS run
 
 WORKDIR /
 

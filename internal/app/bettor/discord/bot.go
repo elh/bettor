@@ -186,7 +186,7 @@ func (b *Bot) guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	// TODO: sendWelcomeMessage. use when we have a better way to only send on first join to guild.
 }
 
-//nolint:deadcode,unused
+//nolint:unused
 func (b *Bot) sendWelcomeMessage(s *discordgo.Session, guild *discordgo.Guild) {
 	var firstChannelID string
 	lowestPosition := math.MaxInt32
